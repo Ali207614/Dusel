@@ -1,5 +1,4 @@
 import styled from "styled-components";
-import colors from "../../assets/style/colors";
 
 const LoginStyle = styled.div`
   .mainContainer {
@@ -20,41 +19,45 @@ const LoginStyle = styled.div`
   .container {
     height: 70%;
     width: 70%;
-    margin:0 auto;
+    margin: 0 auto;
   }
-  .logo{
-    margin-bottom:20px;
+  .logo {
+    margin-bottom: 20px;
   }
-  .logoImg{
+  .logoImg {
     display: block;
     margin-left: auto;
     margin-right: auto;
   }
-  .loginMain{
+  .loginMain {
     width: 510px;
     margin: 0 auto;
   }
-  .loginInput{
+  .loginInput {
     width: 100%;
-    border:1px solid #DFE1E6;
+    border: 1px solid #dfe1e6;
     border-radius: 12px;
-    outline:none;
+    outline: none;
     padding: 20px 16px;
-    margin-top:16px;
-    
+    margin-top: 16px;
+    font-size: 16px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 150%; /* 24px */
+    letter-spacing: 0.32px;
   }
   .loginInput::-webkit-input-placeholder {
-    font-size:16px;
-    font-weight:400;
-    line-height:24px;
-    color:#A4ABB8;
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 24px;
+    color: #a4abb8;
   }
-  .passwordGroup{
-    position:relative;
-    margin-top:16px;
+  .passwordGroup {
+    position: relative;
+    margin-top: 16px;
   }
-  .eye-off{
-    position:absolute;
+  .eye-off {
+    position: absolute;
     right: 12px;
     top: 0;
     bottom: 0;
@@ -62,21 +65,25 @@ const LoginStyle = styled.div`
     width: 22px;
     height: 20px;
   }
-  .loginBtn{
+  .loginBtn {
     width: 100%;
     border-radius: 12px;
-    outline:none;
-    background-color:#F2462F;
-    height:56px;
-    font-size:16px;
-    font-weight:600;
-    line-height:24px;
-    color:white;
-    border:none;
-    margin-top:30px;
+    outline: none;
+    background-color: #f2462f;
+    height: 56px;
+
+    color: white;
+    border: none;
+    margin-top: 30px;
+
+    font-size: 16px;
+    font-style: normal;
+    font-weight: 600;
+    line-height: 150%; /* 24px */
+    letter-spacing: 0.32px;
   }
-  .passwordInput{
-    margin-top:0px
+  .passwordInput {
+    margin-top: 0px;
   }
 `;
 export default LoginStyle;

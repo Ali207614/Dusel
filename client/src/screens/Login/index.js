@@ -2,43 +2,47 @@ import React, { useState, useCallback, useRef } from 'react';
 import LoginStyle from './LoginStyle';
 import { useDispatch, useSelector } from 'react-redux';
 import { main } from '../../store/slices';
-import api from '../../api';
 import { get } from 'lodash';
 import { useNavigate } from 'react-router-dom';
-import Button from '../../components/Button';
 import { ErrorModal } from '../../components/Modal';
 import { useTranslation } from 'react-i18next';
-import { AiFillEyeInvisible, AiFillEye } from 'react-icons/ai';
 import Logo from '../../assets/images/login_logo.svg';
 import colors from '../../assets/style/colors';
 import offEye from '../../assets/images/off_eye.svg';
 import onEye from '../../assets/images/on_eye.svg';
 import axios from 'axios';
+import { ClipLoader } from "react-spinners";
 
+let url = process.env.REACT_APP_API_URL
+let db = process.env.REACT_APP_API_COMPANY_DB
+const override = {
+  // position: "absolute",
+  // left: "50%",
+  // top: "0",
+  // bottom: 0,
+  // margin: 'auto'
+};
 
 const Login = () => {
+
   const { t } = useTranslation();
-  // 👆 bu til o'zgartirish uchun
   const { setMe } = main.actions;
-  // 👆 bu redux ga qiymat olish uhcun
 
   const { info } = useSelector(state => state.main);
-  // 👆 bu redux ga olingan ma'lumotni chaqirish uchun
 
   const loginValue = get(info, 'login', '');
   const passwordValue = get(info, 'password', '');
 
   const dispatch = useDispatch();
-  // 👆 bu reduxga ma'lumotni olib borib beradi
 
   const navigate = useNavigate();
-  // 👆 bu boshqa oynaga o'tish uchun
 
   const [login, setLogin] = useState(loginValue);
   const [password, setPassword] = useState(passwordValue);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isShow, setIsShow] = useState(false);
   const [eye, setEye] = useState(false);
+
+  let [loading, setLoading] = useState(false);
+  let [color, setColor] = useState("#ffffff");
 
   const errorRef = useRef();
 
@@ -52,47 +56,28 @@ const Login = () => {
 
   const loginFn = (e) => {
     e.preventDefault()
-    console.log(login, password)
-    // setIsLoading(true);
-    // axios
-    //   .post(
-    //     'https://ro-food-backend.bis-pro.com/api/login',
-    //     {
-    //       UserName: login,
-    //       Password: password,
-    //       Company: 'ROFOD_TEST',
-    //     },
-    //     {
-    //       withCredentials: true,
-    //     },
-    //   )
-    //   .then(res => {
-    //     axios.defaults.headers.common['Authorization'] = `Bearer ${get(
-    //       res,
-    //       'data.SessionId',
-    //       '',
-    //     )}`;
-    //     getProfile(get(res, 'data.SessionId', ''));
-    //   })
-    //   .catch(err => {
-    //     setIsLoading(false);
-    //     errorRef.current?.open('Ошибка логина или пароля');
-    //   });
-  };
-
-  const getProfile = t => {
-    console.log(t);
+    setLoading(true)
     axios
-      .get('https://ro-food-backend.bis-pro.com/api/userData', {
-        withCredentials: true,
-      })
-      .then(res => {
-        dispatch(setMe(res.data));
+      .post(
+        url + "Login",
+        {
+          UserName: login,
+          Password: password,
+          CompanyDB: db,
+        },
+
+      )
+      .then(({ data }) => {
+        dispatch(setMe({
+          'Cookie': get(data, 'set-cookie', ''),
+          'SessionId': get(data, 'SessionId', '')
+        }));
+        setLoading(false)
+        navigate('/home');
       })
       .catch(err => {
-        errorRef.current?.open('Информация о пользователе не найдена');
-        setIsLoading(false);
-        console.log(err);
+        setLoading(false);
+        errorRef.current?.open(get(err, 'response.data.error.message.value', 'Ошибка логина или пароля'));
       });
   };
 
@@ -114,7 +99,9 @@ const Login = () => {
                   <input onChange={(e) => setPassword(e.target.value)} className='loginInput passwordInput' type={!eye ? "password" : "text"} placeholder='Password' value={password} />
                 </div>
 
-                <button onClick={loginFn} className='loginBtn'>Sign in</button>
+                <button onClick={loginFn} className='loginBtn'>
+                  {loading ? <ClipLoader color={color} loading={loading} cssOverride={override} size={25} /> : ("Sign in")}
+                </button>
               </form>
             </div>
           </div>

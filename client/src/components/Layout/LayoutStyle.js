@@ -7,7 +7,6 @@ const LayoutStyle = styled.div`
   .childrenCard {
     width: 100%;
     min-height: 85vh;
-    background-color: aliceblue;
   }
 `;
 export default LayoutStyle;
