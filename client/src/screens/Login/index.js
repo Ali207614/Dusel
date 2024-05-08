@@ -59,7 +59,7 @@ const Login = () => {
     setLoading(true)
     axios
       .post(
-        url + "Login",
+        url + "/b1s/v1/Login",
         {
           UserName: login,
           Password: password,

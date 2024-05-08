@@ -72,9 +72,9 @@ app.put('/b1s/v1/:path/:path2', proxyFunc);
 app.delete('/b1s/v1/:path/:path2', proxyFunc);
 
 
-app.get('/api/users', async function (req, res) {
+app.get('/api/orders', async function (req, res) {
     try {
-        const ret = await getUser()
+        const ret = await getOrders()
         return res.status(200).send(ret)
     } catch (e) {
         return res.status(400).send({
@@ -83,18 +83,16 @@ app.get('/api/users', async function (req, res) {
     }
 })
 
-function getUser() {
+function getOrders() {
     return new Promise((resolve, reject) => {
         conn.connect(conn_params, function (err) {
-            console.log('err ' + err)
             if (err) {
                 reject(err);
                 conn.disconnect();
                 return;
             }
 
-            let sql = `select * from ${db}.OUSR `
-
+            let sql = `SELECT T0."SlpCode", T1."SlpName", T0."DocDate", T0."DocDueDate", T0."CardCode", T0."CardName", T0."CANCELED", T0."DocStatus", T0."DocCur", T0."DocRate", T0."DocTotal", T0."DocTotalFC" FROM ${db}.ORDR  T0 INNER JOIN ${db}.OSLP T1 ON T0."SlpCode" = T1."SlpCode"  WHERE T0."DocStatus" ='O' and T0."CANCELED"='N'`
             conn.exec(sql, function (err, result) {
                 if (err) {
                     reject(err);
