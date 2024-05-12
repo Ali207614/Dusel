@@ -74,7 +74,7 @@ app.delete('/b1s/v1/:path/:path2', proxyFunc);
 
 app.get('/api/orders', async function (req, res) {
     try {
-        const ret = await getOrders()
+        const ret = await getOrders(req.query)
         return res.status(200).send(ret)
     } catch (e) {
         return res.status(400).send({
@@ -83,7 +83,7 @@ app.get('/api/orders', async function (req, res) {
     }
 })
 
-function getOrders() {
+function getOrders({ offset, limit }) {
     return new Promise((resolve, reject) => {
         conn.connect(conn_params, function (err) {
             if (err) {
@@ -92,7 +92,9 @@ function getOrders() {
                 return;
             }
 
-            let sql = `SELECT T0."SlpCode", T1."SlpName", T0."DocDate", T0."DocDueDate", T0."CardCode", T0."CardName", T0."CANCELED", T0."DocStatus", T0."DocCur", T0."DocRate", T0."DocTotal", T0."DocTotalFC" FROM ${db}.ORDR  T0 INNER JOIN ${db}.OSLP T1 ON T0."SlpCode" = T1."SlpCode"  WHERE T0."DocStatus" ='O' and T0."CANCELED"='N'`
+            let innerSql = `SELECT sum(1) FROM ${db}.ORDR  T0 INNER JOIN ${db}.OSLP T1 ON T0."SlpCode" = T1."SlpCode"  WHERE T0."DocStatus" ='O' and T0."CANCELED"='N'`
+
+            let sql = `SELECT (${innerSql}) as length, T0."DocNum", T0."SlpCode", T1."SlpName", T0."DocDate", T0."DocDueDate", T0."CardCode", T0."CardName", T0."CANCELED", T0."DocStatus", T0."DocCur", T0."DocRate", T0."DocTotal", T0."DocTotalFC" FROM ${db}.ORDR  T0 INNER JOIN ${db}.OSLP T1 ON T0."SlpCode" = T1."SlpCode"  WHERE T0."DocStatus" ='O' and T0."CANCELED"='N' limit ${limit} offset ${offset - 1} `
             conn.exec(sql, function (err, result) {
                 if (err) {
                     reject(err);

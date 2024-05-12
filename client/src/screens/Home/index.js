@@ -15,10 +15,20 @@ import editIcon from '../../assets/images/edit-icon.svg';
 import { get } from 'lodash';
 import formatterCurrency from '../../helpers/currency';
 import moment from 'moment';
+import { FadeLoader } from "react-spinners";
+
 let url = process.env.REACT_APP_API_URL
 
 let limitList = [1, 10, 50, 100, 500, 1000]
 
+const override = {
+  position: "absolute",
+  left: "50%",
+  top: "50%",
+  width: "100px",
+  height: "100px",
+  margin: 'auto'
+};
 
 const Home = () => {
   const { t } = useTranslation();
@@ -26,10 +36,12 @@ const Home = () => {
   const [limit, setLimit] = useState(10);
   const [page, setPage] = useState(1);
   const [activeData, setActiveData] = useState(false);
-  const [allPageLength, setAllPageLength] = useState(1502);
+  const [allPageLength, setAllPageLength] = useState(0);
   const [loading, setLoading] = useState(false)
   const [mainData, setMainData] = useState([])
-
+  const [ts, setTs] = useState(10);
+  const [select, setSelect] = useState([])
+  let [color, setColor] = useState("#3C3F47");
 
   const { getMe } = useSelector(state => state.main);
   const changeLanguage = ln => {
@@ -38,22 +50,25 @@ const Home = () => {
   };
 
   useEffect(() => {
-    getOrders()
+    getOrders({ page, limit })
   }, []);
 
-  const getOrders = (e) => {
+  const getOrders = (pagination) => {
     setLoading(true)
     axios
       .get(
-        url + "/api/orders",
+        url + `/api/orders?offset=${get(pagination, 'page', 1)}&limit=${get(pagination, 'limit', limit)}`,
       )
       .then(({ data }) => {
+        setLoading(false)
         setMainData(get(data, 'value', []))
+        setAllPageLength(get(data, 'value[0].LENGTH', []))
       })
       .catch(err => {
+        setLoading(false)
         console.log(err, ' bu err')
       });
-    setLoading(false)
+
     return;
   };
 
@@ -88,6 +103,9 @@ const Home = () => {
                         setLimit(item);
                         setPage(1);
                         setShowDropdown(false);
+                        setTs(item)
+                        getOrders({ page: 1, limit: item })
+                        setSelect([])
                         return
                       }} className={`dropdown-li ${limit == item ? 'dropdown-active' : ''}`}><a className="dropdown-item" href="#">{item}</a></li>)
                     })
@@ -96,9 +114,30 @@ const Home = () => {
               </div>
 
               <div className='right-pagination'>
-                <button onClick={() => setPage()} className={`pagination-button left-pagination ${page == 1 ? 'opcity-5' : ''}`}><img src={pagination} alt="arrow-button-pagination" /></button>
-                <button onClick={() => setPage()} className={`pagination-button ${page * limit >= allPageLength ? 'opcity-5' : ''}`}><img src={pagination} alt="arrow-button-pagination" /></button>
-                <p className='pagination-text'><span>{page}-{limit}</span> <span>of {allPageLength}</span> </p>
+
+                <button onClick={() => {
+                  if (page > 1) {
+                    getOrders({ page: page - limit, limit })
+                    setPage(page - limit);
+                    setTs(ts - limit)
+                    setSelect([])
+                  }
+                }} disabled={page == 1} className={`pagination-button left-pagination ${page == 1 ? 'opcity-5' : ''}`}>
+                  <img src={pagination} alt="arrow-button-pagination" />
+                </button>
+
+                <button onClick={() => {
+                  if (ts < allPageLength) {
+                    getOrders({ page: page + limit, limit })
+                    setPage(page + limit)
+                    setTs(limit + ts)
+                    setSelect([])
+                  }
+                }} disabled={ts >= allPageLength} className={`pagination-button ${ts >= allPageLength ? 'opcity-5' : ''}`}>
+                  <img src={pagination} alt="arrow-button-pagination" />
+                </button>
+
+                <p className='pagination-text'><span>{page}-{ts}</span> <span>of {allPageLength}</span> </p>
               </div>
 
               <button className='btn-head'>
@@ -109,8 +148,11 @@ const Home = () => {
           <div className='table'>
             <div className='table-head'>
               <ul className='table-head-list d-flex align  justify'>
+                {/* <li className='table-head-item'>DocNum</li> */}
                 <li className='table-head-item d-flex align'>
-                  <input className='m-right-16' type="checkbox" name="checkbox" />
+                  <input className='m-right-16' onClick={() => {
+
+                  }} type="checkbox" name="checkbox" />
                   Контрагент
                 </li>
                 <li className='table-head-item'>Торговый представитель</li>
@@ -122,61 +164,74 @@ const Home = () => {
               </ul>
             </div>
             <div className='table-body'>
-              <ul className='table-body-list'>
-                {
-                  mainData.map((item, i) => {
-                    return (
-                      <li key={i} onClick={() => setActiveData(activeData === i + 1 ? 0 : (i + 1))} className={`table-body-item ${activeData === i + 1 ? 'active-table' : ''}`}>
-                        <div className='table-item-head d-flex align  justify'>
-                          <div className='d-flex align  w-100 p-16'>
-                            <input className='m-right-16' type="checkbox" name="checkbox" />
-                            <p className='table-body-text'>
-                              {get(item, 'CardName', '')}
-                            </p>
-                          </div>
-                          <div className='w-100 p-16'>
-                            <p className='table-body-text'>
-                              {get(item, 'SlpName', '')}
-                            </p>
-                          </div>
-                          <div className='w-100 p-16'>
-                            <p className='table-body-text'>
-                              {moment(get(item, 'DocDate', '')).format("DD-MM-YYYY")}
-                            </p>
-                          </div>
-                          <div className='w-100 p-16'>
-                            <p className='table-body-text '>
-                              {moment(get(item, 'DocDueDate', '')).format("DD-MM-YYYY")}
-                            </p>
-                          </div>
-                          <div className='w-100 p-16'>
-                            <p className='table-body-text '>
-                              {formatterCurrency(get(item, 'DocTotal', 0), get(item, 'DocCur', 'UZS'))}
-                            </p>
-                          </div>
-                          <div className='w-100 p-16'>
-                            <p className='table-body-text '>
-                              Наличные  деньги
-                            </p>
-                          </div>
-                          <div className='w-100 p-16'>
-                            <button className='table-body-text'>
-                              Новый
-                            </button>
-                          </div>
-                        </div>
-                        <div className='table-item-foot d-flex align'>
-                          <button className='table-item-btn d-flex align'>Edit <img src={editIcon} alt="arrow right" /></button>
-                          <button className='table-item-btn d-flex align'> Накладный <img src={editIcon} alt="arrow-right" /></button>
-                        </div>
-                      </li>
-                    )
-                  })
-                }
-
-
-
-              </ul>
+              {
+                !loading ? (
+                  <ul className='table-body-list'>
+                    {
+                      mainData.map((item, i) => {
+                        return (
+                          <li key={i} className={`table-body-item ${activeData === i + 1 ? 'active-table' : ''}`}>
+                            <div className='table-item-head d-flex align  justify'>
+                              {/* <div className='w-100 p-16'>
+                                <p className='table-body-text'>
+                                  {get(item, 'DocNum')}
+                                </p>
+                              </div> */}
+                              <div className='d-flex align  w-100 p-16'>
+                                <input checked={select.find(item => item == i + 1)} className='m-right-16' onClick={(e) => {
+                                  if (select.find(item => item == i + 1)) {
+                                    setSelect([...select.filter(item => item != i + 1)])
+                                  }
+                                  else {
+                                    setSelect([...select, i + 1])
+                                  }
+                                }} type="checkbox" name="checkbox" />
+                                <p className='table-body-text' onClick={() => setActiveData(activeData === i + 1 ? 0 : (i + 1))}>
+                                  {get(item, 'CardName', '')}
+                                </p>
+                              </div>
+                              <div className='w-100 p-16' onClick={() => setActiveData(activeData === i + 1 ? 0 : (i + 1))}>
+                                <p className='table-body-text'>
+                                  {get(item, 'SlpName', '')}
+                                </p>
+                              </div>
+                              <div className='w-100 p-16' onClick={() => setActiveData(activeData === i + 1 ? 0 : (i + 1))}>
+                                <p className='table-body-text'>
+                                  {moment(get(item, 'DocDate', '')).format("DD-MM-YYYY")}
+                                </p>
+                              </div>
+                              <div className='w-100 p-16' onClick={() => setActiveData(activeData === i + 1 ? 0 : (i + 1))}>
+                                <p className='table-body-text '>
+                                  {moment(get(item, 'DocDueDate', '')).format("DD-MM-YYYY")}
+                                </p>
+                              </div>
+                              <div className='w-100 p-16' onClick={() => setActiveData(activeData === i + 1 ? 0 : (i + 1))}>
+                                <p className='table-body-text '>
+                                  {formatterCurrency(Number(get(item, 'DocTotal', 0)), get(item, 'DocCur', 'UZS'))}
+                                </p>
+                              </div>
+                              <div className='w-100 p-16' onClick={() => setActiveData(activeData === i + 1 ? 0 : (i + 1))}>
+                                <p className='table-body-text '>
+                                  Наличные  деньги
+                                </p>
+                              </div>
+                              <div className='w-100 p-16' onClick={() => setActiveData(activeData === i + 1 ? 0 : (i + 1))}>
+                                <button className='table-body-text'>
+                                  Новый
+                                </button>
+                              </div>
+                            </div>
+                            <div className='table-item-foot d-flex align'>
+                              <button className='table-item-btn d-flex align'>Edit <img src={editIcon} alt="arrow right" /></button>
+                              <button className='table-item-btn d-flex align'> Накладный <img src={editIcon} alt="arrow-right" /></button>
+                            </div>
+                          </li>
+                        )
+                      })
+                    }
+                  </ul>
+                ) : <FadeLoader color={color} loading={loading} cssOverride={override} size={100} />
+              }
             </div>
           </div>
         </div>
