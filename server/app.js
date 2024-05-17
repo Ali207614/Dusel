@@ -19,6 +19,7 @@ const app = express()
 const port = 5000;
 
 
+
 app.use(cors())
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
@@ -42,7 +43,7 @@ async function proxyFunc(req, res) {
     }
 
     return axios({
-        url: "https://212.83.157.137:50000" + req.originalUrl,
+        url: `https://${process.env.api}:50000` + req.originalUrl,
         method: req.method,
         data: req.body,
         timeout: 90000,
@@ -83,6 +84,46 @@ app.get('/api/orders', async function (req, res) {
     }
 })
 
+app.get('/api/items', async function (req, res) {
+    try {
+        const ret = await getItems(req.query)
+        return res.status(200).send(ret)
+    } catch (e) {
+        return res.status(400).send({
+            message: e
+        });
+    }
+})
+
+function getItems({ offset, limit, whsCode }) {
+    return new Promise((resolve, reject) => {
+        conn.connect(conn_params, function (err) {
+            if (err) {
+                reject(err);
+                conn.disconnect();
+                return;
+            }
+            let innerSql = `SELECT sum(1) FROM ${db}.OITM  T0 INNER JOIN ${db}.OITW  T1 ON T0."ItemCode" = T1."ItemCode" INNER JOIN ${db}.OWHS  T2 ON T1."WhsCode" = T2."WhsCode" INNER JOIN ${db}.ITM1 T3 ON T0."ItemCode" = T3."ItemCode" WHERE T2."WhsCode" = ${whsCode} and  T3."PriceList"  = 1`
+
+            let sql = `SELECT  (${innerSql}) as length,  T1."IsCommited", T2."WhsCode", T2."WhsName", T1."OnHand", T1."OnOrder", T1."Counted", T0."ItemCode", T0."ItemName", T0."CodeBars", T1."AvgPrice", T3."PriceList", T3."Price" , T3."Currency" FROM ${db}.OITM  T0 INNER JOIN ${db}.OITW  T1 ON T0."ItemCode" = T1."ItemCode" INNER JOIN ${db}.OWHS  T2 ON T1."WhsCode" = T2."WhsCode" INNER JOIN ${db}.ITM1 T3 ON T0."ItemCode" = T3."ItemCode" WHERE T2."WhsCode" = ${whsCode} and  T3."PriceList"  = 1 limit ${limit} offset ${offset - 1}`
+
+            conn.exec(sql, function (err, result) {
+                if (err) {
+                    reject(err);
+                    conn.disconnect();
+                    return;
+                }
+
+                resolve({
+                    value: result
+                });
+
+                conn.disconnect();
+            });
+        });
+    });
+}
+
 function getOrders({ offset, limit }) {
     return new Promise((resolve, reject) => {
         conn.connect(conn_params, function (err) {
@@ -119,4 +160,4 @@ app.listen(port, () => {
 
 
 
-
+//SELECT T1."IsCommited", T2."WhsCode", T2."WhsName", T1."OnHand", T1."IsCommited", T1."OnOrder", T1."Counted", T0."ItemCode", T0."ItemName", T0."CodeBars", T0."OnHand", T1."AvgPrice", T3."PriceList", T3."Price" , T3."Currency" FROM "DUSEL_TEST3"."OITM"  T0 INNER JOIN "DUSEL_TEST3"."OITW"  T1 ON T0."ItemCode" = T1."ItemCode" INNER JOIN "DUSEL_TEST3"."OWHS"  T2 ON T1."WhsCode" = T2."WhsCode" INNER JOIN ITM1 T3 ON T0."ItemCode" = T3."ItemCode" WHERE T0."ItemCode" ='GPX0338' and  T3."PriceList"  = 1

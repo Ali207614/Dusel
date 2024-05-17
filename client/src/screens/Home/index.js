@@ -128,13 +128,15 @@ const Home = () => {
                   {
                     limitList.map((item, i) => {
                       return (<li key={i} onClick={() => {
-                        setLimit(item);
-                        setPage(1);
-                        setShowDropdown(false);
-                        setTs(item)
-                        getOrders({ page: 1, limit: item })
-                        setSelect([])
-                        setMainCheck(false)
+                        if (limit != item) {
+                          setLimit(item);
+                          setPage(1);
+                          setShowDropdown(false);
+                          setTs(item)
+                          getOrders({ page: 1, limit: item })
+                          setSelect([])
+                          setMainCheck(false)
+                        }
                         return
                       }} className={`dropdown-li ${limit == item ? 'dropdown-active' : ''}`}><a className="dropdown-item" href="#">{item}</a></li>)
                     })

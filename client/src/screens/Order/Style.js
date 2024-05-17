@@ -1,6 +1,9 @@
 import styled from "styled-components";
 
 const Style = styled.div`
+li{
+  list-style: none;
+} 
 .container {
     padding-right: 15px;
     padding-left: 15px;
@@ -220,6 +223,124 @@ const Style = styled.div`
   }
   .margin-right{
     margin-right:12px;
+  }
+
+
+  .margin-right{
+    margin-right:12px;
+  }
+  .opcity-5{
+    opacity:0.5;
+  }
+
+
+
+  .d-flex{
+    display:flex;
+  }
+
+  .align{
+    align-items:center;
+  }
+
+  .justify{
+    justify-content:space-between;
+  }
+  .w-100{
+    width:100%;
+  }
+  .m-right-16{
+    margin-right:16px;
+  }
+
+  .table-body-text{
+    color:  #3C3F47;
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 500;
+    line-height: normal;
+  }
+  .table-head-list{
+    padding:16px;
+    border-left: 1px solid transparent;
+    border-right: 1px solid transparent;
+  }
+  .table-body-item{
+    border-left: 1px solid transparent;
+    border-right: 1px solid transparent;
+  }
+  
+  .table-item-head{
+    border-top: 1px solid #E9E9E9;
+    padding:0 16px;
+  }
+  
+  .active-table{
+    border-left: 1px solid #E9E9E9;
+    border-right: 1px solid #E9E9E9;
+    background: #F7F8F9; 
+    .table-item-foot{
+      padding:16px;
+      display:flex;
+      border-top: 1px solid #E9E9E9;
+    }
+  }
+
+  .inp-checkbox{
+    width:16px;
+    height:16px;
+  }
+
+  .table-item-foot{
+    display:none;
+  }
+  .table-head-item{
+    color:  #585858;
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 500;
+    line-height: normal;
+    width: 100%;
+  }
+  .p-16{
+    padding:16px 0;
+  }
+ 
+  .table-item-btn{
+    border-radius: 8px;
+    border: 1px solid  #E9E9E9;
+    background: #FFF;
+    padding:2px 12px;
+    margin-right:12px;
+  }
+  .isCommited{
+    color:#585858;
+  }
+
+  .table-head-check-btn{
+    outline:none;
+    background:none;
+    border:none;
+  }
+
+  .table-body-inp{
+    border-radius: 8px;
+    border: 1px solid  #E9E9E9;
+    background:  #F7F8F9;
+    padding:7px 12px;
+    width: 134px;
+    outline:none;
+    color:  #585858;
+    font-family: "Inter Tight";
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 500;
+    line-height: normal;
+  }
+  .add-block{
+  }
+  .w-47px{
+    width:47px;
   }
 `;
 export default Style;
