@@ -8,6 +8,7 @@ import i18n from "./i18n";
 
 function App() {
   return (
+
     <I18nextProvider i18n={i18n()}>
       <Provider store={store}>
         <PersistGate loading={null} persistor={persistor}>

@@ -4,6 +4,28 @@ const Style = styled.div`
 li{
   list-style: none;
 } 
+
+.truncated-text {
+  width: 140px; /* Matn uzunligi */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  position: relative;
+}
+
+.truncated-text:hover::after {
+  content: attr(title);
+  position: absolute;
+  background: #333;
+  color: #fff;
+  padding: 5px;
+  border-radius: 3px;
+  white-space: nowrap;
+  top: -25px; /* Balandligi */
+  left: 0;
+  z-index: 10;
+  font-size: 12px;
+}
 .container {
     padding-right: 15px;
     padding-left: 15px;

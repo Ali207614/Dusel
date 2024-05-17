@@ -45,6 +45,7 @@ const Home = () => {
   const [mainData, setMainData] = useState([])
   const [ts, setTs] = useState(10);
   const [select, setSelect] = useState([])
+  const [search, setSearch] = useState('')
 
   let [color, setColor] = useState("#3C3F47");
 
@@ -53,6 +54,28 @@ const Home = () => {
     AsyncStorage.setItem('lan', ln);
     i18next.changeLanguage(ln);
   };
+
+  const handleChange = e => {
+    const newSearchTerm = e.target.value;
+    setSearch(newSearchTerm);
+  };
+
+  useEffect(() => {
+    const delay = 1000;
+    let timeoutId;
+
+    if (search) {
+      timeoutId = setTimeout(() => {
+        // searchData(search);
+        console.log(search)
+      }, delay);
+    }
+
+    return () => {
+      // Agar component o'chirilsa, timeoutni bekor qilish
+      clearTimeout(timeoutId);
+    };
+  }, [search]);
 
   useEffect(() => {
     getOrders({ page, limit })
@@ -112,7 +135,7 @@ const Home = () => {
               </div>
               <div className='right-input'>
                 <img className='right-input-img' src={searchImg} alt="search-img" />
-                <input type="text" className='right-inp' placeholder='Поиск' />
+                <input onChange={handleChange} value={search} type="text" className='right-inp' placeholder='Поиск' />
               </div>
 
               <button className='right-filter'>
@@ -183,11 +206,6 @@ const Home = () => {
                         return (
                           <li key={i} className={`table-body-item ${activeData === i + 1 ? 'active-table' : ''}`}>
                             <div className='table-item-head d-flex align  justify'>
-                              {/* <div className='w-100 p-16'>
-                                <p className='table-body-text'>
-                                  {get(item, 'DocNum')}
-                                </p>
-                              </div> */}
                               <div className='d-flex align  w-100 p-16'>
                                 <input checked={select.find(item => item == i + 1)} className='m-right-16 inp-checkbox' onClick={(e) => {
                                   if (select.find(item => item == i + 1)) {
@@ -197,7 +215,7 @@ const Home = () => {
                                     setSelect([...select, i + 1])
                                   }
                                 }} type="checkbox" name="checkbox" />
-                                <p className='table-body-text' onClick={() => setActiveData(activeData === i + 1 ? 0 : (i + 1))}>
+                                <p className='table-body-text truncated-text' title={get(item, 'CardName', '')} onClick={() => setActiveData(activeData === i + 1 ? 0 : (i + 1))}>
                                   {get(item, 'CardName', '')}
                                 </p>
                               </div>

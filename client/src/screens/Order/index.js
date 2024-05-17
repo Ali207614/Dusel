@@ -175,7 +175,7 @@ const Order = () => {
                                 </p>
                               </div>
                               <div className='w-100 p-16' >
-                                <p className='table-body-text'>
+                                <p className='table-body-text truncated-text' title={get(item, 'ItemName', '')}>
                                   {get(item, 'ItemName', '')}
                                 </p>
                               </div>
