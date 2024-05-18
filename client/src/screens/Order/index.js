@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import Layout from '../../components/Layout';
 import Style from './Style';
 import { useNavigate } from 'react-router-dom';
@@ -14,6 +14,8 @@ import { get } from 'lodash';
 import formatterCurrency from '../../helpers/currency';
 import moment from 'moment';
 import { FadeLoader } from "react-spinners";
+import { ResizableBox } from 'react-resizable';
+import 'react-resizable/css/styles.css';
 let url = process.env.REACT_APP_API_URL
 
 let limitList = [1, 10, 50, 100, 500, 1000]
@@ -41,6 +43,16 @@ const Order = () => {
   const [ts, setTs] = useState(10);
   const [select, setSelect] = useState([])
   const [search, setSearch] = useState('')
+  const [height, setHeight] = useState(200); // Boshlang'ich balandlikni o'rnatamiz
+  const pageHeight = window.innerHeight;
+
+  const minTopSpacing = 300;
+
+  const maxHeight = pageHeight - minTopSpacing;
+
+  const handleResize = (event, { size }) => {
+    setHeight(size.height);
+  };
 
   useEffect(() => {
     getItems({ page, limit })
@@ -98,6 +110,7 @@ const Order = () => {
   return (
     <Style>
       <Layout>
+
         <div className='container'>
           <div className="order-head">
             <div className="order-main d-flex align justify">
@@ -193,7 +206,7 @@ const Order = () => {
             </div>
             <div className='table-body'>
               {
-                <>
+                !loading ? (
                   <ul className='table-body-list'>
                     {
                       mainData.map((item, i) => {
@@ -240,14 +253,172 @@ const Order = () => {
                         )
                       })
                     }
-                  </ul>
-                  {loading ? <FadeLoader color={color} loading={loading} cssOverride={override} size={100} /> : undefined}
-                </>
+                  </ul>) :
+                  <FadeLoader color={color} loading={loading} cssOverride={override} size={100} />
               }
             </div>
           </div>
         </div>
-        {/* {loading ? <div className='overlay'></div> : undefined} */}
+
+        <ResizableBox
+          width={Infinity}
+          height={height}
+          minConstraints={[Infinity, 285]}
+          maxConstraints={[Infinity, maxHeight]}
+          resizeHandles={['n']}
+          onResize={handleResize}
+          axis="y"
+          style={{
+            position: 'fixed',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            backgroundColor: '#F7F8F9'
+          }}
+        >
+          <div style={{ width: '100%', height: '100%' }}>
+            <div style={{
+              position: 'absolute',
+              width: '100%',
+              height: '100%',
+              backgroundColor: 'transparent'
+            }} className="select-items">
+              <div className='container'>
+                <div className='right-head select-items-filter'>
+                  <div className='right-pagination'>
+                    <p className='pagination-text'><span>{page}-{ts}</span> <span>of {allPageLength}</span> </p>
+                    <button onClick={() => {
+                      if (page > 1) {
+                        getItems({ page: page - limit, limit, value: search })
+                        setPage(page - limit);
+                        setTs(ts - limit)
+                        setSelect([])
+                      }
+                    }} disabled={page == 1} className={`pagination-button left-pagination bg-white ${page == 1 ? 'opcity-5' : ''}`}>
+                      <img src={pagination} alt="arrow-button-pagination" />
+                    </button>
+
+                    <button onClick={() => {
+                      if (ts < allPageLength) {
+                        getItems({ page: page + limit, limit, value: search })
+                        setPage(page + limit)
+                        setTs(limit + ts)
+                        setSelect([])
+                      }
+                    }} disabled={ts >= allPageLength} className={`pagination-button margin-right bg-white ${ts >= allPageLength ? 'opcity-5' : ''}`}>
+                      <img src={pagination} alt="arrow-button-pagination" />
+                    </button>
+                  </div>
+                  <div className='right-input'>
+                    <img className='right-input-img' src={searchImg} alt="search-img" />
+                    <input onChange={handleChange} value={search} type="text" className='right-inp bg-white' placeholder='Поиск' />
+                  </div>
+                  <button className='right-filter bg-white'>
+                    <img className='right-filter-img' src={filterImg} alt="filter-img" />
+                  </button>
+                  <div className='right-limit'>
+                    <button onClick={() => setShowDropdown(!showDropdown)} className='right-dropdown bg-white'>
+                      <p className='right-limit-text'>{limit}</p>
+                      <img src={arrowDown} className={showDropdown ? "up-arrow" : ""} alt="arrow-down-img" />
+                    </button>
+                    <ul className={`dropdown-menu bg-white ${showDropdown ? "display-b" : "display-n"}`} aria-labelledby="dropdownMenuButton1">
+                      {
+                        limitList.map((item, i) => {
+                          return (<li key={i} onClick={() => {
+                            if (limit != item) {
+                              setLimit(item);
+                              setPage(1);
+                              setShowDropdown(false);
+                              setTs(item)
+                              getItems({ page: 1, limit: item, value: search })
+                              setSelect([])
+                              setMainCheck(false)
+                            }
+                            return
+                          }} className={`dropdown-li ${limit == item ? 'dropdown-active' : ''}`}><a className="dropdown-item" href="#">{item}</a></li>)
+                        })
+                      }
+                    </ul>
+                  </div>
+
+                </div>
+                <div className='table'>
+                  <div className='table-head'>
+                    <ul className='table-head-list d-flex align  justify'>
+                      <li className='table-head-item '>
+                        Код
+                      </li>
+                      <li className='table-head-item'>Продукция / Производитель </li>
+                      <li className='table-head-item'>Цена</li>
+                      <li className='table-head-item'>Остаток</li>
+                      <li className='table-head-item'>Количество</li>
+                      <li className='table-head-item'>В кейсе</li>
+                      <li className='table-head-item w-47px'>
+                        <button className='table-head-check-btn'>
+                          <img src={tickSquare} alt="tick" />
+                        </button>
+                      </li>
+                    </ul>
+                  </div>
+                  <div className='table-body'>
+                    {
+                      !loading ? (
+                        <ul className='table-body-list'>
+                          {
+                            mainData.slice(0, 2).map((item, i) => {
+                              return (
+                                <li key={i} className={`table-body-item`}>
+                                  <div className='table-item-head d-flex align  justify'>
+                                    <div className='w-100 p-16'>
+                                      <p className='table-body-text' >
+                                        {get(item, 'ItemCode', '')}
+                                      </p>
+                                    </div>
+                                    <div className='w-100 p-16' >
+                                      <p className='table-body-text truncated-text' title={get(item, 'ItemName', '')}>
+                                        {get(item, 'ItemName', '') || '-'}
+                                      </p>
+                                    </div>
+                                    <div className='w-100 p-16' >
+                                      <p className='table-body-text'>
+                                        {formatterCurrency(Number(get(item, 'Price', 0)), get(item, 'Currency', "USD") || 'USD')}
+                                      </p>
+                                    </div>
+                                    <div className='w-100 p-16' >
+                                      <p className='table-body-text '>
+                                        {Number(get(item, 'OnHand', ''))} / <span className='isCommited'>{Number(get(item, 'OnHand', '')) - Number(get(item, 'IsCommited', ''))}</span>
+                                      </p>
+                                    </div>
+                                    <div className='w-100 p-16' >
+                                      <p className='table-body-text '>
+                                        <input type="text" className='table-body-inp bg-white' placeholder='-' />
+                                      </p>
+                                    </div>
+                                    <div className='w-100 p-16' >
+                                      <p className='table-body-text '>
+                                        <input type="text" className='table-body-inp bg-white' placeholder='100  /кор' />
+                                      </p>
+                                    </div>
+                                    <div className='w-47px p-16' >
+                                      <button className='table-body-text table-head-check-btn'>
+                                        <img src={add} alt="add button" />
+                                      </button>
+                                    </div>
+                                  </div>
+                                </li>
+                              )
+                            })
+                          }
+                        </ul>) :
+                        <FadeLoader color={color} loading={loading} cssOverride={override} size={100} />
+                    }
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </ResizableBox>
       </Layout>
     </Style>
   );

@@ -375,5 +375,21 @@ li{
   .w-47px{
     width:47px;
   }
+
+
+  .select-items {
+    background: #F7F8F9;
+    border-top:1px solid #E9E9E9;
+    width:100%;
+    bottom:0;
+    height:280px;
+  }
+  .select-items-filter{
+    padding:24px 0;
+  }
+  .bg-white{
+    background:#fff;
+  }
+
 `;
 export default Style;
