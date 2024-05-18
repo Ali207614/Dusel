@@ -34,27 +34,57 @@ const Order = () => {
   const [limit, setLimit] = useState(10);
   const [page, setPage] = useState(1);
   const [activeData, setActiveData] = useState(false);
-  const [allPageLength, setAllPageLength] = useState(2200);
+  const [allPageLength, setAllPageLength] = useState(0);
   const [loading, setLoading] = useState(false)
   const [mainCheck, setMainCheck] = useState(false)
   const [mainData, setMainData] = useState([])
   const [ts, setTs] = useState(10);
   const [select, setSelect] = useState([])
+  const [search, setSearch] = useState('')
 
   useEffect(() => {
     getItems({ page, limit })
   }, []);
 
+  useEffect(() => {
+    const delay = 1000;
+    let timeoutId;
+
+    if (search) {
+      timeoutId = setTimeout(() => {
+        getItems({ page: 1, limit, value: search })
+        setTs(limit)
+        setPage(1);
+      }, delay);
+    }
+    else {
+      getItems({ page: 1, limit })
+      setTs(limit)
+      setPage(1);
+    }
+
+
+    return () => {
+      // Agar component o'chirilsa, timeoutni bekor qilish
+      clearTimeout(timeoutId);
+    };
+  }, [search]);
+
+  const handleChange = e => {
+    const newSearchTerm = e.target.value;
+    setSearch(newSearchTerm);
+  };
+
   const getItems = (pagination) => {
     setLoading(true)
     axios
       .get(
-        url + `/api/items?offset=${get(pagination, 'page', 1)}&limit=${get(pagination, 'limit', limit)}&whsCode='BAZA1'`,
+        url + `/api/items?offset=${get(pagination, 'page', 1)}&limit=${get(pagination, 'limit', limit)}&whsCode=BAZA1&search=${get(pagination, 'value', '').toLowerCase()}`,
       )
       .then(({ data }) => {
         setLoading(false)
         setMainData(get(data, 'value', []))
-        setAllPageLength(get(data, 'value[0].LENGTH', []))
+        setAllPageLength(get(data, 'value[0].LENGTH', 0))
       })
       .catch(err => {
         setLoading(false)
@@ -62,6 +92,7 @@ const Order = () => {
 
     return;
   };
+
 
 
   return (
@@ -88,7 +119,7 @@ const Order = () => {
                 <p className='pagination-text'><span>{page}-{ts}</span> <span>of {allPageLength}</span> </p>
                 <button onClick={() => {
                   if (page > 1) {
-                    getItems({ page: page - limit, limit })
+                    getItems({ page: page - limit, limit, value: search })
                     setPage(page - limit);
                     setTs(ts - limit)
                     setSelect([])
@@ -99,7 +130,7 @@ const Order = () => {
 
                 <button onClick={() => {
                   if (ts < allPageLength) {
-                    getItems({ page: page - limit, limit })
+                    getItems({ page: page + limit, limit, value: search })
                     setPage(page + limit)
                     setTs(limit + ts)
                     setSelect([])
@@ -110,7 +141,7 @@ const Order = () => {
               </div>
               <div className='right-input'>
                 <img className='right-input-img' src={searchImg} alt="search-img" />
-                <input type="text" className='right-inp' placeholder='Поиск' />
+                <input onChange={handleChange} value={search} type="text" className='right-inp' placeholder='Поиск' />
               </div>
               <button className='right-filter'>
                 <img className='right-filter-img' src={filterImg} alt="filter-img" />
@@ -129,7 +160,7 @@ const Order = () => {
                           setPage(1);
                           setShowDropdown(false);
                           setTs(item)
-                          getItems({ page: 1, limit: item })
+                          getItems({ page: 1, limit: item, value: search })
                           setSelect([])
                           setMainCheck(false)
                         }
@@ -162,7 +193,7 @@ const Order = () => {
             </div>
             <div className='table-body'>
               {
-                !loading ? (
+                <>
                   <ul className='table-body-list'>
                     {
                       mainData.map((item, i) => {
@@ -176,7 +207,7 @@ const Order = () => {
                               </div>
                               <div className='w-100 p-16' >
                                 <p className='table-body-text truncated-text' title={get(item, 'ItemName', '')}>
-                                  {get(item, 'ItemName', '')}
+                                  {get(item, 'ItemName', '') || '-'}
                                 </p>
                               </div>
                               <div className='w-100 p-16' >
@@ -210,11 +241,13 @@ const Order = () => {
                       })
                     }
                   </ul>
-                ) : <FadeLoader color={color} loading={loading} cssOverride={override} size={100} />
+                  {loading ? <FadeLoader color={color} loading={loading} cssOverride={override} size={100} /> : undefined}
+                </>
               }
             </div>
           </div>
         </div>
+        {/* {loading ? <div className='overlay'></div> : undefined} */}
       </Layout>
     </Style>
   );

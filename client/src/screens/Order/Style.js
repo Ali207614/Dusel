@@ -4,7 +4,18 @@ const Style = styled.div`
 li{
   list-style: none;
 } 
-
+.overlay {
+  position: fixed; /* Overlayni butun ekran bo'ylab ko'rsatish uchun */
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5); /* Yarim shaffof qora fon */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000; /* Overlay boshqa kontentdan ustun turishi uchun */
+}
 .truncated-text {
   width: 140px; /* Matn uzunligi */
   white-space: nowrap;

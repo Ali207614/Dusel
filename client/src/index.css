@@ -5,6 +5,11 @@
   font-family: "Inter Tight", sans-serif !important;
   font-optical-sizing: auto;
   font-style: normal;  
+  
+}
+
+body{
+  min-height: 1000px;
 }
 
 

@@ -31,6 +31,14 @@ const override = {
   margin: 'auto'
 };
 
+const statuses = [
+  { name: 1, color: '#28a745', name: 'Новый' },
+  { name: 2, color: '#6c757d', name: 'Черновик' },
+  { name: 3, color: '#ffc107', name: 'Ожидания' },
+  { name: 4, color: '#007bff', name: 'Подтвержден' },
+  { name: 5, color: '#17a2b8', name: 'Печатанный' },
+];
+
 const Home = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
