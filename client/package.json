@@ -24,6 +24,7 @@
     "react-dom": "^18.2.0",
     "react-i18next": "^13.2.0",
     "react-icons": "^4.9.0",
+    "react-lazyload": "^3.2.1",
     "react-loader-spinner": "^6.1.6",
     "react-modal": "^3.16.1",
     "react-modern-drawer": "^1.2.2",

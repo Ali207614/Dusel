@@ -95,7 +95,7 @@ app.get('/api/items', async function (req, res) {
     }
 })
 
-function getItems({ offset, limit, whsCode, search }) {
+function getItems({ offset, limit, whsCode, search, items = [] }) {
     return new Promise((resolve, reject) => {
         conn.connect(conn_params, function (err) {
             if (err) {
@@ -103,12 +103,17 @@ function getItems({ offset, limit, whsCode, search }) {
                 conn.disconnect();
                 return;
             }
-
             let innerSql = `SELECT sum(1) FROM ${db}.OITM  T0 INNER JOIN ${db}.OITW  T1 ON T0."ItemCode" = T1."ItemCode" INNER JOIN ${db}.OWHS  T2 ON T1."WhsCode" = T2."WhsCode" INNER JOIN ${db}.ITM1 T3 ON T0."ItemCode" = T3."ItemCode" WHERE T2."WhsCode" = '${whsCode}' and  T3."PriceList"  = 1`
+            if (items.length) {
+                innerSql += ` and T0."ItemCode" not in (${items})`
+            }
             if (search?.length) {
                 innerSql += ` and (LOWER(T0."ItemCode") like '%${search}%' or LOWER(T0."ItemName") like '%${search}%')`
             }
             let sql = `SELECT  (${innerSql}) as length,  T1."IsCommited", T2."WhsCode", T2."WhsName", T1."OnHand", T1."OnOrder", T1."Counted", T0."ItemCode", T0."ItemName", T0."CodeBars", T1."AvgPrice", T3."PriceList", T3."Price" , T3."Currency" FROM ${db}.OITM  T0 INNER JOIN ${db}.OITW  T1 ON T0."ItemCode" = T1."ItemCode" INNER JOIN ${db}.OWHS  T2 ON T1."WhsCode" = T2."WhsCode" INNER JOIN ${db}.ITM1 T3 ON T0."ItemCode" = T3."ItemCode" WHERE T2."WhsCode" = '${whsCode}' and T3."PriceList"  = 1 `
+            if (items.length) {
+                sql += ` and T0."ItemCode" not in (${items})`
+            }
             if (search?.length) {
                 sql += `and (LOWER(T0."ItemCode") like '%${search}%' or LOWER(T0."ItemName") like '%${search}%') ORDER BY T0."ItemName", T0."ItemCode"`
             }
@@ -136,6 +141,7 @@ function getOrders({ offset, limit }) {
     return new Promise((resolve, reject) => {
         conn.connect(conn_params, function (err) {
             if (err) {
+                console.log('err bor naxxuy')
                 reject(err);
                 conn.disconnect();
                 return;

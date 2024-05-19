@@ -391,5 +391,36 @@ li{
     background:#fff;
   }
 
+  .react-resizable-handle{
+    width: 100%;
+    border-top: 1px solid #E9E9E9;
+    background-image:none;
+    transform: none;
+    left: 0;
+    margin:0;
+    padding:5px;
+  }
+
+
+  .tab-table {
+    flex-grow: 1;
+    overflow: auto;
+  }
+
+  .tab-table::-webkit-scrollbar {
+  width: 0;
+}
+/* .tab-table::-webkit-scrollbar-track {
+  background: #f1f1f1; 
+}
+.tab-table::-webkit-scrollbar-thumb {
+  background: #888; 
+    border-radius:10px;
+}
+.tab-table::-webkit-scrollbar-thumb:hover {
+  
+  background: #555; 
+}  */
+
 `;
 export default Style;
