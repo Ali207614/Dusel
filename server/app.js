@@ -1,4 +1,3 @@
-
 let express = require('express')
 let axios = require('axios')
 let hana = require('@sap/hana-client')
@@ -42,6 +41,11 @@ async function proxyFunc(req, res) {
         })
     }
 
+    console.log(req.cookies)
+    console.log(req.headers)
+    console.log(req.body)
+
+
     return axios({
         url: `https://${process.env.api}:50000` + req.originalUrl,
         method: req.method,
@@ -62,7 +66,6 @@ async function proxyFunc(req, res) {
 }
 
 app.get('/b1s/v1/:path', proxyFunc);
-app.post('/b1s/v1/:path', proxyFunc);
 app.patch('/b1s/v1/:path', proxyFunc);
 app.put('/b1s/v1/:path', proxyFunc);
 app.delete('/b1s/v1/:path', proxyFunc);
@@ -76,6 +79,7 @@ app.delete('/b1s/v1/:path/:path2', proxyFunc);
 app.get('/api/orders', async function (req, res) {
     try {
         const ret = await getOrders(req.query)
+        console.log(ret)
         return res.status(200).send(ret)
     } catch (e) {
         return res.status(400).send({
@@ -115,10 +119,12 @@ function getItems({ offset, limit, whsCode, search, items = [] }) {
                 sql += ` and T0."ItemCode" not in (${items})`
             }
             if (search?.length) {
-                sql += `and (LOWER(T0."ItemCode") like '%${search}%' or LOWER(T0."ItemName") like '%${search}%') ORDER BY T0."ItemName", T0."ItemCode"`
+                sql += `and (LOWER(T0."ItemCode") like '%${search}%' or LOWER(T0."ItemName") like '%${search}%') ORDER BY ORDER BY T0."U_prn" `
             }
 
             sql += `  limit ${limit} offset ${offset - 1} `
+
+
 
             conn.exec(sql, function (err, result) {
                 if (err) {
@@ -137,19 +143,28 @@ function getItems({ offset, limit, whsCode, search, items = [] }) {
     });
 }
 
-function getOrders({ offset, limit }) {
+function getOrders({ offset, limit, search }) {
     return new Promise((resolve, reject) => {
         conn.connect(conn_params, function (err) {
             if (err) {
-                console.log('err bor naxxuy')
+                console.log(err, ' bu err')
                 reject(err);
                 conn.disconnect();
                 return;
             }
 
             let innerSql = `SELECT sum(1) FROM ${db}.ORDR  T0 INNER JOIN ${db}.OSLP T1 ON T0."SlpCode" = T1."SlpCode"  WHERE T0."DocStatus" ='O' and T0."CANCELED"='N'`
+            if (search?.length) {
+                innerSql += ` and (LOWER(T0."CardName") like '%${search}%')`
+            }
+            let sql = `SELECT (${innerSql}) as length , T0."DocNum", T0."DocEntry"  , T0."SlpCode", T1."SlpName", T0."DocDate", T0."DocDueDate", T0."CardCode",T0."DocEntry", T0."CardName", T0."CANCELED", T0."DocStatus", T0."DocCur", T0."DocRate", T0."DocTotal", T0."DocTotalFC" FROM ${db}.ORDR  T0 INNER JOIN ${db}.OSLP T1 ON T0."SlpCode" = T1."SlpCode"  WHERE T0."DocStatus" ='O' and T0."CANCELED"='N'`
 
-            let sql = `SELECT (${innerSql}) as length, T0."DocNum", T0."SlpCode", T1."SlpName", T0."DocDate", T0."DocDueDate", T0."CardCode", T0."CardName", T0."CANCELED", T0."DocStatus", T0."DocCur", T0."DocRate", T0."DocTotal", T0."DocTotalFC" FROM ${db}.ORDR  T0 INNER JOIN ${db}.OSLP T1 ON T0."SlpCode" = T1."SlpCode"  WHERE T0."DocStatus" ='O' and T0."CANCELED"='N' limit ${limit} offset ${offset - 1} `
+            if (search?.length) {
+                sql += `and (LOWER(T0."CardName") like '%${search}%')`
+            }
+
+            sql += `  limit ${limit} offset ${offset - 1} `
+
             conn.exec(sql, function (err, result) {
                 if (err) {
                     reject(err);

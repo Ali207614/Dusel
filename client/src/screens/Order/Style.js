@@ -410,6 +410,9 @@ li{
   .tab-table::-webkit-scrollbar {
   width: 0;
 }
+.borderRed{
+  border:1px solid #F2462F;
+}
 /* .tab-table::-webkit-scrollbar-track {
   background: #f1f1f1; 
 }

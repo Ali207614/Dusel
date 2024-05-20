@@ -31,18 +31,31 @@ const override = {
   margin: 'auto'
 };
 
-const statuses = [
-  { name: 1, color: '#28a745', name: 'Новый' },
-  { name: 2, color: '#6c757d', name: 'Черновик' },
-  { name: 3, color: '#ffc107', name: 'Ожидания' },
-  { name: 4, color: '#007bff', name: 'Подтвержден' },
-  { name: 5, color: '#17a2b8', name: 'Печатанный' },
-];
-
+let statuses = {
+  Новый: {
+    color: '#FFFFFF',  // White text
+    backgroundColor: '#388E3C'  // Moderately darker green background
+  },
+  Черновик: {
+    color: '#FFFFFF',  // White text
+    backgroundColor: '#6C757D'  // Moderately darker gray background
+  },
+  Ожидания: {
+    color: '#FFFFFF',  // White text
+    backgroundColor: '#FFA000'  // Moderately darker yellow background
+  },
+  Подтвержден: {
+    color: '#FFFFFF',  // White text
+    backgroundColor: '#0056B3'  // Moderately darker blue background
+  },
+  Печатанный: {
+    color: '#FFFFFF',  // White text
+    backgroundColor: '#00A2C7'  // Moderately darker cyan background
+  }
+};
 const Home = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-
   const [showDropdown, setShowDropdown] = useState(false);
   const [limit, setLimit] = useState(10);
   const [page, setPage] = useState(1);
@@ -54,6 +67,9 @@ const Home = () => {
   const [ts, setTs] = useState(10);
   const [select, setSelect] = useState([])
   const [search, setSearch] = useState('')
+
+  const [selectedStatus, setSelectedStatus] = useState('Новый');
+  const [dropdownOpen, setDropdownOpen] = useState(false);
 
   let [color, setColor] = useState("#3C3F47");
 
@@ -74,9 +90,15 @@ const Home = () => {
 
     if (search) {
       timeoutId = setTimeout(() => {
-        // searchData(search);
-        console.log(search)
+        getOrders({ page: 1, limit, value: search })
+        setTs(limit)
+        setPage(1);
       }, delay);
+    }
+    else {
+      getOrders({ page: 1, limit })
+      setTs(limit)
+      setPage(1);
     }
 
     return () => {
@@ -93,7 +115,7 @@ const Home = () => {
     setLoading(true)
     axios
       .get(
-        url + `/api/orders?offset=${get(pagination, 'page', 1)}&limit=${get(pagination, 'limit', limit)}`,
+        url + `/api/orders?offset=${get(pagination, 'page', 1)}&limit=${get(pagination, 'limit', limit)}&search=${get(pagination, 'value', '').toLowerCase()}`,
       )
       .then(({ data }) => {
         setLoading(false)
@@ -107,6 +129,36 @@ const Home = () => {
     return;
   };
 
+
+  const toggleDropdown = () => setDropdownOpen(!dropdownOpen);
+
+  const handleSelect = (status, docEntry) => {
+    setDropdownOpen(false);
+
+    // setLoading(true)
+    // axios
+    //   .patch(
+    //     url + `/b1s/v1/Orders(${docEntry})`,
+    //     {
+    //       U_status_order: status
+    //     },
+    //     {
+    //       headers: {
+    //         'Content-Type': 'application/json',
+    //         info: {
+    //           'cookie': get(getMe, 'Cookie[0]', '') + get(getMe, 'Cookie[1]', ''),
+    //           'SessionId': get(getMe, 'SessionId', ''),
+    //         }
+    //       },
+    //     }
+    //   )
+    //   .then(({ data }) => {
+    //     alert('oshahdi')
+    //   })
+    //   .catch(err => {
+    //     setLoading(false)
+    //   });
+  };
   return (
     <Style>
       <Layout>
@@ -253,14 +305,26 @@ const Home = () => {
                                 </p>
                               </div>
                               <div className='w-100 p-16' onClick={() => setActiveData(activeData === i + 1 ? 0 : (i + 1))}>
-                                <button className='table-body-text'>
-                                  Новый
+                                <button style={{ color: statuses[get(item, 'U_status_order', 'Новый')].color, backgroundColor: statuses[get(item, 'U_status_order', 'Новый')].backgroundColor }} className='table-body-text status-button'>
+                                  {get(item, 'U_status_order', 'Новый')}
                                 </button>
                               </div>
                             </div>
                             <div className='table-item-foot d-flex align'>
                               <button className='table-item-btn d-flex align'>Edit <img src={editIcon} alt="arrow right" /></button>
                               <button className='table-item-btn d-flex align'> Накладный <img src={editIcon} alt="arrow-right" /></button>
+                              <div className="dropdown-container">
+                                <button className="table-item-btn d-flex align" onClick={toggleDropdown}>
+                                  Состояние <img src={editIcon} alt="arrow-right" />
+                                </button>
+                                {dropdownOpen && (
+                                  <ul className="dropdown-menu">
+                                    {Object.keys(statuses).map((status) => (
+                                      <li key={i} onClick={() => handleSelect(status, get(item, 'DocEntry', 0))} className={`dropdown-li ${get(item, 'U_status_order', '') == status ? 'dropdown-active' : ''}`}><a className="dropdown-item" href="#">{status}</a></li>
+                                    ))}
+                                  </ul>
+                                )}
+                              </div>
                             </div>
                           </li>
                         )

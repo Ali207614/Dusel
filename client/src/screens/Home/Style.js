@@ -6,6 +6,8 @@ const Style = styled.div`
     list-style: none;
   }
 
+  
+
   .truncated-text {
     width: 140px; /* Matn uzunligi */
     white-space: nowrap;
@@ -292,5 +294,43 @@ const Style = styled.div`
     padding:2px 12px;
     margin-right:12px;
   }
+  .w-105{
+    width: 105px;
+  }
+  .status-button{
+    width: 105px;
+  }
+  .status-button{
+    font-family: "Inter Tight";
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 18px; 
+    border-radius:  32px;
+    border:none;
+    outline:none;
+    padding: 5px 12px;
+  }
+
+
+
+
+
+  .table-item-btn {
+  border-radius: 8px;
+  border: 1px solid #E9E9E9;
+  background: #FFF;
+  padding: 2px 12px;
+  margin-right: 12px;
+  display: flex;
+  align-items: center;
+}
+
+.dropdown-container {
+  position: relative;
+  display: inline-block;
+}
+
+
 `;
 export default Style;

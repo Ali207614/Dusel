@@ -23,7 +23,10 @@ const Resizable = memo(({
     setAllPageLength,
     allPageLength,
     mainData,
-    search
+    actualData,
+    setActualData,
+    isEmpty,
+    setIsEmpty
 }) => {
 
     let limitList = [1, 10, 50, 100, 500, 1000]
@@ -32,6 +35,8 @@ const Resizable = memo(({
     const [limitSelect, setLimitSelect] = useState(10);
     const [pageSelect, setPageSelect] = useState(1);
     const [tsSelect, setTsSelect] = useState(10);
+    const [search, setSearch] = useState('')
+    const [show, setShow] = useState(true)
 
     const pageHeight = window.innerHeight;
 
@@ -39,21 +44,47 @@ const Resizable = memo(({
 
     const maxHeight = pageHeight - minTopSpacing;
     function paginateState(arr, perPage, nextPage) {
-        return arr.map((item, i) => {
-            return {
-                ...item, id: i + 1
-            }
-        }).slice(perPage, nextPage);
+        return arr.slice(perPage, nextPage);
     }
 
     const handleResize = (event, { size }) => {
         setHeight(size.height);
     };
 
+    const handleChange = e => {
+        const newSearchTerm = e.target.value;
+        if (newSearchTerm.length == 0) {
+            setState(actualData)
+        }
+        else {
+            setState(actualData.filter(item => get(item, 'ItemCode', '').toLowerCase().includes(newSearchTerm.toLowerCase()) || get(item, 'ItemName', '').toLowerCase().includes(newSearchTerm.toLowerCase())))
+        }
+        setSearch(newSearchTerm);
+    };
+
+    const changeValue = (value, itemCode) => {
+        let indexAct = actualData.findIndex(el => get(el, 'ItemCode', '') == itemCode)
+        let indexState = state.findIndex(el => get(el, 'ItemCode', '') == itemCode)
+        if (indexAct >= 0) {
+            actualData[indexAct].value = value
+            setActualData([...actualData])
+        }
+        if (indexState >= 0) {
+            state[indexState].value = value
+            setState([...state])
+        }
+    }
+
+    useEffect(() => {
+        if (actualData.length == 0) {
+            setSearch('')
+        }
+    }, [actualData])
+
     return (
         <Style>
             {
-                state.length ? (
+                (actualData.length) ? (
                     <ResizableBox
                         width={Infinity}
                         height={height}
@@ -92,8 +123,7 @@ const Resizable = memo(({
 
                                             <button onClick={() => {
                                                 if (tsSelect < allPageLengthSelect) {
-                                                    console.log('page ' + (pageSelect + limitSelect))
-                                                    console.log('ts ' + (limitSelect + tsSelect))
+
                                                     setPageSelect(pageSelect + limitSelect)
                                                     setTsSelect(limitSelect + tsSelect)
                                                 }
@@ -103,7 +133,7 @@ const Resizable = memo(({
                                         </div>
                                         <div className='right-input'>
                                             <img className='right-input-img' src={searchImg} alt="search-img" />
-                                            <input value={search} type="text" className='right-inp bg-white' placeholder='Поиск' />
+                                            <input onChange={handleChange} value={search} type="text" className='right-inp bg-white' placeholder='Поиск' />
                                         </div>
                                         <button className='right-filter bg-white'>
                                             <img className='right-filter-img' src={filterImg} alt="filter-img" />
@@ -146,6 +176,7 @@ const Resizable = memo(({
                                                     <button onClick={() => {
                                                         setMainData([...state, ...mainData])
                                                         setState([])
+                                                        setActualData([])
                                                         setAllPageLength(allPageLength + state.length)
                                                         setAllPageLengthSelect(0)
                                                         setLimitSelect(10)
@@ -168,7 +199,7 @@ const Resizable = memo(({
                                                                         <div className='table-item-head d-flex align  justify'>
                                                                             <div className='w-100 p-16'>
                                                                                 <p className='table-body-text' >
-                                                                                    {get(item, 'ItemCode', '')} {item.id}
+                                                                                    {get(item, 'ItemCode', '')}
                                                                                 </p>
                                                                             </div>
                                                                             <div className='w-100 p-16' >
@@ -188,7 +219,7 @@ const Resizable = memo(({
                                                                             </div>
                                                                             <div className='w-100 p-16' >
                                                                                 <p className='table-body-text '>
-                                                                                    <input type="text" className='table-body-inp bg-white' placeholder='-' />
+                                                                                    <input value={get(item, 'value', '')} onChange={(e) => changeValue(e.target.value, get(item, 'ItemCode', ''))} type="text" className={`table-body-inp bg-white ${(isEmpty && item?.value.length == 0) ? 'borderRed' : ''}`} placeholder='-' />
                                                                                 </p>
                                                                             </div>
                                                                             <div className='w-100 p-16' >
@@ -199,6 +230,7 @@ const Resizable = memo(({
                                                                             <div className='w-47px p-16' >
                                                                                 <button onClick={() => {
                                                                                     setState([...state.filter(el => get(el, 'ItemCode') !== get(item, 'ItemCode'))])
+                                                                                    setActualData([...actualData.filter(el => get(el, 'ItemCode') !== get(item, 'ItemCode'))])
                                                                                     setMainData([item, ...mainData])
                                                                                     setAllPageLength(allPageLength + 1)
                                                                                     setAllPageLengthSelect(allPageLengthSelect - 1)

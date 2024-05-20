@@ -41,7 +41,8 @@ const Order = () => {
   const [search, setSearch] = useState('')
   const [state, setState] = useState([])
   const [allPageLengthSelect, setAllPageLengthSelect] = useState(state.length);
-
+  const [actualData, setActualData] = useState([])
+  const [isEmpty, setIsEmpty] = useState(false)
 
   useEffect(() => {
     getItems({ page, limit })
@@ -102,6 +103,7 @@ const Order = () => {
     setAllPageLength(allPageLength - 1)
     setMainData(mainData.filter(el => get(el, 'ItemCode', '') !== get(item, 'ItemCode', '')))
     setState([item, ...state])
+    setActualData([item, ...state])
   }
 
 
@@ -114,6 +116,17 @@ const Order = () => {
     }
   }
 
+  const postOrder = () => {
+    if (actualData.length == 0) {
+      return
+    }
+    if (actualData.find(item => item.value.length == 0)) {
+      setIsEmpty(true)
+      return
+    }
+    setIsEmpty(false)
+  }
+
   return (
     <Style>
       <Layout>
@@ -122,7 +135,7 @@ const Order = () => {
           <div className="order-head">
             <div className="order-main d-flex align justify">
               <button onClick={() => navigate('/home')} className='btn-back'>Закрить</button>
-              <button className='btn-head'>
+              <button onClick={postOrder} className='btn-head'>
                 Добавить
               </button>
             </div>
@@ -207,6 +220,7 @@ const Order = () => {
                     setAllPageLength(allPageLength - filterData.length)
                     setMainData(mainData.filter(el => el.value.trim().length == 0))
                     setState([...filterData, ...state])
+                    setActualData([...filterData, ...state])
                   }} className='table-head-check-btn'>
                     <img src={tickSquare} alt="tick" />
                   </button>
@@ -281,7 +295,10 @@ const Order = () => {
           setAllPageLength={setAllPageLength}
           allPageLength={allPageLength}
           mainData={mainData}
-          search={search}
+          actualData={actualData}
+          setActualData={setActualData}
+          isEmpty={isEmpty}
+          setIsEmpty={setIsEmpty}
         />
       </Layout>
     </Style>
