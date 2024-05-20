@@ -134,30 +134,31 @@ const Home = () => {
 
   const handleSelect = (status, docEntry) => {
     setDropdownOpen(false);
-
-    // setLoading(true)
-    // axios
-    //   .patch(
-    //     url + `/b1s/v1/Orders(${docEntry})`,
-    //     {
-    //       U_status_order: status
-    //     },
-    //     {
-    //       headers: {
-    //         'Content-Type': 'application/json',
-    //         info: {
-    //           'cookie': get(getMe, 'Cookie[0]', '') + get(getMe, 'Cookie[1]', ''),
-    //           'SessionId': get(getMe, 'SessionId', ''),
-    //         }
-    //       },
-    //     }
-    //   )
-    //   .then(({ data }) => {
-    //     alert('oshahdi')
-    //   })
-    //   .catch(err => {
-    //     setLoading(false)
-    //   });
+    setLoading(true)
+    axios
+      .patch(
+        url + `/b1s/v1/Orders(${docEntry})`,
+        {
+          U_status_order: status
+        },
+        {
+          headers: {
+            info: JSON.stringify({
+              'Cookie': get(getMe, 'Cookie[0]', '') + get(getMe, 'Cookie[1]', ''),
+              'SessionId': get(getMe, 'SessionId', ''),
+            })
+          },
+        }
+      )
+      .then(({ data }) => {
+        setLoading(false)
+        let index = mainData.findIndex((el => el.DocEntry == docEntry))
+        mainData[index].U_status_order = status
+        setMainData([...mainData])
+      })
+      .catch(err => {
+        setLoading(false)
+      });
   };
   return (
     <Style>
@@ -253,6 +254,7 @@ const Home = () => {
                 <li className='table-head-item'>Дата заказа</li>
                 <li className='table-head-item'>Дата отгрузки</li>
                 <li className='table-head-item'>Сумма сделки</li>
+
                 <li className='table-head-item'>Тип оплаты</li>
                 <li className='table-head-item'>Состояние</li>
               </ul>
@@ -286,12 +288,12 @@ const Home = () => {
                               </div>
                               <div className='w-100 p-16' onClick={() => setActiveData(activeData === i + 1 ? 0 : (i + 1))}>
                                 <p className='table-body-text'>
-                                  {moment(get(item, 'DocDate', '')).format("DD-MM-YYYY")}
+                                  {moment(get(item, 'DocDate', '')).format("DD-MM-YYYY h:mm:ss")}
                                 </p>
                               </div>
                               <div className='w-100 p-16' onClick={() => setActiveData(activeData === i + 1 ? 0 : (i + 1))}>
                                 <p className='table-body-text '>
-                                  {moment(get(item, 'DocDueDate', '')).format("DD-MM-YYYY")}
+                                  {moment(get(item, 'DocDueDate', '')).format("DD-MM-YYYY h:mm:ss")}
                                 </p>
                               </div>
                               <div className='w-100 p-16' onClick={() => setActiveData(activeData === i + 1 ? 0 : (i + 1))}>

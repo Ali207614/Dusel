@@ -41,17 +41,19 @@ async function proxyFunc(req, res) {
         })
     }
 
-    console.log(req.cookies)
-    console.log(req.headers)
-    console.log(req.body)
-
-
+    let cookie;
+    if (!req.headers?.info) {
+        cookie = req.headers
+    }
+    else {
+        cookie = JSON.parse(req.headers?.info)
+    }
     return axios({
         url: `https://${process.env.api}:50000` + req.originalUrl,
         method: req.method,
         data: req.body,
         timeout: 90000,
-        headers: req.headers,
+        headers: cookie,
         httpsAgent: new https.Agent({
             rejectUnauthorized: false,
         }),
@@ -66,6 +68,7 @@ async function proxyFunc(req, res) {
 }
 
 app.get('/b1s/v1/:path', proxyFunc);
+app.post('/b1s/v1/:path', proxyFunc);
 app.patch('/b1s/v1/:path', proxyFunc);
 app.put('/b1s/v1/:path', proxyFunc);
 app.delete('/b1s/v1/:path', proxyFunc);
@@ -79,7 +82,6 @@ app.delete('/b1s/v1/:path/:path2', proxyFunc);
 app.get('/api/orders', async function (req, res) {
     try {
         const ret = await getOrders(req.query)
-        console.log(ret)
         return res.status(200).send(ret)
     } catch (e) {
         return res.status(400).send({
@@ -107,23 +109,21 @@ function getItems({ offset, limit, whsCode, search, items = [] }) {
                 conn.disconnect();
                 return;
             }
-            let innerSql = `SELECT sum(1) FROM ${db}.OITM  T0 INNER JOIN ${db}.OITW  T1 ON T0."ItemCode" = T1."ItemCode" INNER JOIN ${db}.OWHS  T2 ON T1."WhsCode" = T2."WhsCode" INNER JOIN ${db}.ITM1 T3 ON T0."ItemCode" = T3."ItemCode" WHERE T2."WhsCode" = '${whsCode}' and  T3."PriceList"  = 1`
+            let innerSql = `SELECT sum(1) FROM ${db}.OITM  T0 INNER JOIN ${db}.OITW  T1 ON T0."ItemCode" = T1."ItemCode" INNER JOIN ${db}.OWHS  T2 ON T1."WhsCode" = T2."WhsCode" INNER JOIN ${db}.ITM1 T3 ON T0."ItemCode" = T3."ItemCode" WHERE T2."WhsCode" = '${whsCode}' and  T3."PriceList"  = 1 and T0."Series" in (73,72)`
             if (items.length) {
                 innerSql += ` and T0."ItemCode" not in (${items})`
             }
             if (search?.length) {
-                innerSql += ` and (LOWER(T0."ItemCode") like '%${search}%' or LOWER(T0."ItemName") like '%${search}%')`
+                innerSql += ` and (LOWER(T0."ItemCode") like '%${search}%' or LOWER(T0."ItemName") like '%${search}%' or LOWER(T0."U_model") like '%${search}%') `
             }
-            let sql = `SELECT  (${innerSql}) as length,  T1."IsCommited", T2."WhsCode", T2."WhsName", T1."OnHand", T1."OnOrder", T1."Counted", T0."ItemCode", T0."ItemName", T0."CodeBars", T1."AvgPrice", T3."PriceList", T3."Price" , T3."Currency" FROM ${db}.OITM  T0 INNER JOIN ${db}.OITW  T1 ON T0."ItemCode" = T1."ItemCode" INNER JOIN ${db}.OWHS  T2 ON T1."WhsCode" = T2."WhsCode" INNER JOIN ${db}.ITM1 T3 ON T0."ItemCode" = T3."ItemCode" WHERE T2."WhsCode" = '${whsCode}' and T3."PriceList"  = 1 `
+            let sql = `SELECT  (${innerSql}) as length,  T0."U_U_netto", T0."U_U_brutto", T0."U_model",  T1."IsCommited", T2."WhsCode", T2."WhsName", T1."OnHand", T1."OnOrder", T1."Counted", T0."ItemCode", T0."ItemName", T0."CodeBars", T1."AvgPrice", T3."PriceList", T3."Price" , T3."Currency" FROM ${db}.OITM  T0 INNER JOIN ${db}.OITW  T1 ON T0."ItemCode" = T1."ItemCode" INNER JOIN ${db}.OWHS  T2 ON T1."WhsCode" = T2."WhsCode" INNER JOIN ${db}.ITM1 T3 ON T0."ItemCode" = T3."ItemCode" WHERE T2."WhsCode" = '${whsCode}' and T3."PriceList"  = 1 and T0."Series" in (73,72)`
             if (items.length) {
                 sql += ` and T0."ItemCode" not in (${items})`
             }
             if (search?.length) {
-                sql += `and (LOWER(T0."ItemCode") like '%${search}%' or LOWER(T0."ItemName") like '%${search}%') ORDER BY ORDER BY T0."U_prn" `
+                sql += `and (LOWER(T0."ItemCode") like '%${search}%' or LOWER(T0."ItemName") like '%${search}%' or LOWER(T0."U_model") like '%${search}%')  `
             }
-
-            sql += `  limit ${limit} offset ${offset - 1} `
-
+            sql += ` ORDER BY T0."U_prn"  limit ${limit} offset ${offset - 1} `
 
 
             conn.exec(sql, function (err, result) {
@@ -157,7 +157,7 @@ function getOrders({ offset, limit, search }) {
             if (search?.length) {
                 innerSql += ` and (LOWER(T0."CardName") like '%${search}%')`
             }
-            let sql = `SELECT (${innerSql}) as length , T0."DocNum", T0."DocEntry"  , T0."SlpCode", T1."SlpName", T0."DocDate", T0."DocDueDate", T0."CardCode",T0."DocEntry", T0."CardName", T0."CANCELED", T0."DocStatus", T0."DocCur", T0."DocRate", T0."DocTotal", T0."DocTotalFC" FROM ${db}.ORDR  T0 INNER JOIN ${db}.OSLP T1 ON T0."SlpCode" = T1."SlpCode"  WHERE T0."DocStatus" ='O' and T0."CANCELED"='N'`
+            let sql = `SELECT (${innerSql}) as length , T0."U_status_order",  T0."DocNum", T0."DocEntry"  , T0."SlpCode", T1."SlpName", T0."DocDate", T0."DocDueDate", T0."CardCode",T0."DocEntry", T0."CardName", T0."CANCELED", T0."DocStatus", T0."DocCur", T0."DocRate", T0."DocTotal", T0."DocTotalFC" FROM ${db}.ORDR  T0 INNER JOIN ${db}.OSLP T1 ON T0."SlpCode" = T1."SlpCode"  WHERE T0."DocStatus" ='O' and T0."CANCELED"='N'`
 
             if (search?.length) {
                 sql += `and (LOWER(T0."CardName") like '%${search}%')`

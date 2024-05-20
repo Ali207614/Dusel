@@ -164,10 +164,12 @@ const Resizable = memo(({
                                     <div className='table tab-table'>
                                         <div className='table-head'>
                                             <ul className='table-head-list d-flex align  justify'>
-                                                <li className='table-head-item '>
+                                                <li className='table-head-item w-50'>
                                                     Код
                                                 </li>
                                                 <li className='table-head-item'>Продукция / Производитель </li>
+                                                <li className='table-head-item'>Модел</li>
+                                                <li className='table-head-item'>Netto/Brutto</li>
                                                 <li className='table-head-item'>Цена</li>
                                                 <li className='table-head-item'>Остаток</li>
                                                 <li className='table-head-item'>Количество</li>
@@ -197,7 +199,7 @@ const Resizable = memo(({
                                                                 return (
                                                                     <li key={i} className={`table-body-item`}>
                                                                         <div className='table-item-head d-flex align  justify'>
-                                                                            <div className='w-100 p-16'>
+                                                                            <div className='w-50 p-16'>
                                                                                 <p className='table-body-text' >
                                                                                     {get(item, 'ItemCode', '')}
                                                                                 </p>
@@ -205,6 +207,16 @@ const Resizable = memo(({
                                                                             <div className='w-100 p-16' >
                                                                                 <p className='table-body-text truncated-text' title={get(item, 'ItemName', '')}>
                                                                                     {get(item, 'ItemName', '') || '-'}
+                                                                                </p>
+                                                                            </div>
+                                                                            <div className='w-100 p-16' >
+                                                                                <p className='table-body-text truncated-text' title={get(item, 'ItemName', '')}>
+                                                                                    {get(item, 'U_model', '-') || '-'}
+                                                                                </p>
+                                                                            </div>
+                                                                            <div className='w-100 p-16' >
+                                                                                <p className='table-body-text truncated-text' title={get(item, 'ItemName', '')}>
+                                                                                    {get(item, 'U_U_netto', '-') || '-'}/{get(item, 'U_U_brutto', '-') || '-'}
                                                                                 </p>
                                                                             </div>
                                                                             <div className='w-100 p-16' >

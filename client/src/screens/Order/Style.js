@@ -425,5 +425,9 @@ li{
   background: #555; 
 }  */
 
+.w-50{
+  width: 50%;
+}
+
 `;
 export default Style;
