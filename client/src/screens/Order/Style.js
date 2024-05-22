@@ -37,6 +37,11 @@ li{
   z-index: 10;
   font-size: 12px;
 }
+
+.opacity-5{
+  opacity: 0.5;
+}
+
 .container {
     padding-right: 15px;
     padding-left: 15px;
@@ -45,19 +50,23 @@ li{
     width: 1400px;
   }
   .btn-head{
-    width:121px;
-    padding: 9px 12px;
-    border-radius:  8px;
-    background:  #F2462F;
-
-    color:  #FFF;
-    font-size: 12px;
-    font-style: normal;
-    font-weight: 500;
-    line-height: 18px;
-    text-align:center;
-    outline:none;
-    border:none;
+    width: 121px;
+    height: 36px;
+  padding: 9px 12px;
+  border-radius: 8px;
+  background: #F2462F;
+  color: #FFF;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 18px;
+  text-align: center;
+  outline: none;
+  border: none;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   }
   .btn-back{
     border-radius:  8px;
@@ -269,9 +278,7 @@ li{
   .margin-right{
     margin-right:12px;
   }
-  .opcity-5{
-    opacity:0.5;
-  }
+
 
 
 
@@ -480,6 +487,11 @@ li{
   .dropdown-active{
     background:  #dadcde;
   }
+
+
+
+
+
 
 `;
 export default Style;

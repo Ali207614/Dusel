@@ -14,22 +14,27 @@ import { get } from 'lodash';
 import formatterCurrency from '../../helpers/currency';
 import { FadeLoader } from "react-spinners";
 import LazyLoad from "react-lazyload";
+import { ErrorModal, ConfirmModal } from '../../components/Modal';
+import { Spinner } from '../../components';
+import { useSelector } from 'react-redux';
+
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
 import 'react-resizable/css/styles.css';
 import Resizable from './Resizable';
-let url = process.env.REACT_APP_API_URL
 
+let url = process.env.REACT_APP_API_URL
 let limitList = [1, 10, 50, 100, 500, 1000]
 let warehouseList = ['BAZA1', 'BAZA2', 'LYUSTRA', 'YANGI']
 const override = {
   position: "absolute",
   left: "50%",
   top: "50%",
-  width: "100px",
-  height: "100px",
-  margin: 'auto'
 };
 
 const Order = () => {
+  const { getMe } = useSelector(state => state.main);
 
   let { id } = useParams();
   const navigate = useNavigate();
@@ -50,9 +55,57 @@ const Order = () => {
   const [customerCode, setCustomerCode] = useState('')
   const [customerData, setCustomerData] = useState([])
   const [miniLoader, setMiniLoader] = useState(false)
+  const [orderLoading, setOrderLoading] = useState(false)
+  const [date, setDate] = useState({ DocDate: '', DocDueDate: '' })
+
+  const [limitSelect, setLimitSelect] = useState(10);
+  const [pageSelect, setPageSelect] = useState(1);
+  const [tsSelect, setTsSelect] = useState(10);
 
   const [showDropDownWarehouse, setShowDropdownWarehouse] = useState(false)
   const [warehouse, setWarehouse] = useState('BAZA1')
+
+  const errorRef = useRef();
+  const confirmRef = useRef();
+
+  const getErrorRef = useCallback(ref => {
+    errorRef.current = ref;
+  }, []);
+  const confirmModalRef = useCallback(ref => {
+    confirmRef.current = ref;
+  }, []);
+
+  const errorNotify = (text) => toast.error(text, {
+    position: "top-right",
+    autoClose: 5000,
+    hideProgressBar: false,
+    closeOnClick: true,
+    pauseOnHover: true,
+    draggable: true,
+    progress: undefined,
+    theme: "colored",
+  });
+  const warningNotify = (text) => toast.warning(text, {
+    position: "top-right",
+    autoClose: 5000,
+    hideProgressBar: false,
+    closeOnClick: true,
+    pauseOnHover: true,
+    draggable: true,
+    progress: undefined,
+    theme: "colored",
+  });
+
+  const successNotify = () => toast.success("Ma'lumot muvaffaqiyatli qo'shildi", {
+    position: "top-right",
+    autoClose: 5000,
+    hideProgressBar: false,
+    closeOnClick: true,
+    pauseOnHover: true,
+    draggable: true,
+    progress: undefined,
+    theme: "colored",
+  });
 
   useEffect(() => {
     console.log(id, ' bu docEntry')
@@ -99,20 +152,19 @@ const Order = () => {
     const newSearchTerm = e.target.value;
     setSearch(newSearchTerm);
   };
+
   const getCustomer = (customerDataObj) => {
-    setMiniLoader(true)
     axios
       .get(
         url + `/api/customer?search=${get(customerDataObj, 'customer', '').toLowerCase()}`,
       )
       .then(({ data }) => {
-        setMiniLoader(false)
         setCustomerData(
           get(data, 'value', [])
         )
       })
       .catch(err => {
-        setMiniLoader(false)
+        errorNotify("Mijozlarni yuklashda muommo yuzaga keldi")
       });
 
     return;
@@ -133,6 +185,7 @@ const Order = () => {
       })
       .catch(err => {
         setLoading(false)
+        errorNotify("Tovarlarni yuklashda muommo yuzaga keldi")
       });
 
     return;
@@ -158,244 +211,333 @@ const Order = () => {
   }
 
   const postOrder = () => {
+    if (!customerCode) {
+      warningNotify("Customer tanlanmagan")
+      return
+    }
+    if (!get(date, 'DocDate', '')) {
+      warningNotify("Sana tanlanmagan")
+      return
+    }
+    if (!get(date, "DocDueDate", '')) {
+      warningNotify("Sana tanlanmagan")
+      return
+    }
     if (actualData.length == 0) {
+      warningNotify("Ma'lumot mavjud emas")
       return
     }
     if (actualData.find(item => item.value.length == 0)) {
+      warningNotify("Miqdor yozilmagan")
       setIsEmpty(true)
       return
     }
     setIsEmpty(false)
+    confirmRef.current?.open("Вы уверены, что хотите это добавить?");
   }
 
+  const Orders = () => {
+    setOrderLoading(true)
+    let body = {
+      "CardCode": customerCode,
+      "DocDate": get(date, 'DocDate'),
+      "DocDueDate": get(date, 'DocDueDate'),
+      "DocumentLines": state.map(item => {
+        return {
+          "ItemCode": get(item, 'ItemCode', ''),
+          "Quantity": Number(get(item, 'value', 0)),
+          "WarehouseCode": warehouse
+        }
+      })
+    }
+    axios
+      .post(
+        url + `/b1s/v1/Orders`,
+        body,
+        {
+          headers: {
+            info: JSON.stringify({
+              'Cookie': get(getMe, 'Cookie[0]', '') + get(getMe, 'Cookie[1]', ''),
+              'SessionId': get(getMe, 'SessionId', ''),
+            })
+          },
+        }
+      )
+      .then(({ data }) => {
+        setOrderLoading(false)
+        successNotify()
+        setMainData([...state, ...mainData].map(item => {
+          return { ...item, value: '' }
+        }))
+        setState([])
+        setActualData([])
+        setAllPageLength(allPageLength + state.length)
+        setAllPageLengthSelect(0)
+        setLimitSelect(10)
+        setPageSelect(1)
+        setTsSelect(10)
+      })
+      .catch(err => {
+        if (get(err, 'response.status') == 401) {
+          navigate('/login')
+          return
+        }
+        setOrderLoading(false)
+        errorRef.current?.open(get(err, 'response.data.error.message.value', 'Ошибка'));
+      });
+
+    return;
+  };
+
+
+
   return (
-    <Style>
-      <Layout>
+    <>
+      <Style>
+        <Layout>
 
-        <div className='container'>
-          <div className="order-head">
-            <div className="order-main d-flex align justify">
-              <button onClick={() => navigate('/home')} className='btn-back'>Закрить</button>
-              <button onClick={postOrder} className='btn-head'>
-                Добавить
-              </button>
-            </div>
-            <div className="order-head-data d-flex align justify">
-              <div className='w-100 position-relative'>
-                <input onChange={(e) => {
-                  setCustomer(e.target.value)
-                  setCustomerCode('')
-                }} value={customer} type="search" className='order-inp' placeholder='Customer' />
-                {(customerData.length) ? (
-                  <ul className="dropdown-menu">
-                    {customerData.map((customerItem, i) => (
-                      <li onClick={() => {
-                        setCustomer(get(customerItem, 'CardName', ''))
-                        setCustomerCode(get(customerItem, 'CardCode', ''))
-                        setCustomerData([])
-                      }} key={i} className={`dropdown-li`}><a className="dropdown-item" href="#">
-                          {get(customerItem, 'CardCode', '') || '-'} - {get(customerItem, 'CardName', '') || '-'}
-                        </a></li>
-                    ))}
-                  </ul>
-                ) : ''}
-              </div>
-              <div className='w-100'>
-                <input type="date" className='order-inp' placeholder='Doc Date' />
-              </div>
-              <div className='w-100'>
-                <input type="date" className='order-inp' placeholder='Due Date' />
-              </div>
-            </div>
-
-            <div className='d-flex align justify'>
-              <div className='right-limit'>
-                <button style={{ width: "110px" }} onClick={() => setShowDropdownWarehouse(!showDropDownWarehouse)} className='right-dropdown'>
-                  <p className='right-limit-text'>{warehouse}</p>
-                  <img src={arrowDown} className={showDropDownWarehouse ? "up-arrow" : ""} alt="arrow-down-img" />
+          <div className='container'>
+            <div className="order-head">
+              <div className="order-main d-flex align justify">
+                <button onClick={() => navigate('/home')} className='btn-back'>Закрить</button>
+                <button onClick={postOrder} className={`btn-head position-relative`}>
+                  {orderLoading ? <Spinner /> : 'Добавить'}
                 </button>
-                <ul className={`dropdown-menu ${showDropDownWarehouse ? "display-b" : "display-n"}`} aria-labelledby="dropdownMenuButton1">
-                  {
-                    warehouseList.map((item, i) => {
-                      return (<li key={i} onClick={() => {
-                        if (warehouse != item) {
-                          setWarehouse(item);
-                          setShowDropdownWarehouse(false)
-                          getItems({ page: page - limit, limit, value: search, warehouse: item })
-                        }
-                        return
-                      }} className={`dropdown-li ${warehouse == item ? 'dropdown-active' : ''}`}><a className="dropdown-item" href="#">{item}</a></li>)
-                    })
-                  }
-                </ul>
               </div>
-              <div className='right-head order-head-filter'>
-                <div className='right-pagination'>
-                  <p className='pagination-text'><span>{page}-{ts}</span> <span>of {allPageLength}</span> </p>
-                  <button onClick={() => {
-                    if (page > 1) {
-                      getItems({ page: page - limit, limit, value: search, warehouse })
-                      setPage(page - limit);
-                      setTs(ts - limit)
-                    }
-                  }} disabled={page == 1} className={`pagination-button left-pagination ${page == 1 ? 'opcity-5' : ''}`}>
-                    <img src={pagination} alt="arrow-button-pagination" />
-                  </button>
+              <div className="order-head-data d-flex align justify">
+                <div className='w-100 position-relative'>
+                  <input onChange={(e) => {
+                    setCustomer(e.target.value)
+                    setCustomerCode('')
+                  }} value={customer} type="search" className='order-inp' placeholder='Customer' />
+                  {(customerData.length) ? (
+                    <ul className="dropdown-menu">
+                      {customerData.map((customerItem, i) => (
+                        <li onClick={() => {
+                          setCustomer(get(customerItem, 'CardName', ''))
+                          setCustomerCode(get(customerItem, 'CardCode', ''))
+                          setCustomerData([])
+                        }} key={i} className={`dropdown-li`}><a className="dropdown-item" href="#">
+                            {get(customerItem, 'CardCode', '') || '-'} - {get(customerItem, 'CardName', '') || '-'}
+                          </a></li>
+                      ))}
+                    </ul>
+                  ) : ''}
+                </div>
+                <div className='w-100'>
+                  <input value={get(date, 'DocDate', '')} onChange={(e) => setDate({ ...date, DocDate: e.target.value })} type="date" className='order-inp' placeholder='Doc Date' />
+                </div>
+                <div className='w-100'>
+                  <input value={get(date, 'DocDueDate', '')} onChange={(e) => setDate({ ...date, DocDueDate: e.target.value })} type="date" className='order-inp' placeholder='Due Date' />
+                </div>
+              </div>
 
-                  <button onClick={() => {
-                    if (ts < allPageLength) {
-                      getItems({ page: page + limit, limit, value: search, warehouse })
-                      setPage(page + limit)
-                      setTs(limit + ts)
-                    }
-                  }} disabled={ts >= allPageLength} className={`pagination-button margin-right ${ts >= allPageLength ? 'opcity-5' : ''}`}>
-                    <img src={pagination} alt="arrow-button-pagination" />
-                  </button>
-                </div>
-                <div className='right-input'>
-                  <img className='right-input-img' src={searchImg} alt="search-img" />
-                  <input onChange={handleChange} value={search} type="text" className='right-inp' placeholder='Поиск' />
-                </div>
-                <button className='right-filter'>
-                  <img className='right-filter-img' src={filterImg} alt="filter-img" />
-                </button>
+              <div className='d-flex align justify'>
                 <div className='right-limit'>
-                  <button onClick={() => setShowDropdown(!showDropdown)} className='right-dropdown'>
-                    <p className='right-limit-text'>{limit}</p>
-                    <img src={arrowDown} className={showDropdown ? "up-arrow" : ""} alt="arrow-down-img" />
+                  <button style={{ width: "110px" }} onClick={() => setShowDropdownWarehouse(!showDropDownWarehouse)} className='right-dropdown'>
+                    <p className='right-limit-text'>{warehouse}</p>
+                    <img src={arrowDown} className={showDropDownWarehouse ? "up-arrow" : ""} alt="arrow-down-img" />
                   </button>
-                  <ul className={`dropdown-menu ${showDropdown ? "display-b" : "display-n"}`} aria-labelledby="dropdownMenuButton1">
+                  <ul className={`dropdown-menu ${showDropDownWarehouse ? "display-b" : "display-n"}`} aria-labelledby="dropdownMenuButton1">
                     {
-                      limitList.map((item, i) => {
+                      warehouseList.map((item, i) => {
                         return (<li key={i} onClick={() => {
-                          if (limit != item) {
-                            setLimit(item);
-                            setPage(1);
-                            setShowDropdown(false);
-                            setTs(item)
-                            getItems({ page: 1, limit: item, value: search, warehouse })
+                          if (warehouse != item) {
+                            setWarehouse(item);
+                            setShowDropdownWarehouse(false)
+                            getItems({ page, limit, value: search, warehouse: item })
                           }
                           return
-                        }} className={`dropdown-li ${limit == item ? 'dropdown-active' : ''}`}><a className="dropdown-item" href="#">{item}</a></li>)
+                        }} className={`dropdown-li ${warehouse == item ? 'dropdown-active' : ''}`}><a className="dropdown-item" href="#">{item}</a></li>)
                       })
                     }
                   </ul>
                 </div>
+                <div className='right-head order-head-filter'>
+                  <div className='right-pagination'>
+                    <p className='pagination-text'><span>{page}-{ts}</span> <span>of {allPageLength}</span> </p>
+                    <button onClick={() => {
+                      if (page > 1) {
+                        getItems({ page: page - limit, limit, value: search, warehouse })
+                        setPage(page - limit);
+                        setTs(ts - limit)
+                      }
+                    }} disabled={page == 1} className={`pagination-button left-pagination ${page == 1 ? 'opcity-5' : ''}`}>
+                      <img src={pagination} alt="arrow-button-pagination" />
+                    </button>
+
+                    <button onClick={() => {
+                      if (ts < allPageLength) {
+                        getItems({ page: page + limit, limit, value: search, warehouse })
+                        setPage(page + limit)
+                        setTs(limit + ts)
+                      }
+                    }} disabled={ts >= allPageLength} className={`pagination-button margin-right ${ts >= allPageLength ? 'opcity-5' : ''}`}>
+                      <img src={pagination} alt="arrow-button-pagination" />
+                    </button>
+                  </div>
+                  <div className='right-input'>
+                    <img className='right-input-img' src={searchImg} alt="search-img" />
+                    <input onChange={handleChange} value={search} type="text" className='right-inp' placeholder='Поиск' />
+                  </div>
+                  <button className='right-filter'>
+                    <img className='right-filter-img' src={filterImg} alt="filter-img" />
+                  </button>
+                  <div className='right-limit'>
+                    <button onClick={() => setShowDropdown(!showDropdown)} className='right-dropdown'>
+                      <p className='right-limit-text'>{limit}</p>
+                      <img src={arrowDown} className={showDropdown ? "up-arrow" : ""} alt="arrow-down-img" />
+                    </button>
+                    <ul className={`dropdown-menu ${showDropdown ? "display-b" : "display-n"}`} aria-labelledby="dropdownMenuButton1">
+                      {
+                        limitList.map((item, i) => {
+                          return (<li key={i} onClick={() => {
+                            if (limit != item) {
+                              setLimit(item);
+                              setPage(1);
+                              setShowDropdown(false);
+                              setTs(item)
+                              getItems({ page: 1, limit: item, value: search, warehouse })
+                            }
+                            return
+                          }} className={`dropdown-li ${limit == item ? 'dropdown-active' : ''}`}><a className="dropdown-item" href="#">{item}</a></li>)
+                        })
+                      }
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className='table'>
+              <div className='table-head'>
+                <ul className='table-head-list d-flex align  justify'>
+                  <li className='table-head-item w-50'>
+                    Код
+                  </li>
+                  <li className='table-head-item'>Продукция/Производитель</li>
+                  <li className='table-head-item'>Модел</li>
+                  <li className='table-head-item'>Netto / Brutto</li>
+                  <li className='table-head-item'>Цена</li>
+                  <li className='table-head-item'>Остаток</li>
+                  <li className='table-head-item'>Количество</li>
+                  <li className='table-head-item'>В кейсе</li>
+                  <li className='table-head-item w-47px'>
+                    <button onClick={() => {
+                      let filterData = mainData.filter(el => el.value.trim().length > 0 && Number(get(el, 'OnHand', '')) > 0)
+                      if (filterData.length) {
+                        setAllPageLengthSelect(allPageLengthSelect + filterData.length)
+                        setAllPageLength(allPageLength - filterData.length)
+                        setMainData(mainData.filter(el => el.value.trim().length == 0 && Number(get(el, 'OnHand', '')) <= 0))
+                        setState([...filterData, ...state])
+                        setActualData([...filterData, ...state])
+                      }
+
+                    }} className='table-head-check-btn'>
+                      <img src={tickSquare} alt="tick" />
+                    </button>
+                  </li>
+                </ul>
+              </div>
+              <div className='table-body'>
+                {
+                  !loading ? (
+                    <ul className='table-body-list'>
+                      {
+                        mainData.map((item, i) => {
+                          return (
+                            <LazyLoad height={65} once>
+                              <li key={i} className={`table-body-item`}>
+                                <div className='table-item-head d-flex align  justify'>
+                                  <div className='w-50 p-16'>
+                                    <p className='table-body-text' >
+                                      {get(item, 'ItemCode', '')}
+                                    </p>
+                                  </div>
+                                  <div className='w-100 p-16' >
+                                    <p className='table-body-text truncated-text' title={get(item, 'ItemName', '')}>
+                                      {get(item, 'ItemName', '') || '-'}
+                                    </p>
+                                  </div>
+                                  <div className='w-100 p-16' >
+                                    <p className='table-body-text truncated-text' title={get(item, 'ItemName', '')}>
+                                      {get(item, 'U_model', '-') || '-'}
+                                    </p>
+                                  </div>
+                                  <div className='w-100 p-16' >
+                                    <p className='table-body-text truncated-text' title={get(item, 'ItemName', '')}>
+                                      {Number(get(item, 'U_U_netto', '-')) || '-'} / {Number(get(item, 'U_U_brutto', '-')) || '-'}
+                                    </p>
+                                  </div>
+                                  <div className='w-100 p-16' >
+                                    <p className='table-body-text'>
+                                      {formatterCurrency(Number(get(item, 'Price', 0)), get(item, 'Currency', "USD") || 'USD')}
+                                    </p>
+                                  </div>
+                                  <div className='w-100 p-16' >
+                                    <p className='table-body-text '>
+                                      {Number(get(item, 'OnHand', ''))} / <span className='isCommited'>{Number(get(item, 'OnHand', '')) - Number(get(item, 'IsCommited', ''))}</span>
+                                    </p>
+                                  </div>
+                                  <div className='w-100 p-16' >
+                                    <p className='table-body-text '>
+                                      <input value={get(item, 'value', '')} onChange={(e) => changeValue(e.target.value, get(item, 'ItemCode', ''))} type="text" className='table-body-inp' placeholder='-' />
+                                    </p>
+                                  </div>
+                                  <div className='w-100 p-16' >
+                                    <p className='table-body-text '>
+                                      <input type="text" className='table-body-inp' placeholder='100  /кор' />
+                                    </p>
+                                  </div>
+                                  <div className='w-47px p-16' >
+                                    <button disabled={Number(get(item, 'OnHand', '')) <= 0} onClick={() => addState(item)} className={`table-body-text table-head-check-btn ${Number(get(item, 'OnHand', '')) <= 0 ? 'opacity-5' : ''}`}>
+                                      <img src={add} alt="add button" />
+                                    </button>
+                                  </div>
+                                </div>
+                              </li>
+                            </LazyLoad>
+
+                          )
+                        })
+                      }
+                    </ul>) :
+                    <FadeLoader color={color} loading={loading} cssOverride={override} size={100} />
+                }
               </div>
             </div>
           </div>
-          <div className='table'>
-            <div className='table-head'>
-              <ul className='table-head-list d-flex align  justify'>
-                <li className='table-head-item w-50'>
-                  Код
-                </li>
-                <li className='table-head-item'>Продукция/Производитель</li>
-                <li className='table-head-item'>Модел</li>
-                <li className='table-head-item'>Netto/Brutto</li>
-                <li className='table-head-item'>Цена</li>
-                <li className='table-head-item'>Остаток</li>
-                <li className='table-head-item'>Количество</li>
-                <li className='table-head-item'>В кейсе</li>
-                <li className='table-head-item w-47px'>
-                  <button onClick={() => {
-                    let filterData = mainData.filter(el => el.value.trim().length > 0)
-                    setAllPageLengthSelect(allPageLengthSelect + filterData.length)
-                    setAllPageLength(allPageLength - filterData.length)
-                    setMainData(mainData.filter(el => el.value.trim().length == 0))
-                    setState([...filterData, ...state])
-                    setActualData([...filterData, ...state])
-                  }} className='table-head-check-btn'>
-                    <img src={tickSquare} alt="tick" />
-                  </button>
-                </li>
-              </ul>
-            </div>
-            <div className='table-body'>
-              {
-                !loading ? (
-                  <ul className='table-body-list'>
-                    {
-                      mainData.map((item, i) => {
-                        return (
-                          <LazyLoad height={65} once>
-                            <li key={i} className={`table-body-item`}>
-                              <div className='table-item-head d-flex align  justify'>
-                                <div className='w-50 p-16'>
-                                  <p className='table-body-text' >
-                                    {get(item, 'ItemCode', '')}
-                                  </p>
-                                </div>
-                                <div className='w-100 p-16' >
-                                  <p className='table-body-text truncated-text' title={get(item, 'ItemName', '')}>
-                                    {get(item, 'ItemName', '') || '-'}
-                                  </p>
-                                </div>
-                                <div className='w-100 p-16' >
-                                  <p className='table-body-text truncated-text' title={get(item, 'ItemName', '')}>
-                                    {get(item, 'U_model', '-') || '-'}
-                                  </p>
-                                </div>
-                                <div className='w-100 p-16' >
-                                  <p className='table-body-text truncated-text' title={get(item, 'ItemName', '')}>
-                                    {get(item, 'U_U_netto', '-') || '-'}/{get(item, 'U_U_brutto', '-') || '-'}
-                                  </p>
-                                </div>
-                                <div className='w-100 p-16' >
-                                  <p className='table-body-text'>
-                                    {formatterCurrency(Number(get(item, 'Price', 0)), get(item, 'Currency', "USD") || 'USD')}
-                                  </p>
-                                </div>
-                                <div className='w-100 p-16' >
-                                  <p className='table-body-text '>
-                                    {Number(get(item, 'OnHand', ''))} / <span className='isCommited'>{Number(get(item, 'OnHand', '')) - Number(get(item, 'IsCommited', ''))}</span>
-                                  </p>
-                                </div>
-                                <div className='w-100 p-16' >
-                                  <p className='table-body-text '>
-                                    <input value={get(item, 'value', '')} onChange={(e) => changeValue(e.target.value, get(item, 'ItemCode', ''))} type="text" className='table-body-inp' placeholder='-' />
-                                  </p>
-                                </div>
-                                <div className='w-100 p-16' >
-                                  <p className='table-body-text '>
-                                    <input type="text" className='table-body-inp' placeholder='100  /кор' />
-                                  </p>
-                                </div>
-                                <div className='w-47px p-16' >
-                                  <button onClick={() => addState(item)} className='table-body-text table-head-check-btn'>
-                                    <img src={add} alt="add button" />
-                                  </button>
-                                </div>
-                              </div>
-                            </li>
-                          </LazyLoad>
 
-                        )
-                      })
-                    }
-                  </ul>) :
-                  <FadeLoader color={color} loading={loading} cssOverride={override} size={100} />
-              }
-            </div>
-          </div>
-        </div>
-
-        <Resizable
-          state={state}
-          setState={setState}
-          setAllPageLengthSelect={setAllPageLengthSelect}
-          allPageLengthSelect={allPageLengthSelect}
-          setMainData={setMainData}
-          setAllPageLength={setAllPageLength}
-          allPageLength={allPageLength}
-          mainData={mainData}
-          actualData={actualData}
-          setActualData={setActualData}
-          isEmpty={isEmpty}
-          setIsEmpty={setIsEmpty}
+          <Resizable
+            state={state}
+            setState={setState}
+            setAllPageLengthSelect={setAllPageLengthSelect}
+            allPageLengthSelect={allPageLengthSelect}
+            setMainData={setMainData}
+            setAllPageLength={setAllPageLength}
+            allPageLength={allPageLength}
+            mainData={mainData}
+            actualData={actualData}
+            setActualData={setActualData}
+            isEmpty={isEmpty}
+            setIsEmpty={setIsEmpty}
+            limitSelect={limitSelect}
+            setLimitSelect={setLimitSelect}
+            pageSelect={pageSelect}
+            setPageSelect={setPageSelect}
+            tsSelect={tsSelect}
+            setTsSelect={setTsSelect}
+          />
+        </Layout>
+      </Style>
+      <>
+        <ToastContainer />
+        <ErrorModal
+          getRef={getErrorRef}
+          title={'Ошибка'}
         />
-      </Layout>
-    </Style>
+        <ConfirmModal getRef={confirmModalRef} title={"Oshibka"} Orders={Orders} />
+      </>
+    </>
   );
 };
 

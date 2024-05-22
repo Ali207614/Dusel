@@ -6,7 +6,7 @@ import CreateUserModal from './CreateUserModal';
 import WarningModal from './WarningModal';
 import SelectProduct from './SelectProduct';
 import LogoutModal from './LogoutModal';
-
+import ConfirmModal from './ConfirmModal'
 export {
   SuccessModal,
   ErrorModal,
@@ -16,4 +16,5 @@ export {
   WarningModal,
   SelectProduct,
   LogoutModal,
+  ConfirmModal
 };

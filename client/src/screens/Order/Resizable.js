@@ -26,15 +26,16 @@ const Resizable = memo(({
     actualData,
     setActualData,
     isEmpty,
-    setIsEmpty
+    setIsEmpty,
+    limitSelect, setLimitSelect,
+    pageSelect, setPageSelect,
+    tsSelect, setTsSelect,
 }) => {
 
     let limitList = [1, 10, 50, 100, 500, 1000]
     const [height, setHeight] = useState(100);
     const [showDropdownSelect, setShowDropdownSelect] = useState(false);
-    const [limitSelect, setLimitSelect] = useState(10);
-    const [pageSelect, setPageSelect] = useState(1);
-    const [tsSelect, setTsSelect] = useState(10);
+
     const [search, setSearch] = useState('')
     const [show, setShow] = useState(true)
 
@@ -57,7 +58,7 @@ const Resizable = memo(({
             setState(actualData)
         }
         else {
-            setState(actualData.filter(item => get(item, 'ItemCode', '').toLowerCase().includes(newSearchTerm.toLowerCase()) || get(item, 'ItemName', '').toLowerCase().includes(newSearchTerm.toLowerCase())))
+            setState(actualData.filter(item => get(item, 'ItemCode', '').toLowerCase().includes(newSearchTerm.toLowerCase()) || get(item, 'ItemName', '').toLowerCase().includes(newSearchTerm.toLowerCase()) || get(item, 'U_model', '-').toLowerCase().includes(newSearchTerm.toLowerCase())))
         }
         setSearch(newSearchTerm);
     };
@@ -73,6 +74,8 @@ const Resizable = memo(({
             state[indexState].value = value
             setState([...state])
         }
+
+        setIsEmpty(false)
     }
 
     useEffect(() => {
@@ -169,7 +172,7 @@ const Resizable = memo(({
                                                 </li>
                                                 <li className='table-head-item'>Продукция / Производитель </li>
                                                 <li className='table-head-item'>Модел</li>
-                                                <li className='table-head-item'>Netto/Brutto</li>
+                                                <li className='table-head-item'>Netto / Brutto</li>
                                                 <li className='table-head-item'>Цена</li>
                                                 <li className='table-head-item'>Остаток</li>
                                                 <li className='table-head-item'>Количество</li>
@@ -216,7 +219,7 @@ const Resizable = memo(({
                                                                             </div>
                                                                             <div className='w-100 p-16' >
                                                                                 <p className='table-body-text truncated-text' title={get(item, 'ItemName', '')}>
-                                                                                    {get(item, 'U_U_netto', '-') || '-'}/{get(item, 'U_U_brutto', '-') || '-'}
+                                                                                    {Number(get(item, 'U_U_netto', '-')) || '-'} / {Number(get(item, 'U_U_brutto', '-')) || '-'}
                                                                                 </p>
                                                                             </div>
                                                                             <div className='w-100 p-16' >

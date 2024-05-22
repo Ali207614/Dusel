@@ -169,6 +169,7 @@ function getItems({ offset, limit, whsCode, search, items = [] }) {
             }
             sql += ` ORDER BY T0."U_prn"  limit ${limit} offset ${offset - 1} `
 
+
             conn.exec(sql, function (err, result) {
                 if (err) {
                     reject(err);
