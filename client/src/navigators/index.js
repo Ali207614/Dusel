@@ -10,6 +10,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/home" element={<Home />} />
         <Route path="/order" element={<Order />} />
+        <Route path="/order/:id" element={<Order />} />
       </Routes>
     </BrowserRouter>
   );

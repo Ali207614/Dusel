@@ -90,6 +90,50 @@ app.get('/api/orders', async function (req, res) {
     }
 })
 
+app.get('/api/customer', async function (req, res) {
+    try {
+        const ret = await getCustomer(req.query)
+        return res.status(200).send(ret)
+    } catch (e) {
+        return res.status(400).send({
+            message: e
+        });
+    }
+})
+
+
+function getCustomer({ search }) {
+    return new Promise((resolve, reject) => {
+        conn.connect(conn_params, function (err) {
+            if (err) {
+                reject(err);
+                conn.disconnect();
+                return;
+            }
+
+            let sql = `SELECT T0."CardCode", T0."CardName", T0."CardType" FROM ${db}.OCRD T0 WHERE T0."CardType" ='C'`
+            if (search?.length) {
+                sql += `and (LOWER(T0."CardCode") like '%${search}%' or LOWER(T0."CardName") like '%${search}%')`
+            }
+
+            conn.exec(sql, function (err, result) {
+                if (err) {
+                    reject(err);
+                    conn.disconnect();
+                    return;
+                }
+
+                resolve({
+                    value: result
+                });
+
+                conn.disconnect();
+            });
+        });
+    });
+}
+
+
 app.get('/api/items', async function (req, res) {
     try {
         const ret = await getItems(req.query)
@@ -125,7 +169,6 @@ function getItems({ offset, limit, whsCode, search, items = [] }) {
             }
             sql += ` ORDER BY T0."U_prn"  limit ${limit} offset ${offset - 1} `
 
-
             conn.exec(sql, function (err, result) {
                 if (err) {
                     reject(err);
@@ -160,10 +203,10 @@ function getOrders({ offset, limit, search }) {
             let sql = `SELECT (${innerSql}) as length , T0."U_status_order",  T0."DocNum", T0."DocEntry"  , T0."SlpCode", T1."SlpName", T0."DocDate", T0."DocDueDate", T0."CardCode",T0."DocEntry", T0."CardName", T0."CANCELED", T0."DocStatus", T0."DocCur", T0."DocRate", T0."DocTotal", T0."DocTotalFC" FROM ${db}.ORDR  T0 INNER JOIN ${db}.OSLP T1 ON T0."SlpCode" = T1."SlpCode"  WHERE T0."DocStatus" ='O' and T0."CANCELED"='N'`
 
             if (search?.length) {
-                sql += `and (LOWER(T0."CardName") like '%${search}%')`
+                sql += ` and (LOWER(T0."CardName") like '%${search}%')`
             }
 
-            sql += `  limit ${limit} offset ${offset - 1} `
+            sql += ` order by T0."DocEntry" desc limit ${limit} offset ${offset - 1} `
 
             conn.exec(sql, function (err, result) {
                 if (err) {

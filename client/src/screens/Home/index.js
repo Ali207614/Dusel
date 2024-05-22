@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import Style from './Style';
 import Layout from '../../components/Layout';
 import Button from '../../components/Button';
@@ -313,17 +313,20 @@ const Home = () => {
                               </div>
                             </div>
                             <div className='table-item-foot d-flex align'>
-                              <button className='table-item-btn d-flex align'>Edit <img src={editIcon} alt="arrow right" /></button>
-                              <button className='table-item-btn d-flex align'> Накладный <img src={editIcon} alt="arrow-right" /></button>
+                              <button className='table-item-btn d-flex align'>
+                                <Link className='table-item-text' to={`/order/${item.DocEntry}`}>Просмотреть и изменить заказ</Link>
+                                <img src={editIcon} alt="arrow right" /></button>
+                              <button className='table-item-btn d-flex align table-item-text'> Накладный <img src={editIcon} alt="arrow-right" /></button>
                               <div className="dropdown-container">
-                                <button className="table-item-btn d-flex align" onClick={toggleDropdown}>
+                                <button className="table-item-btn d-flex align table-item-text" onClick={toggleDropdown}>
                                   Состояние <img src={editIcon} alt="arrow-right" />
                                 </button>
-                                {dropdownOpen && (
+                                {(dropdownOpen) && (
                                   <ul className="dropdown-menu">
                                     {Object.keys(statuses).map((status) => (
                                       <li key={i} onClick={() => handleSelect(status, get(item, 'DocEntry', 0))} className={`dropdown-li ${get(item, 'U_status_order', '') == status ? 'dropdown-active' : ''}`}><a className="dropdown-item" href="#">{status}</a></li>
                                     ))}
+
                                   </ul>
                                 )}
                               </div>

@@ -6,7 +6,9 @@ const Style = styled.div`
     list-style: none;
   }
 
-  
+  a{
+    text-decoration: none;
+  }
 
   .truncated-text {
     width: 140px; /* Matn uzunligi */
@@ -331,6 +333,14 @@ const Style = styled.div`
   display: inline-block;
 }
 
+.table-item-text{
+  color:  #3C3F47;
+  font-family: "Inter Tight";
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 24px; 
+}
 
 `;
 export default Style;
