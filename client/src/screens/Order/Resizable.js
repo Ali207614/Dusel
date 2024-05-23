@@ -78,6 +78,19 @@ const Resizable = memo(({
         setIsEmpty(false)
     }
 
+    const changeKarobka = (value, itemCode) => {
+        let indexAct = actualData.findIndex(el => get(el, 'ItemCode', '') == itemCode)
+        let indexState = state.findIndex(el => get(el, 'ItemCode', '') == itemCode)
+        if (indexAct >= 0) {
+            actualData[indexAct].karobka = value
+            setActualData([...actualData])
+        }
+        if (indexState >= 0) {
+            state[indexState].karobka = value
+            setState([...state])
+        }
+    }
+
     useEffect(() => {
         if (actualData.length == 0) {
             setSearch('')
@@ -136,7 +149,7 @@ const Resizable = memo(({
                                         </div>
                                         <div className='right-input'>
                                             <img className='right-input-img' src={searchImg} alt="search-img" />
-                                            <input onChange={handleChange} value={search} type="text" className='right-inp bg-white' placeholder='Поиск' />
+                                            <input onChange={handleChange} value={search} type="search" className='right-inp bg-white' placeholder='Поиск' />
                                         </div>
                                         <button className='right-filter bg-white'>
                                             <img className='right-filter-img' src={filterImg} alt="filter-img" />
@@ -234,12 +247,19 @@ const Resizable = memo(({
                                                                             </div>
                                                                             <div className='w-100 p-16' >
                                                                                 <p className='table-body-text '>
-                                                                                    <input value={get(item, 'value', '')} onChange={(e) => changeValue(e.target.value, get(item, 'ItemCode', ''))} type="text" className={`table-body-inp bg-white ${(isEmpty && item?.value.length == 0) ? 'borderRed' : ''}`} placeholder='-' />
+                                                                                    <input value={get(item, 'value', '')} onChange={(e) => {
+                                                                                        changeValue(e.target.value, get(item, 'ItemCode', ''))
+                                                                                        changeKarobka((e.target.value ? (Math.floor(e.target.value / Number(get(item, 'U_Karobka', 1) || 1))).toString() : ''), get(item, 'ItemCode', ''))
+                                                                                    }
+                                                                                    } type="text" className={`table-body-inp bg-white ${(isEmpty && item?.value.length == 0) ? 'borderRed' : ''}`} placeholder='-' />
                                                                                 </p>
                                                                             </div>
                                                                             <div className='w-100 p-16' >
                                                                                 <p className='table-body-text '>
-                                                                                    <input type="text" className='table-body-inp bg-white' placeholder='100  /кор' />
+                                                                                    <input value={get(item, 'karobka', '')} onChange={(e) => {
+                                                                                        changeKarobka(e.target.value, get(item, 'ItemCode', ''))
+                                                                                        changeValue((e.target.value ? ((e.target.value || 1) * Number(get(item, 'U_Karobka', 1) || 1)).toString() : ''), get(item, 'ItemCode', ''))
+                                                                                    }} type="text" className='table-body-inp bg-white ' placeholder={`${Number(get(item, 'U_Karobka', 1) || 1)} / кор`} />
                                                                                 </p>
                                                                             </div>
                                                                             <div className='w-47px p-16' >

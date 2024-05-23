@@ -10,7 +10,7 @@ import pagination from '../../assets/images/pagination.svg';
 import tickSquare from '../../assets/images/tick-square.svg';
 import add from '../../assets/images/add.svg';
 import axios from 'axios';
-import { get } from 'lodash';
+import { get, isNumber } from 'lodash';
 import formatterCurrency from '../../helpers/currency';
 import { FadeLoader } from "react-spinners";
 import LazyLoad from "react-lazyload";
@@ -23,6 +23,7 @@ import 'react-toastify/dist/ReactToastify.css';
 
 import 'react-resizable/css/styles.css';
 import Resizable from './Resizable';
+import moment from 'moment';
 
 let url = process.env.REACT_APP_API_URL
 let limitList = [1, 10, 50, 100, 500, 1000]
@@ -54,13 +55,16 @@ const Order = () => {
   const [customer, setCustomer] = useState('')
   const [customerCode, setCustomerCode] = useState('')
   const [customerData, setCustomerData] = useState([])
-  const [miniLoader, setMiniLoader] = useState(false)
   const [orderLoading, setOrderLoading] = useState(false)
   const [date, setDate] = useState({ DocDate: '', DocDueDate: '' })
-
   const [limitSelect, setLimitSelect] = useState(10);
   const [pageSelect, setPageSelect] = useState(1);
   const [tsSelect, setTsSelect] = useState(10);
+  const [docEntry, setDocEntry] = useState({
+    id,
+    status: false
+  });
+
 
   const [showDropDownWarehouse, setShowDropdownWarehouse] = useState(false)
   const [warehouse, setWarehouse] = useState('BAZA1')
@@ -106,11 +110,6 @@ const Order = () => {
     progress: undefined,
     theme: "colored",
   });
-
-  useEffect(() => {
-    console.log(id, ' bu docEntry')
-    getItems({ page, limit, warehouse })
-  }, []);
 
   useEffect(() => {
     const delay = 1000;
@@ -170,6 +169,22 @@ const Order = () => {
     return;
   };
 
+  const getOrderByDocEntry = (doc) => {
+    return axios
+      .get(
+        url + `/api/order?docEntry=${doc}`,
+      )
+      .then(({ data }) => {
+        return data
+      })
+      .catch(err => {
+        setLoading(false)
+        errorNotify("Buyurtmani yuklashda muommo yuzaga keldi")
+      });
+
+    return;
+  };
+
   const getItems = (pagination) => {
     setLoading(true)
     axios
@@ -177,11 +192,41 @@ const Order = () => {
         url + `/api/items?offset=${get(pagination, 'page', 1)}&limit=${get(pagination, 'limit', limit)}&whsCode=${get(pagination, 'warehouse', warehouse)}&search=${get(pagination, 'value', '').toLowerCase()}&items=${state.map(item => `'${item.ItemCode}'`)}`,
       )
       .then(({ data }) => {
-        setLoading(false)
-        setMainData(get(data, 'value', []).map(item => {
-          return { ...item, value: '' }
-        }))
-        setAllPageLength(get(data, 'value[0].LENGTH', 0))
+        if (get(docEntry, 'id', 0) && !get(docEntry, 'status')) {
+          getOrderByDocEntry(get(docEntry, 'id', 0)).then(orderData => {
+            setDocEntry({ ...docEntry, status: true })
+            orderData = get(orderData, 'value', [])
+            setLoading(false)
+            setCustomer(get(orderData, '[0].CardName', ''))
+            setCustomerCode(get(orderData, '[0].CardCode', ''))
+            setDate({
+              DocDate: moment(get(orderData, '[0].DocDate', '')).format("YYYY-MM-DD"),
+              DocDueDate: moment(get(orderData, '[0].DocDueDate', '')).format("YYYY-MM-DD")
+            })
+            setWarehouse(get(orderData, '[0].WhsCode'))
+            setAllPageLengthSelect(orderData.length)
+            setAllPageLength(get(data, 'value[0].LENGTH', 0) - orderData.length)
+
+            setMainData(get(data, 'value', []).map(item => {
+              return { ...item, value: '', karobka: '' }
+            }).filter(el => !orderData.map(item => item.ItemCode).includes(get(el, 'ItemCode'))))
+
+            setState(orderData.map(item => {
+              return { ...item, value: Number(item.Quantity) }
+            }))
+            setActualData(orderData.map(item => {
+              return { ...item, value: Number(item.Quantity) }
+            }))
+          })
+        }
+        else {
+          setLoading(false)
+          setMainData(get(data, 'value', []).map(item => {
+            return { ...item, value: '', karobka: '' }
+          }))
+          setAllPageLength(get(data, 'value[0].LENGTH', 0))
+        }
+
       })
       .catch(err => {
         setLoading(false)
@@ -210,6 +255,14 @@ const Order = () => {
     }
   }
 
+  const changeKarobka = (value, itemCode) => {
+    let index = mainData.findIndex(el => get(el, 'ItemCode', '') == itemCode)
+    if (index >= 0) {
+      mainData[index].karobka = value
+      setMainData([...mainData])
+    }
+  }
+
   const postOrder = () => {
     if (!customerCode) {
       warningNotify("Customer tanlanmagan")
@@ -232,8 +285,17 @@ const Order = () => {
       setIsEmpty(true)
       return
     }
+    if (actualData.find(item => {
+      let free = Number(get(item, 'OnHand', '')) - Number(get(item, 'IsCommited', ''))
+      if (free < Number(item.value.trim())) {
+        return true
+      }
+    })) {
+      warningNotify("Miqdor ko'p")
+      return
+    }
     setIsEmpty(false)
-    confirmRef.current?.open("Вы уверены, что хотите это добавить?");
+    confirmRef.current?.open(`Вы уверены, что хотите это ${get(docEntry, 'id', 0) ? 'обновить' : 'добавить'} ? `);
   }
 
   const Orders = () => {
@@ -301,17 +363,17 @@ const Order = () => {
               <div className="order-main d-flex align justify">
                 <button onClick={() => navigate('/home')} className='btn-back'>Закрить</button>
                 <button onClick={postOrder} className={`btn-head position-relative`}>
-                  {orderLoading ? <Spinner /> : 'Добавить'}
+                  {orderLoading ? <Spinner /> : (get(docEntry, 'id', 0) ? 'Обновить' : 'Добавить')}
                 </button>
               </div>
               <div className="order-head-data d-flex align justify">
-                <div className='w-100 position-relative'>
+                <div className='w-100 position-relative' >
                   <input onChange={(e) => {
                     setCustomer(e.target.value)
                     setCustomerCode('')
                   }} value={customer} type="search" className='order-inp' placeholder='Customer' />
                   {(customerData.length) ? (
-                    <ul className="dropdown-menu">
+                    <ul className="dropdown-menu" style={{ top: '49px', zIndex: 1 }}>
                       {customerData.map((customerItem, i) => (
                         <li onClick={() => {
                           setCustomer(get(customerItem, 'CardName', ''))
@@ -338,7 +400,7 @@ const Order = () => {
                     <p className='right-limit-text'>{warehouse}</p>
                     <img src={arrowDown} className={showDropDownWarehouse ? "up-arrow" : ""} alt="arrow-down-img" />
                   </button>
-                  <ul className={`dropdown-menu ${showDropDownWarehouse ? "display-b" : "display-n"}`} aria-labelledby="dropdownMenuButton1">
+                  <ul style={{ position: 'relative', zIndex: 0 }} className={`dropdown-menu  ${showDropDownWarehouse ? "display-b" : "display-n"}`} aria-labelledby="dropdownMenuButton1">
                     {
                       warehouseList.map((item, i) => {
                         return (<li key={i} onClick={() => {
@@ -378,7 +440,7 @@ const Order = () => {
                   </div>
                   <div className='right-input'>
                     <img className='right-input-img' src={searchImg} alt="search-img" />
-                    <input onChange={handleChange} value={search} type="text" className='right-inp' placeholder='Поиск' />
+                    <input onChange={handleChange} value={search} type="search" className='right-inp' placeholder='Поиск' />
                   </div>
                   <button className='right-filter'>
                     <img className='right-filter-img' src={filterImg} alt="filter-img" />
@@ -423,11 +485,15 @@ const Order = () => {
                   <li className='table-head-item'>В кейсе</li>
                   <li className='table-head-item w-47px'>
                     <button onClick={() => {
-                      let filterData = mainData.filter(el => el.value.trim().length > 0 && Number(get(el, 'OnHand', '')) > 0)
+                      console.log(mainData)
+                      let filterData = mainData.filter(el => {
+                        let free = Number(get(el, 'OnHand', '')) - Number(get(el, 'IsCommited', ''))
+                        return el.value.trim().length > 0 && (free >= Number(el.value.trim()))
+                      })
                       if (filterData.length) {
                         setAllPageLengthSelect(allPageLengthSelect + filterData.length)
                         setAllPageLength(allPageLength - filterData.length)
-                        setMainData(mainData.filter(el => el.value.trim().length == 0 && Number(get(el, 'OnHand', '')) <= 0))
+                        setMainData(mainData.filter(el => !filterData.map(item => item.ItemCode).includes(el.ItemCode)))
                         setState([...filterData, ...state])
                         setActualData([...filterData, ...state])
                       }
@@ -480,16 +546,28 @@ const Order = () => {
                                   </div>
                                   <div className='w-100 p-16' >
                                     <p className='table-body-text '>
-                                      <input value={get(item, 'value', '')} onChange={(e) => changeValue(e.target.value, get(item, 'ItemCode', ''))} type="text" className='table-body-inp' placeholder='-' />
+                                      <input value={get(item, 'value', '')} onChange={(e) => {
+                                        changeValue(e.target.value, get(item, 'ItemCode', ''))
+                                        changeKarobka((e.target.value ? (Math.floor(e.target.value / Number(get(item, 'U_Karobka', 1) || 1))).toString() : ''), get(item, 'ItemCode', ''))
+                                      }} type="text" className='table-body-inp' placeholder='-' />
                                     </p>
                                   </div>
                                   <div className='w-100 p-16' >
                                     <p className='table-body-text '>
-                                      <input type="text" className='table-body-inp' placeholder='100  /кор' />
+                                      <input value={get(item, 'karobka', '')} onChange={(e) => {
+                                        changeKarobka(e.target.value, get(item, 'ItemCode', ''))
+                                        changeValue((e.target.value ? ((e.target.value || 1) * Number(get(item, 'U_Karobka', 1) || 1)).toString() : ''), get(item, 'ItemCode', ''))
+                                      }} type="text" className='table-body-inp' placeholder={`${Number(get(item, 'U_Karobka', 1) || 1)} / кор`} />
                                     </p>
                                   </div>
                                   <div className='w-47px p-16' >
-                                    <button disabled={Number(get(item, 'OnHand', '')) <= 0} onClick={() => addState(item)} className={`table-body-text table-head-check-btn ${Number(get(item, 'OnHand', '')) <= 0 ? 'opacity-5' : ''}`}>
+                                    <button
+                                      disabled={
+                                        Number(get(item, 'OnHand', '')) <= 0 ? true : (Number(get(item, 'OnHand', '')) - Number(get(item, 'IsCommited', ''))) < Number(get(item, 'value', 0))
+                                      }
+                                      onClick={() => addState(item)}
+                                      className={`table-body-text table-head-check-btn ${Number(get(item, 'OnHand', '')) <= 0 ? 'opacity-5' : (
+                                        (Number(get(item, 'OnHand', '')) - Number(get(item, 'IsCommited', ''))) < Number(get(item, 'value', 0)) ? 'opacity-5' : '2')}`}>
                                       <img src={add} alt="add button" />
                                     </button>
                                   </div>

@@ -18,6 +18,7 @@ import formatterCurrency from '../../helpers/currency';
 import moment from 'moment';
 import { FadeLoader } from "react-spinners";
 import { ErrorModal } from '../../components/Modal';
+import { Spinner } from '../../components';
 
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -72,7 +73,8 @@ const Home = () => {
   const [select, setSelect] = useState([])
   const [search, setSearch] = useState('')
 
-  const [selectedStatus, setSelectedStatus] = useState('Новый');
+  const [updateLoading, setUpdateLoading] = useState(false)
+
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
   let [color, setColor] = useState("#3C3F47");
@@ -152,6 +154,7 @@ const Home = () => {
   }, [search]);
 
   useEffect(() => {
+    getOrderApi()
     getOrders({ page, limit })
   }, []);
 
@@ -179,7 +182,7 @@ const Home = () => {
 
   const handleSelect = (status, docEntry) => {
     setDropdownOpen(false);
-    setLoading(true)
+    setUpdateLoading(true)
     axios
       .patch(
         url + `/b1s/v1/Orders(${docEntry})`,
@@ -196,17 +199,44 @@ const Home = () => {
         }
       )
       .then(({ data }) => {
-        setLoading(false)
+        setUpdateLoading(false)
         let index = mainData.findIndex((el => el.DocEntry == docEntry))
         mainData[index].U_status_order = status
         setMainData([...mainData])
         successNotify(`Status muvaffaqiyatli o'zgartirildi`)
       })
       .catch(err => {
-        setLoading(false)
+        setUpdateLoading(false)
+        if (get(err, 'response.status') == 401) {
+          navigate('/login')
+          return
+        }
         errorNotify(`Status o'zgartirishda xatolik yuz berdi`)
       });
   };
+
+  const getOrderApi = () => {
+    axios
+      .get(
+        url + `/b1s/v1/Orders`,
+        {
+          headers: {
+            info: JSON.stringify({
+              'Cookie': get(getMe, 'Cookie[0]', '') + get(getMe, 'Cookie[1]', ''),
+              'SessionId': get(getMe, 'SessionId', ''),
+            })
+          },
+        }
+      )
+      .then(({ data }) => {
+      })
+      .catch(err => {
+        if (get(err, 'response.status') == 401) {
+          navigate('/login')
+          return
+        }
+      });
+  }
   return (
     <>
 
@@ -363,12 +393,14 @@ const Home = () => {
                               </div>
                               <div className='table-item-foot d-flex align'>
                                 <button className='table-item-btn d-flex align'>
-                                  <Link className='table-item-text' to={`/order/${item.DocEntry}`}>Просмотреть и изменить заказ</Link>
-                                  <img src={editIcon} alt="arrow right" /></button>
+                                  <Link className='table-item-text d-flex align' to={`/order/${item.DocEntry}`}>Просмотреть и изменить заказ  <img src={editIcon} alt="arrow right" /></Link>
+                                </button>
                                 <button className='table-item-btn d-flex align table-item-text'> Накладный <img src={editIcon} alt="arrow-right" /></button>
                                 <div className="dropdown-container">
-                                  <button className="table-item-btn d-flex align table-item-text" onClick={toggleDropdown}>
-                                    Состояние <img src={editIcon} alt="arrow-right" />
+                                  <button style={{ width: '110px' }} disabled={updateLoading} className="table-item-btn d-flex align table-item-text position-relative" onClick={toggleDropdown}>
+                                    Состояние  {updateLoading ? <div className="spinner-border" role="status">
+                                      <span className="sr-only">Loading...</span>
+                                    </div> : <img style={{ marginLeft: '6px' }} src={editIcon} alt="arrow-right" />}
                                   </button>
                                   {(dropdownOpen) && (
                                     <ul className="dropdown-menu">

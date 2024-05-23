@@ -461,9 +461,8 @@ li{
     max-height:400px ;
     position: absolute;
     max-width: 96%;
-    top: 50px;
+    top: 41px;
     border-radius: 4px;
-    z-index: 10;
   }
   .dropdown-item{
     color:  #3C3F47;

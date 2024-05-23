@@ -342,5 +342,32 @@ const Style = styled.div`
   line-height: 24px; 
 }
 
+.spinner-border {
+  display: inline-block;
+    width: 14px;
+    height: 14px;
+    vertical-align: text-bottom;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: spinner-border 0.75s linear infinite;
+    margin-left: 8px;
+}
+
+@keyframes spinner-border {
+  to { transform: rotate(360deg); }
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
 `;
 export default Style;
