@@ -36,28 +36,56 @@ const override = {
   margin: 'auto'
 };
 
+// let statuses = {
+//   Новый: {
+//     color: '#FFFFFF',
+//     backgroundColor: '#388E3C'
+//   },
+//   Черновик: {
+//     color: '#FFFFFF',
+//     backgroundColor: '#6C757D'
+//   },
+//   Ожидания: {
+//     color: '#FFFFFF',
+//     backgroundColor: '#FFA000'
+//   },
+//   Подтвержден: {
+//     color: '#FFFFFF',
+//     backgroundColor: '#0056B3'
+//   },
+//   Печатанный: {
+//     color: '#FFFFFF',
+//     backgroundColor: '#00A2C7'
+//   }
+// };
 let statuses = {
-  Новый: {
-    color: '#FFFFFF',  // White text
-    backgroundColor: '#388E3C'  // Moderately darker green background
+  1: {
+    color: '#FFFFFF',
+    backgroundColor: '#388E3C',
+    name: 'Новый'
   },
-  Черновик: {
-    color: '#FFFFFF',  // White text
-    backgroundColor: '#6C757D'  // Moderately darker gray background
+  2: {
+    color: '#FFFFFF',
+    backgroundColor: '#6C757D',
+    name: 'Черновик'
   },
-  Ожидания: {
-    color: '#FFFFFF',  // White text
-    backgroundColor: '#FFA000'  // Moderately darker yellow background
+  3: {
+    color: '#FFFFFF',
+    backgroundColor: '#FFA000',
+    name: 'Ожидания'
   },
-  Подтвержден: {
-    color: '#FFFFFF',  // White text
-    backgroundColor: '#0056B3'  // Moderately darker blue background
+  4: {
+    color: '#FFFFFF',
+    backgroundColor: '#0056B3',
+    name: 'Подтвержден'
   },
-  Печатанный: {
-    color: '#FFFFFF',  // White text
-    backgroundColor: '#00A2C7'  // Moderately darker cyan background
+  5: {
+    color: '#FFFFFF',
+    backgroundColor: '#00A2C7',
+    name: 'Печатанный'
   }
 };
+
 const Home = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -187,7 +215,7 @@ const Home = () => {
       .patch(
         url + `/b1s/v1/Orders(${docEntry})`,
         {
-          U_status_order: status
+          U_status: status
         },
         {
           headers: {
@@ -201,7 +229,7 @@ const Home = () => {
       .then(({ data }) => {
         setUpdateLoading(false)
         let index = mainData.findIndex((el => el.DocEntry == docEntry))
-        mainData[index].U_status_order = status
+        mainData[index].U_status = status
         setMainData([...mainData])
         successNotify(`Status muvaffaqiyatli o'zgartirildi`)
       })
@@ -329,12 +357,10 @@ const Home = () => {
                     }} type="checkbox" name="checkbox" />
                     Контрагент
                   </li>
-                  <li className='table-head-item'>Торговый представитель</li>
                   <li className='table-head-item'>Дата заказа</li>
-                  <li className='table-head-item'>Дата отгрузки</li>
+                  <li className='table-head-item'>Дата создания</li>
                   <li className='table-head-item'>Сумма сделки</li>
-
-                  <li className='table-head-item'>Тип оплаты</li>
+                  <li className='table-head-item'>Netto / Brutto</li>
                   <li className='table-head-item'>Состояние</li>
                 </ul>
               </div>
@@ -356,23 +382,18 @@ const Home = () => {
                                       setSelect([...select, i + 1])
                                     }
                                   }} type="checkbox" name="checkbox" />
-                                  <p className='table-body-text truncated-text' title={get(item, 'CardName', '')} onClick={() => setActiveData(activeData === i + 1 ? 0 : (i + 1))}>
+                                  <p className='table-body-text truncated-text w-100' title={get(item, 'CardName', '')} onClick={() => setActiveData(activeData === i + 1 ? 0 : (i + 1))}>
                                     {get(item, 'CardName', '')}
                                   </p>
                                 </div>
                                 <div className='w-100 p-16' onClick={() => setActiveData(activeData === i + 1 ? 0 : (i + 1))}>
                                   <p className='table-body-text'>
-                                    {get(item, 'SlpName', '')}
-                                  </p>
-                                </div>
-                                <div className='w-100 p-16' onClick={() => setActiveData(activeData === i + 1 ? 0 : (i + 1))}>
-                                  <p className='table-body-text'>
-                                    {moment(get(item, 'DocDate', '')).format("DD-MM-YYYY h:mm:ss")}
+                                    {moment(get(item, 'DocDate', '')).format("DD-MM-YYYY")}
                                   </p>
                                 </div>
                                 <div className='w-100 p-16' onClick={() => setActiveData(activeData === i + 1 ? 0 : (i + 1))}>
                                   <p className='table-body-text '>
-                                    {moment(get(item, 'DocDueDate', '')).format("DD-MM-YYYY h:mm:ss")}
+                                    {moment(get(item, 'CreateDate', '')).format("DD-MM-YYYY")}
                                   </p>
                                 </div>
                                 <div className='w-100 p-16' onClick={() => setActiveData(activeData === i + 1 ? 0 : (i + 1))}>
@@ -382,12 +403,12 @@ const Home = () => {
                                 </div>
                                 <div className='w-100 p-16' onClick={() => setActiveData(activeData === i + 1 ? 0 : (i + 1))}>
                                   <p className='table-body-text '>
-                                    Наличные  деньги
+                                    {Number(get(item, 'NETTO', '-'))} / {Number(get(item, 'BRUTTO', '-'))}
                                   </p>
                                 </div>
                                 <div className='w-100 p-16' onClick={() => setActiveData(activeData === i + 1 ? 0 : (i + 1))}>
-                                  <button style={{ color: statuses[get(item, 'U_status_order', 'Новый')].color, backgroundColor: statuses[get(item, 'U_status_order', 'Новый')].backgroundColor }} className='table-body-text status-button'>
-                                    {get(item, 'U_status_order', 'Новый')}
+                                  <button style={{ color: statuses[get(item, 'U_status', '1')].color, backgroundColor: statuses[get(item, 'U_status', '1')].backgroundColor }} className='table-body-text status-button'>
+                                    {statuses[get(item, 'U_status', '1')].name}
                                   </button>
                                 </div>
                               </div>
@@ -404,8 +425,8 @@ const Home = () => {
                                   </button>
                                   {(dropdownOpen) && (
                                     <ul className="dropdown-menu">
-                                      {Object.keys(statuses).map((status) => (
-                                        <li key={i} onClick={() => handleSelect(status, get(item, 'DocEntry', 0))} className={`dropdown-li ${get(item, 'U_status_order', '') == status ? 'dropdown-active' : ''}`}><a className="dropdown-item" href="#">{status}</a></li>
+                                      {Object.keys(statuses).map((status, i) => (
+                                        <li key={i} onClick={() => handleSelect(status, get(item, 'DocEntry', 0))} className={`dropdown-li ${get(item, 'U_status', '') == status ? 'dropdown-active' : ''}`}><a className="dropdown-item" href="#">{statuses[status].name}</a></li>
                                       ))}
 
                                     </ul>

@@ -56,7 +56,7 @@ const Order = () => {
   const [customerCode, setCustomerCode] = useState('')
   const [customerData, setCustomerData] = useState([])
   const [orderLoading, setOrderLoading] = useState(false)
-  const [date, setDate] = useState({ DocDate: '', DocDueDate: '' })
+  const [date, setDate] = useState({ DocDate: moment().format("YYYY-MM-DD"), DocDueDate: moment().format("YYYY-MM-DD") })
   const [limitSelect, setLimitSelect] = useState(10);
   const [pageSelect, setPageSelect] = useState(1);
   const [tsSelect, setTsSelect] = useState(10);
@@ -400,7 +400,7 @@ const Order = () => {
                     <p className='right-limit-text'>{warehouse}</p>
                     <img src={arrowDown} className={showDropDownWarehouse ? "up-arrow" : ""} alt="arrow-down-img" />
                   </button>
-                  <ul style={{ position: 'relative', zIndex: 0 }} className={`dropdown-menu  ${showDropDownWarehouse ? "display-b" : "display-n"}`} aria-labelledby="dropdownMenuButton1">
+                  <ul style={{ zIndex: 0 }} className={`dropdown-menu  ${showDropDownWarehouse ? "display-b" : "display-n"}`} aria-labelledby="dropdownMenuButton1">
                     {
                       warehouseList.map((item, i) => {
                         return (<li key={i} onClick={() => {
