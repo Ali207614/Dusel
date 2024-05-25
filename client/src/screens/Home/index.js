@@ -303,7 +303,7 @@ const Home = () => {
                 </div>
                 <div className='right-input'>
                   <img className='right-input-img' src={searchImg} alt="search-img" />
-                  <input onChange={handleChange} value={search} type="text" className='right-inp' placeholder='Поиск' />
+                  <input onChange={handleChange} value={search} type="search" className='right-inp' placeholder='Поиск' />
                 </div>
 
                 <button className='right-filter'>
@@ -360,7 +360,7 @@ const Home = () => {
                   <li className='table-head-item'>Дата заказа</li>
                   <li className='table-head-item'>Дата создания</li>
                   <li className='table-head-item'>Сумма сделки</li>
-                  <li className='table-head-item'>Netto / Brutto</li>
+                  <li className='table-head-item'>Нетто / Брутто</li>
                   <li className='table-head-item'>Состояние</li>
                 </ul>
               </div>
@@ -440,6 +440,17 @@ const Home = () => {
                     </ul>
                   ) : <FadeLoader color={color} loading={loading} cssOverride={override} size={100} />
                 }
+              </div>
+            </div>
+          </div>
+          <div className='footer-main'>
+            <div className='footer-info'>
+              <div className="container">
+                <div className='right-head' style={{ justifyContent: 'end' }}>
+                  <p className='footer-text'>Сумма сделки : <span className='footer-text-spn'>{formatterCurrency(Number(get(mainData, '[0].ALLDOCTOTAL', 0)), "USD")}</span></p>
+                  <p className='footer-text'>Нетто : <span className='footer-text-spn'>{Number(get(mainData, '[0].ALLNETTO', 0))}</span></p>
+                  <p className='footer-text'>Брутто : <span className='footer-text-spn'>{Number(get(mainData, '[0].ALLBRUTTO', 0))}</span></p>
+                </div>
               </div>
             </div>
           </div>

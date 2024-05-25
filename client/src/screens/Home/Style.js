@@ -369,5 +369,26 @@ const Style = styled.div`
   border: 0;
 }
 
+.footer-text{
+    color: #585858;
+    font-size: 15px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: normal;
+    margin-left: 20px;
+}
+
+.footer-info{
+  background: #E9E9E9;
+    padding: 24px;
+    position: fixed;
+    width: 100%;
+    bottom: 0;
+}
+.footer-main{
+    margin-top: 10px;
+    position: relative;
+    height: 70px;
+}
 `;
 export default Style;

@@ -17,7 +17,7 @@ import LazyLoad from "react-lazyload";
 import { ErrorModal, ConfirmModal } from '../../components/Modal';
 import { Spinner } from '../../components';
 import { useSelector } from 'react-redux';
-
+import { FixedSizeList as List } from 'react-window';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -574,7 +574,6 @@ const Order = () => {
                                 </div>
                               </li>
                             </LazyLoad>
-
                           )
                         })
                       }

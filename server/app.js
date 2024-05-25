@@ -212,14 +212,19 @@ function getOrders({ offset, limit, search }) {
             }
 
             let innerSql = `SELECT sum(1) FROM ${db}.ORDR  T0 INNER JOIN ${db}.OSLP T1 ON T0."SlpCode" = T1."SlpCode"  WHERE T0."DocStatus" ='O' and T0."CANCELED"='N'`
+
             let allDocTotal = `SELECT sum(T0."DocTotal") FROM ${db}.ORDR  T0 INNER JOIN ${db}.OSLP T1 ON T0."SlpCode" = T1."SlpCode"  WHERE T0."DocStatus" ='O' and T0."CANCELED"='N'`
             if (search?.length) {
                 innerSql += ` and (LOWER(T0."CardName") like '%${search}%')`
             }
             let allNetto = `SELECT sum(T6."U_U_netto") FROM ${db}.ORDR  T0 INNER JOIN ${db}.OSLP T1 ON T0."SlpCode" = T1."SlpCode" inner join ${db}.RDR1 T5 on T5."DocEntry"= T0."DocEntry" INNER JOIN ${db}.OITM T6 ON T5."ItemCode" = T6."ItemCode"  WHERE T0."DocStatus" ='O' and T0."CANCELED"='N'`
+
             let allBrutto = `SELECT sum(T6."U_U_brutto") FROM ${db}.ORDR  T0 INNER JOIN ${db}.OSLP T1 ON T0."SlpCode" = T1."SlpCode" inner join ${db}.RDR1 T5 on T5."DocEntry"= T0."DocEntry" INNER JOIN ${db}.OITM T6 ON T5."ItemCode" = T6."ItemCode"  WHERE T0."DocStatus" ='O' and T0."CANCELED"='N'`
+
             let netto = ` SELECT sum(T6."U_U_netto") FROM ${db}.RDR1 T5  INNER JOIN ${db}.OITM T6 ON T5."ItemCode" = T6."ItemCode" WHERE T5."DocEntry"= T0."DocEntry"`
+
             let brutto = ` SELECT sum(T6."U_U_brutto") FROM ${db}.RDR1 T5  INNER JOIN ${db}.OITM T6 ON T5."ItemCode" = T6."ItemCode" WHERE T5."DocEntry"= T0."DocEntry"`
+
             let sql = `SELECT (${innerSql}) as length , (${allNetto}) as allNetto,(${allBrutto}) as allbrutto, (${netto}) as netto, (${brutto}) as brutto , (${allDocTotal}) as allDocTotal, T0."U_status", T0."CreateDate",  T0."DocNum", T0."DocEntry"  , T0."SlpCode", T1."SlpName", T0."DocDate", T0."DocDueDate", T0."CardCode",T0."DocEntry", T0."CardName", T0."CANCELED", T0."DocStatus", T0."DocCur", T0."DocRate", T0."DocTotal", T0."DocTotalFC" FROM ${db}.ORDR  T0 INNER JOIN ${db}.OSLP T1 ON T0."SlpCode" = T1."SlpCode"  WHERE T0."DocStatus" ='O' and T0."CANCELED"='N'`
 
 
