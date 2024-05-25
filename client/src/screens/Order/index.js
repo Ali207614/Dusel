@@ -100,7 +100,7 @@ const Order = () => {
     theme: "colored",
   });
 
-  const successNotify = () => toast.success("Ma'lumot muvaffaqiyatli qo'shildi", {
+  const successNotify = (text = "Ma'lumot muvaffaqiyatli qo'shildi") => toast.success(text, {
     position: "top-right",
     autoClose: 5000,
     hideProgressBar: false,
@@ -212,10 +212,10 @@ const Order = () => {
             }).filter(el => !orderData.map(item => item.ItemCode).includes(get(el, 'ItemCode'))))
 
             setState(orderData.map(item => {
-              return { ...item, value: Number(item.Quantity) }
+              return { ...item, value: Number(item.Quantity).toString(), karobka: Math.floor(item.Quantity / Number(get(item, 'U_Karobka', 1) || 1)) }
             }))
             setActualData(orderData.map(item => {
-              return { ...item, value: Number(item.Quantity) }
+              return { ...item, value: Number(item.Quantity).toString(), karobka: Math.floor(item.Quantity / Number(get(item, 'U_Karobka', 1) || 1)) }
             }))
           })
         }
@@ -329,7 +329,7 @@ const Order = () => {
         setOrderLoading(false)
         successNotify()
         setMainData([...state, ...mainData].map(item => {
-          return { ...item, value: '' }
+          return { ...item, value: '', karobka: '' }
         }))
         setState([])
         setActualData([])
@@ -350,6 +350,48 @@ const Order = () => {
 
     return;
   };
+
+  const Update = () => {
+    let body = {
+      "CardCode": customerCode,
+      "DocDate": get(date, 'DocDate'),
+      "DocDueDate": get(date, 'DocDueDate'),
+      "DocumentLines": state.map(item => {
+        return {
+          "ItemCode": get(item, 'ItemCode', ''),
+          "Quantity": Number(get(item, 'value', 0)),
+          "WarehouseCode": warehouse
+        }
+      })
+    }
+    setOrderLoading(true)
+    axios
+      .patch(
+        url + `/b1s/v1/Orders(${get(docEntry, 'id')})`,
+        body,
+        {
+          headers: {
+            info: JSON.stringify({
+              'Cookie': get(getMe, 'Cookie[0]', '') + get(getMe, 'Cookie[1]', ''),
+              'SessionId': get(getMe, 'SessionId', ''),
+            }),
+            "B1S-ReplaceCollectionsOnPatch": "true",
+          },
+        }
+      )
+      .then(({ data }) => {
+        setOrderLoading(false)
+        successNotify("Ma'lumot muvaffaqiyatli o'zgartirildi")
+      })
+      .catch(err => {
+        if (get(err, 'response.status') == 401) {
+          navigate('/login')
+          return
+        }
+        setOrderLoading(false)
+        errorRef.current?.open(get(err, 'response.data.error.message.value', 'Ошибка'));
+      });
+  }
 
 
 
@@ -485,7 +527,6 @@ const Order = () => {
                   <li className='table-head-item'>В кейсе</li>
                   <li className='table-head-item w-47px'>
                     <button onClick={() => {
-                      console.log(mainData)
                       let filterData = mainData.filter(el => {
                         let free = Number(get(el, 'OnHand', '')) - Number(get(el, 'IsCommited', ''))
                         return el.value.trim().length > 0 && (free >= Number(el.value.trim()))
@@ -612,7 +653,7 @@ const Order = () => {
           getRef={getErrorRef}
           title={'Ошибка'}
         />
-        <ConfirmModal getRef={confirmModalRef} title={"Oshibka"} Orders={Orders} />
+        <ConfirmModal getRef={confirmModalRef} title={"Oshibka"} fn={get(docEntry, 'id', '') ? Update : Orders} />
       </>
     </>
   );

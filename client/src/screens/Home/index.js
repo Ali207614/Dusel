@@ -361,7 +361,7 @@ const Home = () => {
                   <li className='table-head-item'>Дата создания</li>
                   <li className='table-head-item'>Сумма сделки</li>
                   <li className='table-head-item'>Нетто / Брутто</li>
-                  <li className='table-head-item'>Состояние</li>
+                  <li className='table-head-item w-50'>Состояние</li>
                 </ul>
               </div>
               <div className='table-body'>
@@ -406,7 +406,7 @@ const Home = () => {
                                     {Number(get(item, 'NETTO', '-'))} / {Number(get(item, 'BRUTTO', '-'))}
                                   </p>
                                 </div>
-                                <div className='w-100 p-16' onClick={() => setActiveData(activeData === i + 1 ? 0 : (i + 1))}>
+                                <div className='w-50 p-16' onClick={() => setActiveData(activeData === i + 1 ? 0 : (i + 1))}>
                                   <button style={{ color: statuses[get(item, 'U_status', '1')].color, backgroundColor: statuses[get(item, 'U_status', '1')].backgroundColor }} className='table-body-text status-button'>
                                     {statuses[get(item, 'U_status', '1')].name}
                                   </button>
@@ -447,9 +447,15 @@ const Home = () => {
             <div className='footer-info'>
               <div className="container">
                 <div className='right-head' style={{ justifyContent: 'end' }}>
-                  <p className='footer-text'>Сумма сделки : <span className='footer-text-spn'>{formatterCurrency(Number(get(mainData, '[0].ALLDOCTOTAL', 0)), "USD")}</span></p>
-                  <p className='footer-text'>Нетто : <span className='footer-text-spn'>{Number(get(mainData, '[0].ALLNETTO', 0))}</span></p>
-                  <p className='footer-text'>Брутто : <span className='footer-text-spn'>{Number(get(mainData, '[0].ALLBRUTTO', 0))}</span></p>
+                  <div className='footer-block'>
+                    <p className='footer-text'>Сумма сделки : <span className='footer-text-spn'>{formatterCurrency(Number(get(mainData, '[0].ALLDOCTOTAL', 0)), "USD")}</span></p>
+                  </div>
+                  <div className='footer-block'>
+                    <p className='footer-text'>Нетто : <span className='footer-text-spn'>{Number(get(mainData, '[0].ALLNETTO', 0))}</span></p>
+                  </div>
+                  <div className='footer-block'>
+                    <p className='footer-text'>Брутто : <span className='footer-text-spn'>{Number(get(mainData, '[0].ALLBRUTTO', 0))}</span></p>
+                  </div>
                 </div>
               </div>
             </div>

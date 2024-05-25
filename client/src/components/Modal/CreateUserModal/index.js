@@ -55,7 +55,6 @@ const CreateUserModal = ({ getRef }) => {
         setRegionData(resData);
       })
       .catch((err) => {
-        console.log("err getRegion:", err);
       });
   };
 
@@ -67,7 +66,6 @@ const CreateUserModal = ({ getRef }) => {
         setCustomerGroupData(resData);
       })
       .catch((err) => {
-        console.log("err getCustomerGroups:", err);
       });
   };
 
@@ -83,7 +81,6 @@ const CreateUserModal = ({ getRef }) => {
         Currency: "##",
       })
       .then((res) => {
-        console.log("success", JSON.parse(res.data));
         setIsSuccess(true);
         setIsLoading(false);
         setConsumer("");
@@ -92,7 +89,6 @@ const CreateUserModal = ({ getRef }) => {
         setCustomerGroup("");
       })
       .catch((err) => {
-        console.log("err getRegion:", err);
         setIsLoading(false);
       });
   };
@@ -190,9 +186,9 @@ const CreateUserModal = ({ getRef }) => {
               isLoading={isLoading}
               disabled={
                 consumer.length <= 0 ||
-                region.length <= 0 ||
-                phone.length <= 0 ||
-                customerGroup.length <= 0
+                  region.length <= 0 ||
+                  phone.length <= 0 ||
+                  customerGroup.length <= 0
                   ? true
                   : false
               }

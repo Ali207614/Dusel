@@ -370,25 +370,37 @@ const Style = styled.div`
 }
 
 .footer-text{
-    color: #585858;
-    font-size: 15px;
-    font-style: normal;
-    font-weight: 400;
-    line-height: normal;
-    margin-left: 20px;
+    color: #000;
+font-variant-numeric: lining-nums tabular-nums stacked-fractions;
+font-feature-settings: 'clig' off, 'liga' off;
+font-size: 13px;
+font-style: normal;
+font-weight: 500;
+line-height: normal;
 }
 
 .footer-info{
-  background: #E9E9E9;
     padding: 24px;
     position: fixed;
     width: 100%;
     bottom: 0;
+    border-top: 1px solid  #E9E9E9;
+background: #F7F8F9;
 }
 .footer-main{
-    margin-top: 10px;
     position: relative;
-    height: 70px;
+    margin-top: 300px;
+    height: 86.67px;
+}
+.footer-block{
+  background-color: #fff;
+  padding: 10px 12px;
+  border-radius: 12px;
+border: 1px solid  #E9E9E9;
+margin-left: 12px;
+}
+.w-50{
+  width: 50%;
 }
 `;
 export default Style;

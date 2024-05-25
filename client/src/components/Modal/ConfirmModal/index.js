@@ -21,7 +21,7 @@ const customStyles = {
   },
 };
 
-const ConfirmModal = ({ getRef, Orders }) => {
+const ConfirmModal = ({ getRef, fn }) => {
   const { t } = useTranslation();
 
   const [isOpenModal, setIsOpenModal] = useState(false);
@@ -51,7 +51,7 @@ const ConfirmModal = ({ getRef, Orders }) => {
           <div className="centerCard">
             <button className="btn yesBtn" onClick={() => {
               setIsOpenModal(false)
-              Orders()
+              fn()
             }}>
               Да
             </button>

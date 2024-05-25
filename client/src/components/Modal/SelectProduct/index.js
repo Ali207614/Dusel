@@ -1,10 +1,10 @@
-import React, {memo, useEffect, useState} from 'react';
+import React, { memo, useEffect, useState } from 'react';
 import Styles from './Styles';
 import Modal from 'react-modal';
-import {useTranslation} from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 import api from '../../../api';
-import {get} from 'lodash';
-import {AiOutlineReload} from 'react-icons/ai';
+import { get } from 'lodash';
+import { AiOutlineReload } from 'react-icons/ai';
 import colors from '../../../assets/style/colors';
 
 const customStyles = {
@@ -21,8 +21,8 @@ const customStyles = {
   },
 };
 
-const SelectProductModal = ({getRef, onConfirm = () => {}}) => {
-  const {t} = useTranslation();
+const SelectProductModal = ({ getRef, onConfirm = () => { } }) => {
+  const { t } = useTranslation();
 
   const [isOpenModal, setIsOpenModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -56,7 +56,6 @@ const SelectProductModal = ({getRef, onConfirm = () => {}}) => {
       )
       .then(res => {
         const resData = get(JSON.parse(res.data), 'value', []);
-        // console.log(resData);
         setData(resData);
         setIsLoading(false);
       })
@@ -96,7 +95,7 @@ const SelectProductModal = ({getRef, onConfirm = () => {}}) => {
                 className="input"
                 placeholder={t('Mahsulot kodi')}
                 onChange={v => setItemCode(v.target.value)}
-                style={{marginRight: 10}}
+                style={{ marginRight: 10 }}
               />
               <input
                 className="input"

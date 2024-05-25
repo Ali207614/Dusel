@@ -46,7 +46,7 @@ async function proxyFunc(req, res) {
         cookie = req.headers
     }
     else {
-        cookie = JSON.parse(req.headers?.info)
+        cookie = { ...JSON.parse(req.headers?.info), ...req.headers }
     }
     return axios({
         url: `https://${process.env.api}:50000` + req.originalUrl,
