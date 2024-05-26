@@ -36,53 +36,57 @@ const override = {
   margin: 'auto'
 };
 
-// let statuses = {
-//   Новый: {
-//     color: '#FFFFFF',
-//     backgroundColor: '#388E3C'
-//   },
-//   Черновик: {
-//     color: '#FFFFFF',
-//     backgroundColor: '#6C757D'
-//   },
-//   Ожидания: {
-//     color: '#FFFFFF',
-//     backgroundColor: '#FFA000'
-//   },
-//   Подтвержден: {
-//     color: '#FFFFFF',
-//     backgroundColor: '#0056B3'
-//   },
-//   Печатанный: {
-//     color: '#FFFFFF',
-//     backgroundColor: '#00A2C7'
-//   }
-// };
+
 let statuses = {
-  1: {
-    color: '#FFFFFF',
-    backgroundColor: '#388E3C',
-    name: 'Новый'
-  },
   2: {
     color: '#FFFFFF',
     backgroundColor: '#6C757D',
-    name: 'Черновик'
+    name: 'Черновик',
+    access: [2, 1, 7],
+    actualName: 'Черновик'
+  },
+  1: {
+    color: '#FFFFFF',
+    backgroundColor: '#388E3C',
+    name: 'Новый',
+    access: [1, 3, 4, 5, 6],
+    actualName: 'Новый'
   },
   3: {
     color: '#FFFFFF',
     backgroundColor: '#FFA000',
-    name: 'Ожидания'
+    name: 'Ожидания',
+    access: [3, 4, 5, 6],
+    actualName: 'Ожидания'
   },
   4: {
     color: '#FFFFFF',
     backgroundColor: '#0056B3',
-    name: 'Подтвержден'
+    name: 'Подтвердить',
+    access: [4, 5, 6],
+    actualName: 'Подтвержден'
   },
   5: {
     color: '#FFFFFF',
     backgroundColor: '#00A2C7',
-    name: 'Печатанный'
+    name: 'Напечатать',
+    access: [5, 6, 8],
+    actualName: 'Печатанный'
+  },
+  6: {
+    color: '#FFFFFF',
+    backgroundColor: '#00A2C7',
+    name: 'Отменить'
+  },
+  7: {
+    color: '#FFFFFF',
+    backgroundColor: '#00A2C7',
+    name: 'Удалить'
+  },
+  8: {
+    color: '#FFFFFF',
+    backgroundColor: '#00A2C7',
+    name: 'Архивировать'
   }
 };
 
@@ -408,7 +412,7 @@ const Home = () => {
                                 </div>
                                 <div className='w-50 p-16' onClick={() => setActiveData(activeData === i + 1 ? 0 : (i + 1))}>
                                   <button style={{ color: statuses[get(item, 'U_status', '1')].color, backgroundColor: statuses[get(item, 'U_status', '1')].backgroundColor }} className='table-body-text status-button'>
-                                    {statuses[get(item, 'U_status', '1')].name}
+                                    {statuses[get(item, 'U_status', '1')].actualName}
                                   </button>
                                 </div>
                               </div>
@@ -425,8 +429,12 @@ const Home = () => {
                                   </button>
                                   {(dropdownOpen) && (
                                     <ul className="dropdown-menu">
-                                      {Object.keys(statuses).map((status, i) => (
-                                        <li key={i} onClick={() => handleSelect(status, get(item, 'DocEntry', 0))} className={`dropdown-li ${get(item, 'U_status', '') == status ? 'dropdown-active' : ''}`}><a className="dropdown-item" href="#">{statuses[status].name}</a></li>
+                                      {get(statuses, `${[get(item, 'U_status', '')]}.access`, []).map((status, i) => (
+                                        <li key={i} onClick={() => {
+                                          if (status != get(item, 'U_status', '')) {
+                                            handleSelect(status, get(item, 'DocEntry', 0))
+                                          }
+                                        }} className={`dropdown-li ${get(item, 'U_status', '') == status ? 'dropdown-active' : ''}`}><a className="dropdown-item" href="#">{statuses[status].name}</a></li>
                                       ))}
 
                                     </ul>

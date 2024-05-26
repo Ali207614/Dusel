@@ -14,10 +14,11 @@ const customStyles = {
     transform: 'translate(-50%, -50%)',
     borderRadius: 15,
     border: 'none',
-    width: "302px"
+    width: "302px",
   },
   overlay: {
     background: '#0000008D',
+    zIndex: '1000'
   },
 };
 

@@ -28,6 +28,54 @@ import moment from 'moment';
 let url = process.env.REACT_APP_API_URL
 let limitList = [1, 10, 50, 100, 500, 1000]
 let warehouseList = ['BAZA1', 'BAZA2', 'LYUSTRA', 'YANGI']
+
+let statuses = {
+  2: {
+    color: '#FFFFFF',
+    backgroundColor: '#6C757D',
+    name: 'Черновик',
+    access: [2, 1, 7],
+  },
+  1: {
+    color: '#FFFFFF',
+    backgroundColor: '#388E3C',
+    name: 'Новый',
+    access: [1, 3, 4, 5, 6],
+  },
+  3: {
+    color: '#FFFFFF',
+    backgroundColor: '#FFA000',
+    name: 'Ожидания',
+    access: [3, 4, 5, 6],
+  },
+  4: {
+    color: '#FFFFFF',
+    backgroundColor: '#0056B3',
+    name: 'Подтвержден',
+    access: [4, 5, 6],
+  },
+  5: {
+    color: '#FFFFFF',
+    backgroundColor: '#00A2C7',
+    name: 'Печатанный',
+    access: [5, 6, 8],
+  },
+  6: {
+    color: '#FFFFFF',
+    backgroundColor: '#00A2C7',
+    name: 'Отменить'
+  },
+  7: {
+    color: '#FFFFFF',
+    backgroundColor: '#00A2C7',
+    name: 'Удалить'
+  },
+  8: {
+    color: '#FFFFFF',
+    backgroundColor: '#00A2C7',
+    name: 'Архивировать'
+  }
+};
 const override = {
   position: "absolute",
   left: "50%",
@@ -65,8 +113,11 @@ const Order = () => {
     status: false
   });
 
+  const [orderStatus, setOrderStatus] = useState('1')
+
 
   const [showDropDownWarehouse, setShowDropdownWarehouse] = useState(false)
+  const [showDropDownStatus, setShowDropdownStatus] = useState(false)
   const [warehouse, setWarehouse] = useState('BAZA1')
 
   const errorRef = useRef();
@@ -208,21 +259,21 @@ const Order = () => {
             setAllPageLength(get(data, 'value[0].LENGTH', 0) - orderData.length)
 
             setMainData(get(data, 'value', []).map(item => {
-              return { ...item, value: '', karobka: '' }
+              return { ...item, value: '', karobka: '', disCount: get(item, 'DisCount', 5) }
             }).filter(el => !orderData.map(item => item.ItemCode).includes(get(el, 'ItemCode'))))
 
             setState(orderData.map(item => {
-              return { ...item, value: Number(item.Quantity).toString(), karobka: Math.floor(item.Quantity / Number(get(item, 'U_Karobka', 1) || 1)) }
+              return { ...item, value: Number(item.Quantity).toString(), karobka: Math.floor(item.Quantity / Number(get(item, 'U_Karobka', 1) || 1)), Price: item.PriceBefDi, disCount: get(item, 'DisCount', 5) }
             }))
             setActualData(orderData.map(item => {
-              return { ...item, value: Number(item.Quantity).toString(), karobka: Math.floor(item.Quantity / Number(get(item, 'U_Karobka', 1) || 1)) }
+              return { ...item, value: Number(item.Quantity).toString(), karobka: Math.floor(item.Quantity / Number(get(item, 'U_Karobka', 1) || 1)), disCount: get(item, 'DisCount', 5) }
             }))
           })
         }
         else {
           setLoading(false)
           setMainData(get(data, 'value', []).map(item => {
-            return { ...item, value: '', karobka: '' }
+            return { ...item, value: '', karobka: '', disCount: get(item, 'DisCount', 5) }
           }))
           setAllPageLength(get(data, 'value[0].LENGTH', 0))
         }
@@ -299,8 +350,10 @@ const Order = () => {
   }
 
   const Orders = () => {
+
+    let link = orderStatus == 2 ? '/api/draft' : `/b1s/v1/Orders`
     setOrderLoading(true)
-    let body = {
+    let body = orderStatus == 1 ? {
       "CardCode": customerCode,
       "DocDate": get(date, 'DocDate'),
       "DocDueDate": get(date, 'DocDueDate'),
@@ -311,10 +364,12 @@ const Order = () => {
           "WarehouseCode": warehouse
         }
       })
-    }
+    } : state.map(item => {
+      return { ...item, CardName: customer, CardCode: customerCode, ...date, WhsCode: warehouse, Quantity: item.value, U_Karobka: item.karobka }
+    })
     axios
       .post(
-        url + `/b1s/v1/Orders`,
+        url + link,
         body,
         {
           headers: {
@@ -326,6 +381,8 @@ const Order = () => {
         }
       )
       .then(({ data }) => {
+        setCustomer('')
+        setCustomerCode('')
         setOrderLoading(false)
         successNotify()
         setMainData([...state, ...mainData].map(item => {
@@ -437,25 +494,50 @@ const Order = () => {
               </div>
 
               <div className='d-flex align justify'>
-                <div className='right-limit'>
-                  <button style={{ width: "110px" }} onClick={() => setShowDropdownWarehouse(!showDropDownWarehouse)} className='right-dropdown'>
-                    <p className='right-limit-text'>{warehouse}</p>
-                    <img src={arrowDown} className={showDropDownWarehouse ? "up-arrow" : ""} alt="arrow-down-img" />
-                  </button>
-                  <ul style={{ zIndex: 0 }} className={`dropdown-menu  ${showDropDownWarehouse ? "display-b" : "display-n"}`} aria-labelledby="dropdownMenuButton1">
-                    {
-                      warehouseList.map((item, i) => {
-                        return (<li key={i} onClick={() => {
-                          if (warehouse != item) {
-                            setWarehouse(item);
-                            setShowDropdownWarehouse(false)
-                            getItems({ page, limit, value: search, warehouse: item })
+                <div className='d-flex align'>
+                  <div className='right-limit'>
+                    <button disabled={state.length} style={{ width: "110px" }} onClick={() => setShowDropdownWarehouse(!showDropDownWarehouse)} className={`right-dropdown ${state?.length ? 'opacity-5' : ''}`}>
+                      <p className='right-limit-text'>{warehouse}</p>
+                      <img src={arrowDown} className={showDropDownWarehouse ? "up-arrow" : ""} alt="arrow-down-img" />
+                    </button>
+                    <ul style={{ zIndex: 1 }} className={`dropdown-menu  ${(showDropDownWarehouse && state.length == 0) ? "display-b" : "display-n"}`} aria-labelledby="dropdownMenuButton1">
+                      {
+                        warehouseList.map((item, i) => {
+                          return (<li key={i} onClick={() => {
+                            if (warehouse != item) {
+                              setWarehouse(item);
+                              setShowDropdownWarehouse(false)
+                              getItems({ page, limit, value: search, warehouse: item })
+                            }
+                            return
+                          }} className={`dropdown-li ${warehouse == item ? 'dropdown-active' : ''}`}><a className="dropdown-item" href="#">{item}</a></li>)
+                        })
+                      }
+                    </ul>
+                  </div>
+                  {
+                    !get(docEntry, 'id') && (
+                      <div className='right-limit' style={{ marginLeft: '20px' }}>
+                        <button style={{ width: "140px" }} onClick={() => setShowDropdownStatus(!showDropDownStatus)} className='right-dropdown'>
+                          <p className='right-limit-text'>{statuses[orderStatus].name}</p>
+                          <img src={arrowDown} className={showDropDownStatus ? "up-arrow" : ""} alt="arrow-down-img" />
+                        </button>
+                        <ul style={{ zIndex: 1 }} className={`dropdown-menu  ${showDropDownStatus ? "display-b" : "display-n"}`} aria-labelledby="dropdownMenuButton1">
+                          {
+                            ([1, 2]).map((item, i) => {
+                              return (<li key={i} onClick={() => {
+                                if (orderStatus != item) {
+                                  setShowDropdownStatus(false)
+                                  setOrderStatus(item)
+                                }
+                                return
+                              }} className={`dropdown-li ${orderStatus == item ? 'dropdown-active' : ''}`}><a className="dropdown-item" href="#">{statuses[item].name}</a></li>)
+                            })
                           }
-                          return
-                        }} className={`dropdown-li ${warehouse == item ? 'dropdown-active' : ''}`}><a className="dropdown-item" href="#">{item}</a></li>)
-                      })
-                    }
-                  </ul>
+                        </ul>
+                      </div>
+                    )
+                  }
                 </div>
                 <div className='right-head order-head-filter'>
                   <div className='right-pagination'>
@@ -492,7 +574,7 @@ const Order = () => {
                       <p className='right-limit-text'>{limit}</p>
                       <img src={arrowDown} className={showDropdown ? "up-arrow" : ""} alt="arrow-down-img" />
                     </button>
-                    <ul className={`dropdown-menu ${showDropdown ? "display-b" : "display-n"}`} aria-labelledby="dropdownMenuButton1">
+                    <ul style={{ zIndex: 1 }} className={`dropdown-menu ${showDropdown ? "display-b" : "display-n"}`} aria-labelledby="dropdownMenuButton1">
                       {
                         limitList.map((item, i) => {
                           return (<li key={i} onClick={() => {
@@ -512,7 +594,7 @@ const Order = () => {
                 </div>
               </div>
             </div>
-            <div className='table'>
+            <div className='table' >
               <div className='table-head'>
                 <ul className='table-head-list d-flex align  justify'>
                   <li className='table-head-item w-50'>

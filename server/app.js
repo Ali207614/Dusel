@@ -6,6 +6,7 @@ let cors = require('cors')
 var bodyParser = require("body-parser");
 let https = require('https')
 const { get } = require('http')
+const { writeData, infoData } = require('./helper')
 require("dotenv").config();
 const conn_params = {
     serverNode: process.env.server_node,
@@ -112,7 +113,6 @@ app.get('/api/order', async function (req, res) {
     }
 })
 
-
 app.get('/api/items', async function (req, res) {
     try {
         const ret = await getItems(req.query)
@@ -124,9 +124,19 @@ app.get('/api/items', async function (req, res) {
     }
 })
 
-
-
-
+app.post('/api/draft', async function (req, res) {
+    try {
+        let status = await writeData(req.body)
+        if (!status) {
+            return res.status(404).send()
+        }
+        return res.status(201).send()
+    } catch (e) {
+        return res.status(400).send({
+            message: e
+        });
+    }
+})
 
 function getCustomer({ search }) {
     return new Promise((resolve, reject) => {
@@ -158,8 +168,6 @@ function getCustomer({ search }) {
         });
     });
 }
-
-
 
 function getItems({ offset, limit, whsCode, search, items = [] }) {
     return new Promise((resolve, reject) => {
@@ -210,6 +218,33 @@ function getOrders({ offset, limit, search }) {
                 conn.disconnect();
                 return;
             }
+            let jsonData = infoData()
+            const jsonDataSlice = jsonData.map((item, i, arr) => {
+                let NETTO = 0;
+                let BRUTTO = 0;
+                let DocTotal = 0;
+                for (let i = 0; i < item.state.length; i++) {
+                    NETTO += Number(item.state[i].U_U_netto)
+                    BRUTTO += Number(item.state[i].U_U_brutto)
+                    let price = (Number(item.state[i].Price) * Number(item.state[i].value)) - (Number(item.state[i].Price) * Number(item.state[i].value) * Number(item.state[i].disCount) / 100)
+                    DocTotal += price
+                }
+                let obj = {
+                    NETTO,
+                    BRUTTO,
+                    U_status: 2,
+                    SlpCode: '',
+                    SlpName: '',
+                    DocDate: item.state[0].DocDate,
+                    CardCode: item.state[0].CardCode,
+                    CardName: item.state[0].CardName,
+                    DocEntry: item.ID,
+                    DocCur: item.state[0].Currency,
+                    DocTotal,
+                    LENGTH: arr.length
+                }
+                return obj
+            });
 
             let innerSql = `SELECT sum(1) FROM ${db}.ORDR  T0 INNER JOIN ${db}.OSLP T1 ON T0."SlpCode" = T1."SlpCode"  WHERE T0."DocStatus" ='O' and T0."CANCELED"='N'`
 
@@ -228,22 +263,23 @@ function getOrders({ offset, limit, search }) {
             let sql = `SELECT (${innerSql}) as length , (${allNetto}) as allNetto,(${allBrutto}) as allbrutto, (${netto}) as netto, (${brutto}) as brutto , (${allDocTotal}) as allDocTotal, T0."U_status", T0."CreateDate",  T0."DocNum", T0."DocEntry"  , T0."SlpCode", T1."SlpName", T0."DocDate", T0."DocDueDate", T0."CardCode",T0."DocEntry", T0."CardName", T0."CANCELED", T0."DocStatus", T0."DocCur", T0."DocRate", T0."DocTotal", T0."DocTotalFC" FROM ${db}.ORDR  T0 INNER JOIN ${db}.OSLP T1 ON T0."SlpCode" = T1."SlpCode"  WHERE T0."DocStatus" ='O' and T0."CANCELED"='N'`
 
 
-            if (search?.length) {
-                sql += ` and (LOWER(T0."CardName") like '%${search}%')`
-            }
+            // if (search?.length) {
+            //     sql += ` and (LOWER(T0."CardName") like '%${search}%')`
+            // }
 
-            sql += ` order by T0."DocEntry" desc limit ${limit} offset ${offset - 1} `
+            // sql += ` order by T0."DocEntry" desc limit ${remainingLimit} offset ${sqlOffset - 1} `
 
 
-            conn.exec(sql, function (err, result) {
+            conn.exec(sql, function (err, results) {
                 if (err) {
                     reject(err);
                     conn.disconnect();
                     return;
                 }
-
                 resolve({
-                    value: result
+                    value: [...jsonDataSlice, ...results.sort((a, b) => b.DocEntry - a.DocEntry)].map(item => {
+                        return { ...item, LENGTH: results.length + infoData().length }
+                    }).filter(item => item.CardName.toLowerCase().includes(search)).slice(offset - 1, +offset - 1 + +limit)
                 });
 
                 conn.disconnect();
@@ -262,7 +298,7 @@ function getOrderByDocEntry({ docEntry }) {
                 return;
             }
 
-            let sql = `SELECT T2."U_Karobka", T2."U_U_netto", T2."U_U_brutto", T2."U_model",  T3."IsCommited" ,T3."OnHand", T3."OnOrder", T3."Counted", T1."DocEntry", T1."LineNum", T1."ItemCode" , T2."ItemName" ,T1."Quantity", T1."Price", T1."Currency", T1."WhsCode", T0."DocNum", T0."DocStatus", T0."DocDate", T0."DocDueDate", T0."CardCode", T0."CardName", T0."DocCur", T0."DocTotal", T0."SlpCode", T1."U_model", T1."U_krb" FROM ${db}.ORDR T0  INNER JOIN ${db}.RDR1 T1 ON T0."DocEntry" = T1."DocEntry" INNER JOIN ${db}.OITM T2 on T2."ItemCode" = T1."ItemCode" INNER JOIN ${db}.OITW T3 on T3."ItemCode" = T1."ItemCode"  where T0."DocEntry"=${docEntry} and T3."WhsCode" = T1."WhsCode"`
+            let sql = `SELECT T2."U_Karobka", T2."U_U_netto", T2."U_U_brutto", T2."U_model",  T3."IsCommited" ,T3."OnHand", T3."OnOrder", T3."Counted", T1."DocEntry", T1."LineNum", T1."ItemCode" , T2."ItemName" ,T1."Quantity", T1."Price", T1."PriceBefDi", T1."Currency", T1."WhsCode", T0."DocNum", T0."DocStatus", T0."DocDate", T0."DocDueDate", T0."CardCode", T0."CardName", T0."DocCur", T0."DocTotal", T0."SlpCode", T1."U_model", T1."U_krb" FROM ${db}.ORDR T0  INNER JOIN ${db}.RDR1 T1 ON T0."DocEntry" = T1."DocEntry" INNER JOIN ${db}.OITM T2 on T2."ItemCode" = T1."ItemCode" INNER JOIN ${db}.OITW T3 on T3."ItemCode" = T1."ItemCode"  where T0."DocEntry"=${docEntry} and T3."WhsCode" = T1."WhsCode"`
 
             conn.exec(sql, function (err, result) {
                 if (err) {
