@@ -280,7 +280,8 @@ function getOrders({ offset, limit, search }) {
                     DocCur: item.state[0].Currency,
                     DocTotal,
                     LENGTH: arr.length,
-                    draft: true
+                    draft: true,
+                    schema: item.state[0].schema
                 }
                 return obj
             });
@@ -297,6 +298,7 @@ function getOrders({ offset, limit, search }) {
                     return;
                 }
                 resolve({
+
                     value: [...jsonDataSlice, ...results.sort((a, b) => b.DocEntry - a.DocEntry)].map((item, i, arr) => {
                         let ALLNETTO = 0;
                         let ALLBRUTTO = 0;

@@ -359,7 +359,7 @@ const Order = () => {
 
     let link = orderStatus == 2 ? '/api/draft' : `/b1s/v1/Orders`
     setOrderLoading(true)
-    let body = orderStatus == 1 ? {
+    let schema = {
       "CardCode": customerCode,
       "DocDate": get(date, 'DocDate'),
       "DocDueDate": get(date, 'DocDueDate'),
@@ -370,8 +370,9 @@ const Order = () => {
           "WarehouseCode": warehouse
         }
       })
-    } : state.map(item => {
-      return { ...item, CardName: customer, CardCode: customerCode, ...date, WhsCode: warehouse, Quantity: item.value }
+    }
+    let body = orderStatus == 1 ? schema : state.map(item => {
+      return { ...item, CardName: customer, CardCode: customerCode, ...date, WhsCode: warehouse, Quantity: item.value, schema }
     })
     axios
       .post(
@@ -416,7 +417,7 @@ const Order = () => {
 
   const Update = () => {
     let link = get(docEntry, 'draft') ? `/api/draft/${get(docEntry, 'id', 0)}` : `/b1s/v1/Orders(${get(docEntry, 'id')})`
-    let body = !get(docEntry, 'draft') ? {
+    let schema = {
       "CardCode": customerCode,
       "DocDate": get(date, 'DocDate'),
       "DocDueDate": get(date, 'DocDueDate'),
@@ -427,8 +428,9 @@ const Order = () => {
           "WarehouseCode": warehouse
         }
       })
-    } : state.map(item => {
-      return { ...item, CardName: customer, CardCode: customerCode, ...date, WhsCode: warehouse, Quantity: item.value }
+    }
+    let body = !get(docEntry, 'draft') ? schema : state.map(item => {
+      return { ...item, CardName: customer, CardCode: customerCode, ...date, WhsCode: warehouse, Quantity: item.value, schema }
     })
     setOrderLoading(true)
     axios

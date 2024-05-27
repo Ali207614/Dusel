@@ -213,9 +213,6 @@ const Home = () => {
     return;
   };
 
-
-
-
   const deleteDraft = (doc) => {
     setDropdownOpen(false);
     setUpdateLoading(true)
@@ -236,13 +233,69 @@ const Home = () => {
       });
   }
 
+  const addDraft = (body) => {
+
+    if (get(body, 'schema.CardCode')) {
+      setDropdownOpen(false);
+      setUpdateLoading(true)
+      let link = `/b1s/v1/Orders`
+      axios
+        .post(
+          url + link,
+          get(body, 'schema', {}),
+          {
+            headers: {
+              info: JSON.stringify({
+                'Cookie': get(getMe, 'Cookie[0]', '') + get(getMe, 'Cookie[1]', ''),
+                'SessionId': get(getMe, 'SessionId', ''),
+              })
+            },
+          }
+        )
+        .then(({ data }) => {
+          successNotify("Malumot muvaffaqiyatli qo'shildi")
+          axios
+            .delete(
+              url + `/api/draft/${get(body, 'DocEntry')}`,
+            )
+            .then(({ el }) => {
+              let index = mainData.findIndex(item => item.draft && item.DocEntry == get(body, 'DocEntry'))
+              mainData[index] = { ...mainData[index], U_status: 1, DocEntry: get(data, 'DocEntry'), draft: false }
+              setMainData([...mainData])
+              setUpdateLoading(false)
+              setActiveData(0)
+              return
+            })
+            .catch(err => {
+              errorNotify('Xatolik yuz berdi ochirishda')
+              setUpdateLoading(false)
+            });
+        })
+        .catch(err => {
+          if (get(err, 'response.status') == 401) {
+            navigate('/login')
+            return
+          }
+          setUpdateLoading(false)
+          errorRef.current?.open(get(err, 'response.data.error.message.value', 'Ошибка'));
+        });
+
+      return;
+    }
+    return
+  };
+
+
   const statusChange = () => setFnState(true)
 
-  const handleSelect = (status, docEntry) => {
+  const handleSelect = (status, docEntry, isDraft = false) => {
     let handleFn = {
+      1: {
+        name: 'новый',
+        fn: () => addDraft
+      },
       6: {
         name: 'отменить',
-
       },
       7: {
         name: 'удалить',
@@ -252,6 +305,11 @@ const Home = () => {
         name: 'архивировать',
       }
     };
+    console.log(docEntry, isDraft, status)
+    if (isDraft && status == 1) {
+      confirmRef.current?.open(`Вы уверены, что хотите это добавить ? `, handleFn[status].fn, mainData.find(item => item.DocEntry == docEntry));
+      return
+    }
     if (handleFn[status]) {
 
       confirmRef.current?.open(`Вы уверены, что хотите это ${handleFn[status].name} ? `, handleFn[status].fn, docEntry);
@@ -475,7 +533,7 @@ const Home = () => {
                                       {get(statuses, `${[get(item, 'U_status', '')]}.access`, []).map((status, i) => (
                                         <li key={i} onClick={() => {
                                           if (status != get(item, 'U_status', '')) {
-                                            handleSelect(status, get(item, 'DocEntry', 0))
+                                            handleSelect(status, get(item, 'DocEntry', 0), get(item, 'draft'))
                                           }
                                         }} className={`dropdown-li ${get(item, 'U_status', '') == status ? 'dropdown-active' : ''}`}><a className="dropdown-item" href="#">{statuses[status].name}</a></li>
                                       ))}
