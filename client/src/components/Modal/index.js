@@ -7,6 +7,7 @@ import WarningModal from './WarningModal';
 import SelectProduct from './SelectProduct';
 import LogoutModal from './LogoutModal';
 import ConfirmModal from './ConfirmModal'
+import ConfirmModalOrder from "./ConfirmModalOrder"
 export {
   SuccessModal,
   ErrorModal,
@@ -16,5 +17,6 @@ export {
   WarningModal,
   SelectProduct,
   LogoutModal,
-  ConfirmModal
+  ConfirmModal,
+  ConfirmModalOrder
 };

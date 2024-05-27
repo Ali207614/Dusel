@@ -17,7 +17,7 @@ import { get } from 'lodash';
 import formatterCurrency from '../../helpers/currency';
 import moment from 'moment';
 import { FadeLoader } from "react-spinners";
-import { ErrorModal } from '../../components/Modal';
+import { ConfirmModal, ErrorModal, ConfirmModalOrder } from '../../components/Modal';
 import { Spinner } from '../../components';
 
 import { ToastContainer, toast } from 'react-toastify';
@@ -90,6 +90,7 @@ let statuses = {
   }
 };
 
+
 const Home = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -104,6 +105,7 @@ const Home = () => {
   const [ts, setTs] = useState(10);
   const [select, setSelect] = useState([])
   const [search, setSearch] = useState('')
+  const [fnState, setFnState] = useState(false)
 
   const [updateLoading, setUpdateLoading] = useState(false)
 
@@ -113,16 +115,18 @@ const Home = () => {
 
   const { getMe } = useSelector(state => state.main);
 
+  const confirmRef = useRef();
+
   const errorRef = useRef();
 
+  const confirmModalRef = useCallback(ref => {
+    confirmRef.current = ref;
+  }, []);
   const getErrorRef = useCallback(ref => {
     errorRef.current = ref;
   }, []);
 
-  const changeLanguage = ln => {
-    AsyncStorage.setItem('lan', ln);
-    i18next.changeLanguage(ln);
-  };
+
 
   const handleChange = e => {
     const newSearchTerm = e.target.value;
@@ -210,11 +214,50 @@ const Home = () => {
   };
 
 
-  const toggleDropdown = () => setDropdownOpen(!dropdownOpen);
 
-  const handleSelect = (status, docEntry) => {
+
+  const deleteDraft = (doc) => {
     setDropdownOpen(false);
     setUpdateLoading(true)
+    axios
+      .delete(
+        url + `/api/draft/${doc}`,
+      )
+      .then(({ data }) => {
+        setMainData(mainData.filter(item => !item.draft && item.DocEntry != doc))
+        successNotify("Malumot muvaffaqiyatli o'chirldi")
+        setUpdateLoading(false)
+        setActiveData(0)
+        return
+      })
+      .catch(err => {
+        errorNotify('Xatolik yuz berdi')
+        setUpdateLoading(false)
+      });
+  }
+
+  const statusChange = () => setFnState(true)
+
+  const handleSelect = (status, docEntry) => {
+    let handleFn = {
+      6: {
+        name: 'отменить',
+
+      },
+      7: {
+        name: 'удалить',
+        fn: () => deleteDraft
+      },
+      8: {
+        name: 'архивировать',
+      }
+    };
+    if (handleFn[status]) {
+
+      confirmRef.current?.open(`Вы уверены, что хотите это ${handleFn[status].name} ? `, handleFn[status].fn, docEntry);
+      return
+    }
+    setDropdownOpen(false);
     axios
       .patch(
         url + `/b1s/v1/Orders(${docEntry})`,
@@ -407,7 +450,7 @@ const Home = () => {
                                 </div>
                                 <div className='w-100 p-16' onClick={() => setActiveData(activeData === i + 1 ? 0 : (i + 1))}>
                                   <p className='table-body-text '>
-                                    {Number(get(item, 'NETTO', '-'))} / {Number(get(item, 'BRUTTO', '-'))}
+                                    {Number(get(item, 'NETTO', '-')).toFixed(4)} / {Number(get(item, 'BRUTTO', '-')).toFixed(4)}
                                   </p>
                                 </div>
                                 <div className='w-50 p-16' onClick={() => setActiveData(activeData === i + 1 ? 0 : (i + 1))}>
@@ -418,11 +461,11 @@ const Home = () => {
                               </div>
                               <div className='table-item-foot d-flex align'>
                                 <button className='table-item-btn d-flex align'>
-                                  <Link className='table-item-text d-flex align' to={`/order/${item.DocEntry}`}>Просмотреть и изменить заказ  <img src={editIcon} alt="arrow right" /></Link>
+                                  <Link className='table-item-text d-flex align' to={(get(item, 'draft') ? `/order/${item.DocEntry}/draft` : `/order/${item.DocEntry}`)}>Просмотреть и изменить заказ  <img src={editIcon} alt="arrow right" /></Link>
                                 </button>
                                 <button className='table-item-btn d-flex align table-item-text'> Накладный <img src={editIcon} alt="arrow-right" /></button>
                                 <div className="dropdown-container">
-                                  <button style={{ width: '110px' }} disabled={updateLoading} className="table-item-btn d-flex align table-item-text position-relative" onClick={toggleDropdown}>
+                                  <button style={{ width: '110px' }} disabled={updateLoading} className="table-item-btn d-flex align table-item-text position-relative" onClick={() => setDropdownOpen(!dropdownOpen)}>
                                     Состояние  {updateLoading ? <div className="spinner-border" role="status">
                                       <span className="sr-only">Loading...</span>
                                     </div> : <img style={{ marginLeft: '6px' }} src={editIcon} alt="arrow-right" />}
@@ -459,10 +502,10 @@ const Home = () => {
                     <p className='footer-text'>Сумма сделки : <span className='footer-text-spn'>{formatterCurrency(Number(get(mainData, '[0].ALLDOCTOTAL', 0)), "USD")}</span></p>
                   </div>
                   <div className='footer-block'>
-                    <p className='footer-text'>Нетто : <span className='footer-text-spn'>{Number(get(mainData, '[0].ALLNETTO', 0))}</span></p>
+                    <p className='footer-text'>Нетто : <span className='footer-text-spn'>{Number(get(mainData, '[0].ALLNETTO', 0)).toFixed(4)}</span></p>
                   </div>
                   <div className='footer-block'>
-                    <p className='footer-text'>Брутто : <span className='footer-text-spn'>{Number(get(mainData, '[0].ALLBRUTTO', 0))}</span></p>
+                    <p className='footer-text'>Брутто : <span className='footer-text-spn'>{Number(get(mainData, '[0].ALLBRUTTO', 0)).toFixed(4)}</span></p>
                   </div>
                 </div>
               </div>
@@ -472,6 +515,7 @@ const Home = () => {
       </Style>
       <>
         <ToastContainer />
+        <ConfirmModalOrder getRef={confirmModalRef} title={"Oshibka"} fn={statusChange} />
         <ErrorModal
           getRef={getErrorRef}
           title={'Ошибка'}

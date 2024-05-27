@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import Layout from '../../components/Layout';
-import { useParams } from 'react-router-dom';
+import { useParams, useLocation } from 'react-router-dom';
 import Style from './Style';
 import { useNavigate } from 'react-router-dom';
 import searchImg from '../../assets/images/search-normal.svg';
@@ -86,7 +86,9 @@ const Order = () => {
   const { getMe } = useSelector(state => state.main);
 
   let { id } = useParams();
+  let location = useLocation();
   const navigate = useNavigate();
+
   let [color, setColor] = useState("#3C3F47");
   const [showDropdown, setShowDropdown] = useState(false);
   const [limit, setLimit] = useState(10);
@@ -110,7 +112,8 @@ const Order = () => {
   const [tsSelect, setTsSelect] = useState(10);
   const [docEntry, setDocEntry] = useState({
     id,
-    status: false
+    status: false,
+    draft: get(location, 'pathname').includes('draft')
   });
 
   const [orderStatus, setOrderStatus] = useState('1')
@@ -161,6 +164,8 @@ const Order = () => {
     progress: undefined,
     theme: "colored",
   });
+
+
 
   useEffect(() => {
     const delay = 1000;
@@ -221,9 +226,10 @@ const Order = () => {
   };
 
   const getOrderByDocEntry = (doc) => {
+    let link = get(docEntry, 'draft') ? `/api/draft/${doc}` : `/api/order?docEntry=${doc}`
     return axios
       .get(
-        url + `/api/order?docEntry=${doc}`,
+        url + link ,
       )
       .then(({ data }) => {
         return data
@@ -266,7 +272,7 @@ const Order = () => {
               return { ...item, value: Number(item.Quantity).toString(), karobka: Math.floor(item.Quantity / Number(get(item, 'U_Karobka', 1) || 1)), Price: item.PriceBefDi, disCount: get(item, 'DisCount', 5) }
             }))
             setActualData(orderData.map(item => {
-              return { ...item, value: Number(item.Quantity).toString(), karobka: Math.floor(item.Quantity / Number(get(item, 'U_Karobka', 1) || 1)), disCount: get(item, 'DisCount', 5) }
+              return { ...item, value: Number(item.Quantity).toString(), karobka: Math.floor(item.Quantity / Number(get(item, 'U_Karobka', 1) || 1)), Price: item.PriceBefDi, disCount: get(item, 'DisCount', 5) }
             }))
           })
         }
@@ -365,7 +371,7 @@ const Order = () => {
         }
       })
     } : state.map(item => {
-      return { ...item, CardName: customer, CardCode: customerCode, ...date, WhsCode: warehouse, Quantity: item.value, U_Karobka: item.karobka }
+      return { ...item, CardName: customer, CardCode: customerCode, ...date, WhsCode: warehouse, Quantity: item.value }
     })
     axios
       .post(
@@ -409,7 +415,8 @@ const Order = () => {
   };
 
   const Update = () => {
-    let body = {
+    let link = get(docEntry, 'draft') ? `/api/draft/${get(docEntry, 'id', 0)}` : `/b1s/v1/Orders(${get(docEntry, 'id')})`
+    let body = !get(docEntry, 'draft') ? {
       "CardCode": customerCode,
       "DocDate": get(date, 'DocDate'),
       "DocDueDate": get(date, 'DocDueDate'),
@@ -420,11 +427,13 @@ const Order = () => {
           "WarehouseCode": warehouse
         }
       })
-    }
+    } : state.map(item => {
+      return { ...item, CardName: customer, CardCode: customerCode, ...date, WhsCode: warehouse, Quantity: item.value }
+    })
     setOrderLoading(true)
     axios
       .patch(
-        url + `/b1s/v1/Orders(${get(docEntry, 'id')})`,
+        url + link,
         body,
         {
           headers: {

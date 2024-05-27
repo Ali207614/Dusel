@@ -4,7 +4,7 @@ const path = require("path");
 
 function deleteData(id) {
     let users = infoData();
-    users = users.filter((item) => item.id != id);
+    users = users.filter((item) => item.ID != id);
     fs.writeFileSync(
         path.join(process.cwd(), "data.json"),
         JSON.stringify(users, null, 4)
@@ -13,8 +13,8 @@ function deleteData(id) {
 
 function updateData(id, data) {
     let users = infoData();
-    let index = users.findIndex((item) => item.id == id);
-    users[index] = data
+    let index = users.findIndex((item) => item.ID == id);
+    users[index] = { state: data, ID: id }
     fs.writeFileSync(
         path.join(process.cwd(), "data.json"),
         JSON.stringify(users, null, 4)
@@ -24,7 +24,11 @@ function writeData(data) {
     try {
         let main = infoData();
         let { ID } = infoID()
-        data = { state: data, ID }
+        data = {
+            state: data.map(item => {
+                return { ...item, CreateDate: new Date() }
+            }), ID
+        }
         fs.writeFileSync(
             path.join(process.cwd(), "data.json"),
             JSON.stringify([...main, data], null, 4)

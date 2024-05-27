@@ -11,6 +11,7 @@ function App() {
         <Route path="/home" element={<Home />} />
         <Route path="/order" element={<Order />} />
         <Route path="/order/:id" element={<Order />} />
+        <Route path="/order/:id/draft" element={<Order />} />
       </Routes>
     </BrowserRouter>
   );

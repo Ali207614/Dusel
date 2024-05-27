@@ -5,8 +5,8 @@ let cookieParser = require('cookie-parser')
 let cors = require('cors')
 var bodyParser = require("body-parser");
 let https = require('https')
-const { get } = require('http')
-const { writeData, infoData } = require('./helper')
+const { get } = require('lodash')
+const { writeData, infoData, updateData, deleteData } = require('./helper')
 require("dotenv").config();
 const conn_params = {
     serverNode: process.env.server_node,
@@ -138,6 +138,44 @@ app.post('/api/draft', async function (req, res) {
     }
 })
 
+app.get('/api/draft/:id', async function (req, res) {
+    try {
+        let { id } = req.params
+        let data = infoData().find(item => item.ID == id)
+        return res.status(200).send({
+            value: get(data, 'state', []).map(item => {
+                return { ...item, PriceBefDi: item.Price, U_Karobka: Number(get(item, 'U_Karobka', '0')) }
+            })
+        })
+    } catch (e) {
+        return res.status(400).send({
+            message: e
+        });
+    }
+})
+app.patch('/api/draft/:id', async function (req, res) {
+    try {
+        let { id } = req.params
+        await updateData(id, req.body)
+        return res.status(200).json()
+    } catch (e) {
+        return res.status(400).send({
+            message: e
+        });
+    }
+})
+app.delete('/api/draft/:id', async function (req, res) {
+    try {
+        let { id } = req.params
+        await deleteData(id)
+        return res.status(200).json()
+    } catch (e) {
+        return res.status(400).send({
+            message: e
+        });
+    }
+})
+
 function getCustomer({ search }) {
     return new Promise((resolve, reject) => {
         conn.connect(conn_params, function (err) {
@@ -241,34 +279,16 @@ function getOrders({ offset, limit, search }) {
                     DocEntry: item.ID,
                     DocCur: item.state[0].Currency,
                     DocTotal,
-                    LENGTH: arr.length
+                    LENGTH: arr.length,
+                    draft: true
                 }
                 return obj
             });
-
-            let innerSql = `SELECT sum(1) FROM ${db}.ORDR  T0 INNER JOIN ${db}.OSLP T1 ON T0."SlpCode" = T1."SlpCode"  WHERE T0."DocStatus" ='O' and T0."CANCELED"='N'`
-
-            let allDocTotal = `SELECT sum(T0."DocTotal") FROM ${db}.ORDR  T0 INNER JOIN ${db}.OSLP T1 ON T0."SlpCode" = T1."SlpCode"  WHERE T0."DocStatus" ='O' and T0."CANCELED"='N'`
-            if (search?.length) {
-                innerSql += ` and (LOWER(T0."CardName") like '%${search}%')`
-            }
-            let allNetto = `SELECT sum(T6."U_U_netto") FROM ${db}.ORDR  T0 INNER JOIN ${db}.OSLP T1 ON T0."SlpCode" = T1."SlpCode" inner join ${db}.RDR1 T5 on T5."DocEntry"= T0."DocEntry" INNER JOIN ${db}.OITM T6 ON T5."ItemCode" = T6."ItemCode"  WHERE T0."DocStatus" ='O' and T0."CANCELED"='N'`
-
-            let allBrutto = `SELECT sum(T6."U_U_brutto") FROM ${db}.ORDR  T0 INNER JOIN ${db}.OSLP T1 ON T0."SlpCode" = T1."SlpCode" inner join ${db}.RDR1 T5 on T5."DocEntry"= T0."DocEntry" INNER JOIN ${db}.OITM T6 ON T5."ItemCode" = T6."ItemCode"  WHERE T0."DocStatus" ='O' and T0."CANCELED"='N'`
-
             let netto = ` SELECT sum(T6."U_U_netto") FROM ${db}.RDR1 T5  INNER JOIN ${db}.OITM T6 ON T5."ItemCode" = T6."ItemCode" WHERE T5."DocEntry"= T0."DocEntry"`
 
             let brutto = ` SELECT sum(T6."U_U_brutto") FROM ${db}.RDR1 T5  INNER JOIN ${db}.OITM T6 ON T5."ItemCode" = T6."ItemCode" WHERE T5."DocEntry"= T0."DocEntry"`
 
-            let sql = `SELECT (${innerSql}) as length , (${allNetto}) as allNetto,(${allBrutto}) as allbrutto, (${netto}) as netto, (${brutto}) as brutto , (${allDocTotal}) as allDocTotal, T0."U_status", T0."CreateDate",  T0."DocNum", T0."DocEntry"  , T0."SlpCode", T1."SlpName", T0."DocDate", T0."DocDueDate", T0."CardCode",T0."DocEntry", T0."CardName", T0."CANCELED", T0."DocStatus", T0."DocCur", T0."DocRate", T0."DocTotal", T0."DocTotalFC" FROM ${db}.ORDR  T0 INNER JOIN ${db}.OSLP T1 ON T0."SlpCode" = T1."SlpCode"  WHERE T0."DocStatus" ='O' and T0."CANCELED"='N'`
-
-
-            // if (search?.length) {
-            //     sql += ` and (LOWER(T0."CardName") like '%${search}%')`
-            // }
-
-            // sql += ` order by T0."DocEntry" desc limit ${remainingLimit} offset ${sqlOffset - 1} `
-
+            let sql = `SELECT  (${netto}) as netto, (${brutto}) as brutto , T0."U_status", T0."CreateDate",  T0."DocNum", T0."DocEntry"  , T0."SlpCode", T1."SlpName", T0."DocDate", T0."DocDueDate", T0."CardCode",T0."DocEntry", T0."CardName", T0."CANCELED", T0."DocStatus", T0."DocCur", T0."DocRate", T0."DocTotal", T0."DocTotalFC" FROM ${db}.ORDR  T0 INNER JOIN ${db}.OSLP T1 ON T0."SlpCode" = T1."SlpCode"  WHERE T0."DocStatus" ='O' and T0."CANCELED"='N'`
 
             conn.exec(sql, function (err, results) {
                 if (err) {
@@ -277,8 +297,16 @@ function getOrders({ offset, limit, search }) {
                     return;
                 }
                 resolve({
-                    value: [...jsonDataSlice, ...results.sort((a, b) => b.DocEntry - a.DocEntry)].map(item => {
-                        return { ...item, LENGTH: results.length + infoData().length }
+                    value: [...jsonDataSlice, ...results.sort((a, b) => b.DocEntry - a.DocEntry)].map((item, i, arr) => {
+                        let ALLNETTO = 0;
+                        let ALLBRUTTO = 0;
+                        let ALLDOCTOTAL = 0;
+                        for (let i = 0; i < arr.length; i++) {
+                            ALLNETTO += +get(arr, `${[i]}.NETTO`, 0)
+                            ALLBRUTTO += +get(arr, `${[i]}.BRUTTO`, 0)
+                            ALLDOCTOTAL += +get(arr, `${[i]}.DocTotal`, 0)
+                        }
+                        return { ...item, LENGTH: results?.length + infoData().length, ALLBRUTTO, ALLNETTO, ALLDOCTOTAL }
                     }).filter(item => item.CardName.toLowerCase().includes(search)).slice(offset - 1, +offset - 1 + +limit)
                 });
 

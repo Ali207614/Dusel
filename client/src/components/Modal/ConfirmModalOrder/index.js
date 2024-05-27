@@ -22,16 +22,20 @@ const customStyles = {
   },
 };
 
-const ConfirmModal = ({ getRef, fn }) => {
+const ConfirmModal = ({ getRef }) => {
   const { t } = useTranslation();
 
   const [isOpenModal, setIsOpenModal] = useState(false);
   const [titleS, setTitleS] = useState('');
+  const [stateFn, setStateFn] = useState()
+  const [stateArg, setStateArg] = useState()
   useEffect(() => {
     const ref = {
-      open: (item) => {
+      open: (item, fn, arg = {}) => {
         setIsOpenModal(true);
         setTitleS(item);
+        setStateFn(fn)
+        setStateArg(arg)
       },
       close: () => setIsOpenModal(false),
     };
@@ -52,7 +56,7 @@ const ConfirmModal = ({ getRef, fn }) => {
           <div className="centerCard">
             <button className="btn yesBtn" onClick={() => {
               setIsOpenModal(false)
-              fn()
+              stateFn(stateArg)
             }}>
               Да
             </button>
