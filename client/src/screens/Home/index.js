@@ -203,7 +203,7 @@ const Home = () => {
       .then(({ data }) => {
         setLoading(false)
         setMainData(get(data, 'value', []))
-        setAllPageLength(get(data, 'value[0].LENGTH', []))
+        setAllPageLength(get(data, 'value[0].LENGTH', 0))
       })
       .catch(err => {
         setLoading(false)
@@ -222,6 +222,7 @@ const Home = () => {
       )
       .then(({ data }) => {
         setMainData(mainData.filter(item => !item.draft && item.DocEntry != doc))
+        setAllPageLength(allPageLength - 1)
         successNotify("Malumot muvaffaqiyatli o'chirldi")
         setUpdateLoading(false)
         setActiveData(0)
@@ -234,7 +235,6 @@ const Home = () => {
   }
 
   const addDraft = (body) => {
-
     if (get(body, 'schema.CardCode')) {
       setDropdownOpen(false);
       setUpdateLoading(true)
@@ -279,14 +279,117 @@ const Home = () => {
           setUpdateLoading(false)
           errorRef.current?.open(get(err, 'response.data.error.message.value', 'Ошибка'));
         });
-
       return;
     }
     return
   };
 
+  const cancelOrder = (doc) => {
+    setDropdownOpen(false);
+    setUpdateLoading(true)
+    axios
+      .post(
+        url + `/b1s/v1/Orders(${doc})/Cancel`,
+        {},
+        {
+          headers: {
+            info: JSON.stringify({
+              'Cookie': get(getMe, 'Cookie[0]', '') + get(getMe, 'Cookie[1]', ''),
+              'SessionId': get(getMe, 'SessionId', ''),
+            })
+          },
+        }
+      )
+      .then(({ data }) => {
+        setUpdateLoading(false)
+        setActiveData(0)
+        setMainData([...mainData.filter(item => item.DocEntry != doc)])
+        setAllPageLength(allPageLength - 1)
+        successNotify("Malumot muvaffaqiyatli bekor qilindi")
+      })
+      .catch(err => {
+        if (get(err, 'response.status') == 401) {
+          navigate('/login')
+          return
+        }
+        errorRef.current?.open(get(err, 'response.data.error.message.value', 'Ошибка'));
+        setUpdateLoading(false)
+      });
+  }
 
-  const statusChange = () => setFnState(true)
+  const addInvoice = (body) => {
+    axios
+      .post(
+        url + `/b1s/v1/Invoices`,
+        body,
+        {
+          headers: {
+            info: JSON.stringify({
+              'Cookie': get(getMe, 'Cookie[0]', '') + get(getMe, 'Cookie[1]', ''),
+              'SessionId': get(getMe, 'SessionId', ''),
+            })
+          },
+        }
+      )
+      .then(({ data }) => {
+        setUpdateLoading(false)
+        setActiveData(0)
+        setMainData([...mainData.filter(item => item.DocEntry != get(body, 'DocEntry'))])
+        setAllPageLength(allPageLength - 1)
+        successNotify("Malumot muvaffaqiyatli qo'shildi")
+      })
+      .catch(err => {
+        setUpdateLoading(false)
+        errorRef.current?.open(get(err, 'response.data.error.message.value', 'Ошибка'));
+      });
+  }
+
+  const invoice = (doc) => {
+    setDropdownOpen(false);
+    setUpdateLoading(true)
+    axios
+      .get(
+        url + `/b1s/v1/Orders(${doc})`,
+        {
+          headers: {
+            info: JSON.stringify({
+              'Cookie': get(getMe, 'Cookie[0]', '') + get(getMe, 'Cookie[1]', ''),
+              'SessionId': get(getMe, 'SessionId', ''),
+            })
+          },
+        }
+      )
+      .then(({ data }) => {
+        let schema = {
+          "CardCode": get(data, 'CardCode', ''),
+          "DocDate": get(data, 'DocDate'),
+          "DocDueDate": get(data, 'DocDueDate'),
+          "Comments": get(data, 'Comments'),
+          "DocumentLines": data.DocumentLines.map((item, i) => {
+            return {
+              "ItemCode": get(item, 'ItemCode', ''),
+              "Quantity": get(item, 'Quantity', 0),
+              "Price": get(item, 'Price', 0),
+              "WarehouseCode": get(item, 'WarehouseCode', ''),
+              "BaseType": 17,
+              "BaseEntry": get(data, 'DocEntry'),
+              "BaseLine": i,
+              "UnitPrice": get(item, 'UnitPrice'),
+            }
+          })
+        }
+        addInvoice(schema)
+      })
+      .catch(err => {
+        if (get(err, 'response.status') == 401) {
+          navigate('/login')
+          return
+        }
+        errorRef.current?.open(get(err, 'response.data.error.message.value', 'Ошибка') + " order");
+        setUpdateLoading(false)
+      });
+  }
+
 
   const handleSelect = (status, docEntry, isDraft = false) => {
     let handleFn = {
@@ -296,6 +399,7 @@ const Home = () => {
       },
       6: {
         name: 'отменить',
+        fn: () => cancelOrder
       },
       7: {
         name: 'удалить',
@@ -303,19 +407,19 @@ const Home = () => {
       },
       8: {
         name: 'архивировать',
+        fn: () => invoice
       }
     };
-    console.log(docEntry, isDraft, status)
     if (isDraft && status == 1) {
       confirmRef.current?.open(`Вы уверены, что хотите это добавить ? `, handleFn[status].fn, mainData.find(item => item.DocEntry == docEntry));
       return
     }
     if (handleFn[status]) {
-
       confirmRef.current?.open(`Вы уверены, что хотите это ${handleFn[status].name} ? `, handleFn[status].fn, docEntry);
       return
     }
     setDropdownOpen(false);
+    setUpdateLoading(true)
     axios
       .patch(
         url + `/b1s/v1/Orders(${docEntry})`,
@@ -347,6 +451,8 @@ const Home = () => {
         errorNotify(`Status o'zgartirishda xatolik yuz berdi`)
       });
   };
+
+  const statusChange = () => setFnState(true)
 
   const getOrderApi = () => {
     axios

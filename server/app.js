@@ -274,6 +274,7 @@ function getOrders({ offset, limit, search }) {
                     SlpCode: '',
                     SlpName: '',
                     DocDate: item.state[0].DocDate,
+                    CreateDate: item.state[0].CreateDate,
                     CardCode: item.state[0].CardCode,
                     CardName: item.state[0].CardName,
                     DocEntry: item.ID,
