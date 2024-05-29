@@ -122,6 +122,7 @@ li{
     font-style: normal;
     font-weight: 500;
     line-height: 24px;
+    resize: none;
   }
   .order-inp::-webkit-input-placeholder {
     color: #3C3F47;

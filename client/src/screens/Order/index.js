@@ -118,10 +118,18 @@ const Order = () => {
 
   const [orderStatus, setOrderStatus] = useState('1')
 
+  const [salesPersonList, setSalesPersonList] = useState([
+    { SlpCode: -1, SlpName: "Нет" }])
 
   const [showDropDownWarehouse, setShowDropdownWarehouse] = useState(false)
-  const [showDropDownStatus, setShowDropdownStatus] = useState(false)
   const [warehouse, setWarehouse] = useState('BAZA1')
+
+  const [showDropDownSalesPerson, setShowDropdownSalesPerson] = useState(false)
+  const [salesPerson, setSalesPerson] = useState('Нет')
+  const [salesPersonCode, setSalesPersonCode] = useState(-1)
+
+  const [showDropDownStatus, setShowDropdownStatus] = useState(false)
+  const [comment, setComment] = useState('')
 
   const errorRef = useRef();
   const confirmRef = useRef();
@@ -165,6 +173,9 @@ const Order = () => {
     theme: "colored",
   });
 
+
+  useEffect(() => {
+  }, [])
 
 
   useEffect(() => {
@@ -241,6 +252,20 @@ const Order = () => {
 
     return;
   };
+  const getSalesPerson = () => {
+    return axios
+      .get(
+        url + `/api/sales` ,
+      )
+      .then(({ data }) => {
+        setSalesPersonList(get(data, 'value', []))
+      })
+      .catch(err => {
+        errorNotify("SalesPerson not found")
+      });
+
+    return;
+  };
 
   const getItems = (pagination) => {
     setLoading(true)
@@ -256,6 +281,11 @@ const Order = () => {
             setLoading(false)
             setCustomer(get(orderData, '[0].CardName', ''))
             setCustomerCode(get(orderData, '[0].CardCode', ''))
+
+            setSalesPerson(get(orderData, '[0].SLP'))
+            setSalesPersonCode(get(orderData, '[0].SLPCODE'))
+            setComment(get(orderData, '[0].COMMENTS'))
+
             setDate({
               DocDate: moment(get(orderData, '[0].DocDate', '')).format("YYYY-MM-DD"),
               DocDueDate: moment(get(orderData, '[0].DocDueDate', '')).format("YYYY-MM-DD")
@@ -274,9 +304,15 @@ const Order = () => {
             setActualData(orderData.map(item => {
               return { ...item, value: Number(item.Quantity).toString(), karobka: Math.floor(item.Quantity / Number(get(item, 'U_Karobka', 1) || 1)), Price: item.PriceBefDi, disCount: get(item, 'DisCount', 5) }
             }))
+            if (salesPersonList.length == 1) {
+              getSalesPerson()
+            }
           })
         }
         else {
+          if (salesPersonList.length == 1) {
+            getSalesPerson()
+          }
           setLoading(false)
           setMainData(get(data, 'value', []).map(item => {
             return { ...item, value: '', karobka: '', disCount: get(item, 'DisCount', 5) }
@@ -363,6 +399,8 @@ const Order = () => {
       "CardCode": customerCode,
       "DocDate": get(date, 'DocDate'),
       "DocDueDate": get(date, 'DocDueDate'),
+      "SalesPersonCode": salesPersonCode,
+      "Comments": comment,
       "DocumentLines": state.map(item => {
         return {
           "ItemCode": get(item, 'ItemCode', ''),
@@ -372,7 +410,7 @@ const Order = () => {
       })
     }
     let body = orderStatus == 1 ? schema : state.map(item => {
-      return { ...item, CardName: customer, CardCode: customerCode, ...date, WhsCode: warehouse, Quantity: item.value, schema }
+      return { ...item, CardName: customer, CardCode: customerCode, ...date, WhsCode: warehouse, Quantity: item.value, schema, salesPersonCode, salesPerson, comment }
     })
     axios
       .post(
@@ -402,6 +440,7 @@ const Order = () => {
         setLimitSelect(10)
         setPageSelect(1)
         setTsSelect(10)
+        setComment('')
       })
       .catch(err => {
         if (get(err, 'response.status') == 401) {
@@ -421,6 +460,8 @@ const Order = () => {
       "CardCode": customerCode,
       "DocDate": get(date, 'DocDate'),
       "DocDueDate": get(date, 'DocDueDate'),
+      "SalesPersonCode": salesPersonCode,
+      "Comments": comment,
       "DocumentLines": state.map(item => {
         return {
           "ItemCode": get(item, 'ItemCode', ''),
@@ -430,7 +471,7 @@ const Order = () => {
       })
     }
     let body = !get(docEntry, 'draft') ? schema : state.map(item => {
-      return { ...item, CardName: customer, CardCode: customerCode, ...date, WhsCode: warehouse, Quantity: item.value, schema }
+      return { ...item, CardName: customer, CardCode: customerCode, ...date, WhsCode: warehouse, Quantity: item.value, schema, salesPersonCode, salesPerson, comment }
     })
     setOrderLoading(true)
     axios
@@ -502,11 +543,35 @@ const Order = () => {
                 <div className='w-100'>
                   <input value={get(date, 'DocDueDate', '')} onChange={(e) => setDate({ ...date, DocDueDate: e.target.value })} type="date" className='order-inp' placeholder='Due Date' />
                 </div>
+
+                <div className='w-100'>
+                  <input type="text" value={comment} onChange={(e) => setComment(e.target.value)} className='order-inp' placeholder='Comment' />
+                </div>
               </div>
 
               <div className='d-flex align justify'>
                 <div className='d-flex align'>
-                  <div className='right-limit'>
+                  <div className='right-limit' style={{ width: "120px" }}>
+                    <button onClick={() => setShowDropdownSalesPerson(!showDropDownSalesPerson)} className={`right-dropdown w-100`}>
+                      <p className='right-limit-text'>{salesPerson}</p>
+                      <img src={arrowDown} className={showDropDownSalesPerson ? "up-arrow" : ""} alt="arrow-down-img" />
+                    </button>
+                    <ul style={{ zIndex: 1 }} className={`dropdown-menu  ${(showDropDownSalesPerson && salesPersonList.length) ? "display-b" : "display-n"}`} aria-labelledby="dropdownMenuButton1">
+                      {
+                        salesPersonList.map((item, i) => {
+                          return (<li key={i} onClick={() => {
+                            if (salesPerson != get(item, 'SlpName')) {
+                              setSalesPerson(get(item, 'SlpName'));
+                              setSalesPersonCode(get(item, 'SlpCode'))
+                              setShowDropdownSalesPerson(false)
+                            }
+                            return
+                          }} className={`dropdown-li ${salesPerson == get(item, 'SlpName') ? 'dropdown-active' : ''}`}><a className="dropdown-item" href="#">{get(item, 'SlpName')}</a></li>)
+                        })
+                      }
+                    </ul>
+                  </div>
+                  <div className='right-limit' style={{ marginLeft: '20px' }}>
                     <button disabled={state.length} style={{ width: "110px" }} onClick={() => setShowDropdownWarehouse(!showDropDownWarehouse)} className={`right-dropdown ${state?.length ? 'opacity-5' : ''}`}>
                       <p className='right-limit-text'>{warehouse}</p>
                       <img src={arrowDown} className={showDropDownWarehouse ? "up-arrow" : ""} alt="arrow-down-img" />

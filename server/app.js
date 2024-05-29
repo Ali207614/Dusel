@@ -144,7 +144,7 @@ app.get('/api/draft/:id', async function (req, res) {
         let data = infoData().find(item => item.ID == id)
         return res.status(200).send({
             value: get(data, 'state', []).map(item => {
-                return { ...item, PriceBefDi: item.Price, U_Karobka: Number(get(item, 'U_Karobka', '0')) }
+                return { ...item, SLP: get(item, 'salesPerson', ''), SLPCODE: get(item, 'salesPersonCode', ''), COMMENTS: get(item, 'comment', ''), PriceBefDi: item.Price, U_Karobka: Number(get(item, 'U_Karobka', '0')) }
             })
         })
     } catch (e) {
@@ -176,6 +176,17 @@ app.delete('/api/draft/:id', async function (req, res) {
     }
 })
 
+app.get('/api/sales', async function (req, res) {
+    try {
+        const ret = await getSalesPerson()
+        return res.status(200).send(ret)
+    } catch (e) {
+        return res.status(400).send({
+            message: e
+        });
+    }
+})
+
 function getCustomer({ search }) {
     return new Promise((resolve, reject) => {
         conn.connect(conn_params, function (err) {
@@ -197,6 +208,33 @@ function getCustomer({ search }) {
                     return;
                 }
 
+                resolve({
+                    value: result
+                });
+
+                conn.disconnect();
+            });
+        });
+    });
+}
+
+function getSalesPerson() {
+    return new Promise((resolve, reject) => {
+        conn.connect(conn_params, function (err) {
+            if (err) {
+                reject(err);
+                conn.disconnect();
+                return;
+            }
+
+            let sql = `SELECT T0."SlpCode", T0."SlpName" FROM ${db}.OSLP T0`
+
+            conn.exec(sql, function (err, result) {
+                if (err) {
+                    reject(err);
+                    conn.disconnect();
+                    return;
+                }
                 resolve({
                     value: result
                 });
@@ -282,7 +320,10 @@ function getOrders({ offset, limit, search }) {
                     DocTotal,
                     LENGTH: arr.length,
                     draft: true,
-                    schema: item.state[0].schema
+                    schema: item.state[0].schema,
+                    SLP: item.state[0].salesPerson,
+                    SLPCODE: item.state[0].salesPersonCode,
+                    COMMENTS: item.state[0].comment
                 }
                 return obj
             });
@@ -290,7 +331,7 @@ function getOrders({ offset, limit, search }) {
 
             let brutto = ` SELECT sum(T6."U_U_brutto") FROM ${db}.RDR1 T5  INNER JOIN ${db}.OITM T6 ON T5."ItemCode" = T6."ItemCode" WHERE T5."DocEntry"= T0."DocEntry"`
 
-            let sql = `SELECT  (${netto}) as netto, (${brutto}) as brutto , T0."U_status", T0."CreateDate",  T0."DocNum", T0."DocEntry"  , T0."SlpCode", T1."SlpName", T0."DocDate", T0."DocDueDate", T0."CardCode",T0."DocEntry", T0."CardName", T0."CANCELED", T0."DocStatus", T0."DocCur", T0."DocRate", T0."DocTotal", T0."DocTotalFC" FROM ${db}.ORDR  T0 INNER JOIN ${db}.OSLP T1 ON T0."SlpCode" = T1."SlpCode"  WHERE T0."DocStatus" ='O' and T0."CANCELED"='N'`
+            let sql = `SELECT  (${netto}) as netto, (${brutto}) as brutto , T0."U_status", T0."CreateDate",  T0."DocNum", T0."DocEntry"  , T0."SlpCode" , T1."SlpName" , T0."DocDate", T0."DocDueDate", T0."CardCode",T0."DocEntry", T0."CardName", T0."CANCELED", T0."DocStatus", T0."DocCur", T0."DocRate", T0."DocTotal", T0."DocTotalFC" FROM ${db}.ORDR  T0 INNER JOIN ${db}.OSLP T1 ON T0."SlpCode" = T1."SlpCode"  WHERE T0."DocStatus" ='O' and T0."CANCELED"='N'`
 
             conn.exec(sql, function (err, results) {
                 if (err) {
@@ -318,7 +359,6 @@ function getOrders({ offset, limit, search }) {
         });
     });
 }
-// SELECT T0."Currency", T0."DiscPrcnt", T0."LineTotal", T0."OpenSum", T0."OpenSumFC", T0."PriceBefDi" FROM RDR1 T0 WHERE T0."DocEntry" = '5685'
 
 function getOrderByDocEntry({ docEntry }) {
     return new Promise((resolve, reject) => {
@@ -329,7 +369,7 @@ function getOrderByDocEntry({ docEntry }) {
                 return;
             }
 
-            let sql = `SELECT T2."U_Karobka", T2."U_U_netto", T2."U_U_brutto", T2."U_model",  T3."IsCommited" ,T3."OnHand", T3."OnOrder", T3."Counted", T1."DocEntry", T1."LineNum", T1."ItemCode" , T2."ItemName" ,T1."Quantity", T1."Price", T1."PriceBefDi", T1."Currency", T1."WhsCode", T0."DocNum", T0."DocStatus", T0."DocDate", T0."DocDueDate", T0."CardCode", T0."CardName", T0."DocCur", T0."DocTotal", T0."SlpCode", T1."U_model", T1."U_krb" FROM ${db}.ORDR T0  INNER JOIN ${db}.RDR1 T1 ON T0."DocEntry" = T1."DocEntry" INNER JOIN ${db}.OITM T2 on T2."ItemCode" = T1."ItemCode" INNER JOIN ${db}.OITW T3 on T3."ItemCode" = T1."ItemCode"  where T0."DocEntry"=${docEntry} and T3."WhsCode" = T1."WhsCode"`
+            let sql = `SELECT T0."Comments" as COMMENTS, T2."U_Karobka", T2."U_U_netto", T2."U_U_brutto", T2."U_model",  T3."IsCommited" ,T3."OnHand", T3."OnOrder", T3."Counted", T1."DocEntry", T1."LineNum", T1."ItemCode" , T2."ItemName" ,T1."Quantity", T1."Price", T1."PriceBefDi", T1."Currency", T1."WhsCode", T0."DocNum", T0."DocStatus", T0."DocDate", T0."DocDueDate", T0."CardCode", T0."CardName", T0."DocCur", T0."DocTotal", T0."SlpCode" as SLPCODE,T4."SlpName" as SLP, T1."U_model", T1."U_krb" FROM ${db}.ORDR T0  INNER JOIN ${db}.RDR1 T1 ON T0."DocEntry" = T1."DocEntry" INNER JOIN ${db}.OITM T2 on T2."ItemCode" = T1."ItemCode" INNER JOIN ${db}.OITW T3 on T3."ItemCode" = T1."ItemCode" INNER JOIN ${db}.OSLP T4 ON T0."SlpCode" = T4."SlpCode"  where T0."DocEntry"=${docEntry} and T3."WhsCode" = T1."WhsCode"`
 
             conn.exec(sql, function (err, result) {
                 if (err) {
