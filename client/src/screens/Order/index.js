@@ -678,8 +678,8 @@ const Order = () => {
                   </li>
                   <li className='table-head-item'>Продукция/Производитель</li>
                   <li className='table-head-item'>Модел</li>
-                  <li className='table-head-item'>Netto / Brutto</li>
-                  <li className='table-head-item'>Цена</li>
+                  <li className='table-head-item '>Netto / Brutto</li>
+                  <li className='table-head-item w-50'>Цена</li>
                   <li className='table-head-item'>Остаток</li>
                   <li className='table-head-item'>Количество</li>
                   <li className='table-head-item'>В кейсе</li>
@@ -724,17 +724,17 @@ const Order = () => {
                                     </p>
                                   </div>
                                   <div className='w-100 p-16' >
-                                    <p className='table-body-text truncated-text' title={get(item, 'ItemName', '')}>
+                                    <p className='table-body-text truncated-text ' title={get(item, 'U_model', '')}>
                                       {get(item, 'U_model', '-') || '-'}
                                     </p>
                                   </div>
                                   <div className='w-100 p-16' >
-                                    <p className='table-body-text truncated-text' title={get(item, 'ItemName', '')}>
+                                    <p className='table-body-text truncated-text' title={`${Number(get(item, 'U_U_netto', '-')) || '-'} / ${Number(get(item, 'U_U_brutto', '-')) || '-'}`}>
                                       {Number(get(item, 'U_U_netto', '-')) || '-'} / {Number(get(item, 'U_U_brutto', '-')) || '-'}
                                     </p>
                                   </div>
-                                  <div className='w-100 p-16' >
-                                    <p className='table-body-text'>
+                                  <div className='w-50 p-16' >
+                                    <p className='table-body-text 50'>
                                       {formatterCurrency(Number(get(item, 'Price', 0)), get(item, 'Currency', "USD") || 'USD')}
                                     </p>
                                   </div>
