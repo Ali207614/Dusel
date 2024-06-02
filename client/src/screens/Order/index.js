@@ -20,62 +20,13 @@ import { useSelector } from 'react-redux';
 import { FixedSizeList as List } from 'react-window';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-
+import { limitList, statuses, warehouseList, errorNotify, warningNotify, successNotify } from '../../components/Helper';
 import 'react-resizable/css/styles.css';
 import Resizable from './Resizable';
 import moment from 'moment';
 
 let url = process.env.REACT_APP_API_URL
-let limitList = [1, 10, 50, 100, 500, 1000]
-let warehouseList = ['BAZA1', 'BAZA2', 'LYUSTRA', 'YANGI']
 
-let statuses = {
-  2: {
-    color: '#FFFFFF',
-    backgroundColor: '#6C757D',
-    name: 'Черновик',
-    access: [2, 1, 7],
-  },
-  1: {
-    color: '#FFFFFF',
-    backgroundColor: '#388E3C',
-    name: 'Новый',
-    access: [1, 3, 4, 5, 6],
-  },
-  3: {
-    color: '#FFFFFF',
-    backgroundColor: '#FFA000',
-    name: 'Ожидания',
-    access: [3, 4, 5, 6],
-  },
-  4: {
-    color: '#FFFFFF',
-    backgroundColor: '#0056B3',
-    name: 'Подтвержден',
-    access: [4, 5, 6],
-  },
-  5: {
-    color: '#FFFFFF',
-    backgroundColor: '#00A2C7',
-    name: 'Печатанный',
-    access: [5, 6, 8],
-  },
-  6: {
-    color: '#FFFFFF',
-    backgroundColor: '#00A2C7',
-    name: 'Отменить'
-  },
-  7: {
-    color: '#FFFFFF',
-    backgroundColor: '#00A2C7',
-    name: 'Удалить'
-  },
-  8: {
-    color: '#FFFFFF',
-    backgroundColor: '#00A2C7',
-    name: 'Архивировать'
-  }
-};
 const override = {
   position: "absolute",
   left: "50%",
@@ -141,37 +92,7 @@ const Order = () => {
     confirmRef.current = ref;
   }, []);
 
-  const errorNotify = (text) => toast.error(text, {
-    position: "top-right",
-    autoClose: 5000,
-    hideProgressBar: false,
-    closeOnClick: true,
-    pauseOnHover: true,
-    draggable: true,
-    progress: undefined,
-    theme: "colored",
-  });
-  const warningNotify = (text) => toast.warning(text, {
-    position: "top-right",
-    autoClose: 5000,
-    hideProgressBar: false,
-    closeOnClick: true,
-    pauseOnHover: true,
-    draggable: true,
-    progress: undefined,
-    theme: "colored",
-  });
 
-  const successNotify = (text = "Ma'lumot muvaffaqiyatli qo'shildi") => toast.success(text, {
-    position: "top-right",
-    autoClose: 5000,
-    hideProgressBar: false,
-    closeOnClick: true,
-    pauseOnHover: true,
-    draggable: true,
-    progress: undefined,
-    theme: "colored",
-  });
 
 
   useEffect(() => {
@@ -678,7 +599,7 @@ const Order = () => {
                   </li>
                   <li className='table-head-item'>Продукция/Производитель</li>
                   <li className='table-head-item'>Модел</li>
-                  <li className='table-head-item '>Netto / Brutto</li>
+                  <li className='table-head-item '>Куб / Brutto</li>
                   <li className='table-head-item w-50'>Цена</li>
                   <li className='table-head-item'>Остаток</li>
                   <li className='table-head-item'>Количество</li>
@@ -729,8 +650,8 @@ const Order = () => {
                                     </p>
                                   </div>
                                   <div className='w-100 p-16' >
-                                    <p className='table-body-text truncated-text' title={`${Number(get(item, 'U_U_netto', '-')) || '-'} / ${Number(get(item, 'U_U_brutto', '-')) || '-'}`}>
-                                      {Number(get(item, 'U_U_netto', '-')) || '-'} / {Number(get(item, 'U_U_brutto', '-')) || '-'}
+                                    <p className='table-body-text truncated-text' title={`${Number(get(item, 'BVolume', '-')) || '-'} / ${Number(get(item, 'U_U_brutto', '-')) || '-'}`}>
+                                      {Number(get(item, 'BVolume', '-')) || '-'} / {Number(get(item, 'U_U_brutto', '-')) || '-'}
                                     </p>
                                   </div>
                                   <div className='w-50 p-16' >

@@ -183,10 +183,10 @@ const Resizable = ({
                                             <li className='table-head-item w-50'>Код</li>
                                             <li className='table-head-item'>Продукция / Производитель</li>
                                             <li className='table-head-item'>Модел</li>
-                                            <li className='table-head-item'>Netto / Brutto</li>
+                                            <li className='table-head-item'>Куб / Brutto</li>
                                             <li className='table-head-item w-50'>Цена</li>
                                             <li className='table-head-item'>Остаток</li>
-                                            <li className='table-head-item'>Скидка</li>
+                                            {/* <li className='table-head-item'>Скидка</li> */}
                                             <li className='table-head-item'>Количество</li>
                                             <li className='table-head-item'>В кейсе</li>
                                             <li className='table-head-item w-47px'>
@@ -225,7 +225,7 @@ const Resizable = ({
                                                         </div>
                                                         <div className='w-100 p-16'>
                                                             <p className='table-body-text truncated-text' title={get(item, 'ItemName', '')}>
-                                                                {Number(get(item, 'U_U_netto', '-')) || '-'} / {Number(get(item, 'U_U_brutto', '-')) || '-'}
+                                                                {Number(get(item, 'BVolume', '-')) || '-'} / {Number(get(item, 'U_U_brutto', '-')) || '-'}
                                                             </p>
                                                         </div>
                                                         <div className='w-50 p-16'>
@@ -238,11 +238,11 @@ const Resizable = ({
                                                                 {Number(get(item, 'OnHand', ''))} / <span className='isCommited'>{Number(get(item, 'OnHand', '')) - Number(get(item, 'IsCommited', ''))}</span>
                                                             </p>
                                                         </div>
-                                                        <div className='w-100 p-16'>
+                                                        {/* <div className='w-100 p-16'>
                                                             <p className='table-body-text truncated-text' title={get(item, 'ItemName', '')}>
                                                                 {get(item, 'disCount', '-') || '-'}
                                                             </p>
-                                                        </div>
+                                                        </div> */}
                                                         <div className='w-100 p-16'>
                                                             <p className='table-body-text'>
                                                                 <input value={get(item, 'value', '')} onChange={e => {

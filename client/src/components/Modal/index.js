@@ -8,6 +8,7 @@ import SelectProduct from './SelectProduct';
 import LogoutModal from './LogoutModal';
 import ConfirmModal from './ConfirmModal'
 import ConfirmModalOrder from "./ConfirmModalOrder"
+import FilterOrderModal from './FilterOrderModal'
 export {
   SuccessModal,
   ErrorModal,
@@ -18,5 +19,6 @@ export {
   SelectProduct,
   LogoutModal,
   ConfirmModal,
-  ConfirmModalOrder
+  ConfirmModalOrder,
+  FilterOrderModal
 };

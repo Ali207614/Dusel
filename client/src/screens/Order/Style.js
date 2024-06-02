@@ -180,6 +180,9 @@ li{
     border: 1px solid #E9E9E9;
 
   }
+  .up-arrow{
+    transform: rotate(180deg);
+  }
   .right-limit{
     position:relative;
   }

@@ -17,78 +17,14 @@ import { get } from 'lodash';
 import formatterCurrency from '../../helpers/currency';
 import moment from 'moment';
 import { FadeLoader } from "react-spinners";
-import { ConfirmModal, ErrorModal, ConfirmModalOrder } from '../../components/Modal';
+import { ConfirmModal, ErrorModal, ConfirmModalOrder, FilterOrderModal } from '../../components/Modal';
 import { Spinner } from '../../components';
-
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { errorNotify, successNotify, warningNotify, limitList, override, statuses } from '../../components/Helper';
 
 let url = process.env.REACT_APP_API_URL
 
-let limitList = [1, 10, 50, 100, 500, 1000]
-
-const override = {
-  position: "absolute",
-  left: "50%",
-  top: "50%",
-  width: "100px",
-  height: "100px",
-  margin: 'auto'
-};
-
-
-let statuses = {
-  2: {
-    color: '#FFFFFF',
-    backgroundColor: '#6C757D',
-    name: 'Черновик',
-    access: [2, 1, 7],
-    actualName: 'Черновик'
-  },
-  1: {
-    color: '#FFFFFF',
-    backgroundColor: '#388E3C',
-    name: 'Новый',
-    access: [1, 3, 4, 5, 6],
-    actualName: 'Новый'
-  },
-  3: {
-    color: '#FFFFFF',
-    backgroundColor: '#FFA000',
-    name: 'Ожидания',
-    access: [3, 4, 5, 6],
-    actualName: 'Ожидания'
-  },
-  4: {
-    color: '#FFFFFF',
-    backgroundColor: '#0056B3',
-    name: 'Подтвердить',
-    access: [4, 5, 6],
-    actualName: 'Подтвержден'
-  },
-  5: {
-    color: '#FFFFFF',
-    backgroundColor: '#00A2C7',
-    name: 'Напечатать',
-    access: [5, 6, 8],
-    actualName: 'Печатанный'
-  },
-  6: {
-    color: '#FFFFFF',
-    backgroundColor: '#00A2C7',
-    name: 'Отменить'
-  },
-  7: {
-    color: '#FFFFFF',
-    backgroundColor: '#00A2C7',
-    name: 'Удалить'
-  },
-  8: {
-    color: '#FFFFFF',
-    backgroundColor: '#00A2C7',
-    name: 'Архивировать'
-  }
-};
 
 
 const Home = () => {
@@ -106,6 +42,7 @@ const Home = () => {
   const [select, setSelect] = useState([])
   const [search, setSearch] = useState('')
   const [fnState, setFnState] = useState(false)
+  const [filterData, setFilterData] = useState({})
 
   const [updateLoading, setUpdateLoading] = useState(false)
 
@@ -119,9 +56,16 @@ const Home = () => {
 
   const errorRef = useRef();
 
+  const filterRef = useRef();
+
+  const filterModalRef = useCallback(ref => {
+    filterRef.current = ref;
+  }, []);
+
   const confirmModalRef = useCallback(ref => {
     confirmRef.current = ref;
   }, []);
+
   const getErrorRef = useCallback(ref => {
     errorRef.current = ref;
   }, []);
@@ -134,37 +78,6 @@ const Home = () => {
   };
 
 
-  const errorNotify = (text) => toast.error(text, {
-    position: "top-right",
-    autoClose: 5000,
-    hideProgressBar: false,
-    closeOnClick: true,
-    pauseOnHover: true,
-    draggable: true,
-    progress: undefined,
-    theme: "colored",
-  });
-  const warningNotify = (text) => toast.warning(text, {
-    position: "top-right",
-    autoClose: 5000,
-    hideProgressBar: false,
-    closeOnClick: true,
-    pauseOnHover: true,
-    draggable: true,
-    progress: undefined,
-    theme: "colored",
-  });
-
-  const successNotify = (text) => toast.success(text, {
-    position: "top-right",
-    autoClose: 5000,
-    hideProgressBar: false,
-    closeOnClick: true,
-    pauseOnHover: true,
-    draggable: true,
-    progress: undefined,
-    theme: "colored",
-  });
 
   useEffect(() => {
     const delay = 1000;
@@ -184,7 +97,6 @@ const Home = () => {
     }
 
     return () => {
-      // Agar component o'chirilsa, timeoutni bekor qilish
       clearTimeout(timeoutId);
     };
   }, [search]);
@@ -202,8 +114,9 @@ const Home = () => {
       )
       .then(({ data }) => {
         setLoading(false)
-        setMainData(get(data, 'value', []))
-        setAllPageLength(get(data, 'value[0].LENGTH', 0))
+        setMainData(get(data, 'value', []).filter(item => !get(item, 'filter')))
+        setFilterData(get(data, 'value', []).find(item => get(item, 'filter')))
+        setAllPageLength(get(data, 'value[0].LENGTH', 1) - 1)
       })
       .catch(err => {
         setLoading(false)
@@ -476,6 +389,11 @@ const Home = () => {
         }
       });
   }
+
+  const filterOrders = () => {
+    filterRef.current?.open(filterData);
+  }
+
   return (
     <>
 
@@ -492,7 +410,7 @@ const Home = () => {
                   <p className='pagination-text'><span>{page}-{ts}</span> <span>of {allPageLength}</span> </p>
                   <button onClick={() => {
                     if (page > 1) {
-                      getOrders({ page: page - limit, limit })
+                      getOrders({ page: page - limit, limit, value: search })
                       setPage(page - limit);
                       setTs(ts - limit)
                       setSelect([])
@@ -503,7 +421,7 @@ const Home = () => {
 
                   <button onClick={() => {
                     if (ts < allPageLength) {
-                      getOrders({ page: page + limit, limit })
+                      getOrders({ page: page + limit, limit, value: search })
                       setPage(page + limit)
                       setTs(limit + ts)
                       setSelect([])
@@ -517,7 +435,7 @@ const Home = () => {
                   <input onChange={handleChange} value={search} type="search" className='right-inp' placeholder='Поиск' />
                 </div>
 
-                <button className='right-filter'>
+                <button onClick={filterOrders} className='right-filter'>
                   <img className='right-filter-img' src={filterImg} alt="filter-img" />
                 </button>
 
@@ -535,7 +453,7 @@ const Home = () => {
                             setPage(1);
                             setShowDropdown(false);
                             setTs(item)
-                            getOrders({ page: 1, limit: item })
+                            getOrders({ page: 1, limit: item, value: search })
                             setSelect([])
                             setMainCheck(false)
                           }
@@ -571,8 +489,9 @@ const Home = () => {
                   <li className='table-head-item '>Менеджер</li>
                   <li className='table-head-item '>Дата заказа</li>
                   <li className='table-head-item'>Дата создания</li>
-                  <li className='table-head-item w-50'>Сумма сделки</li>
-                  <li className='table-head-item w-70'>Нетто / Брутто</li>
+                  <li className='table-head-item w-70'>Сумма сделки</li>
+                  <li className='table-head-item w-70'>Склад</li>
+                  <li className='table-head-item w-70'>Куб / Брутто</li>
                   <li className='table-head-item w-50'>Состояние</li>
                 </ul>
               </div>
@@ -588,10 +507,11 @@ const Home = () => {
                                 <div className='d-flex align  w-100 p-16'>
                                   <input checked={select.find(item => item == i + 1)} className='m-right-16 inp-checkbox' onClick={(e) => {
                                     if (select.find(item => item == i + 1)) {
+                                      console.log('olindi')
                                       setSelect([...select.filter(item => item != i + 1)])
                                     }
                                     else {
-                                      setSelect([...select, i + 1])
+                                      setSelect([i + 1])
                                     }
                                   }} type="checkbox" name="checkbox" />
                                   <p className='table-body-text truncated-text w-100' title={get(item, 'CardName', '')} onClick={() => setActiveData(activeData === i + 1 ? 0 : (i + 1))}>
@@ -613,14 +533,19 @@ const Home = () => {
                                     {moment(get(item, 'CreateDate', '')).format("DD-MM-YYYY")}
                                   </p>
                                 </div>
-                                <div className='w-50 p-16' onClick={() => setActiveData(activeData === i + 1 ? 0 : (i + 1))}>
-                                  <p className='table-body-text w-50'>
+                                <div className='w-70 p-16' onClick={() => setActiveData(activeData === i + 1 ? 0 : (i + 1))}>
+                                  <p className='table-body-text w-70'>
                                     {formatterCurrency(Number(get(item, 'DocTotal', 0)), get(item, 'DocCur', 'UZS'))}
                                   </p>
                                 </div>
                                 <div className='w-70 p-16' onClick={() => setActiveData(activeData === i + 1 ? 0 : (i + 1))}>
                                   <p className='table-body-text w-70'>
-                                    {Number(get(item, 'NETTO', '-')).toFixed(4)} / {Number(get(item, 'BRUTTO', '-')).toFixed(4)}
+                                    {get(item, 'WhsCode', '-')}
+                                  </p>
+                                </div>
+                                <div className='w-70 p-16' onClick={() => setActiveData(activeData === i + 1 ? 0 : (i + 1))}>
+                                  <p className='table-body-text w-70'>
+                                    {Number(get(item, 'KUB', '-')).toFixed(4)} / {Number(get(item, 'BRUTTO', '-')).toFixed(4)}
                                   </p>
                                 </div>
                                 <div className='w-50 p-16' onClick={() => setActiveData(activeData === i + 1 ? 0 : (i + 1))}>
@@ -636,9 +561,11 @@ const Home = () => {
                                 <button className='table-item-btn d-flex align table-item-text'> Накладный <img src={editIcon} alt="arrow-right" /></button>
                                 <div className="dropdown-container">
                                   <button style={{ width: '110px' }} disabled={updateLoading} className="table-item-btn d-flex align table-item-text position-relative" onClick={() => setDropdownOpen(!dropdownOpen)}>
-                                    Состояние  {updateLoading ? <div className="spinner-border" role="status">
-                                      <span className="sr-only">Loading...</span>
-                                    </div> : <img style={{ marginLeft: '6px' }} src={editIcon} alt="arrow-right" />}
+                                    Состояние  {updateLoading ?
+                                      <div className="spinner-border" role="status">
+                                        <span className="sr-only">Loading...</span>
+                                      </div>
+                                      : <img style={{ marginLeft: '6px' }} src={editIcon} alt="arrow-right" />}
                                   </button>
                                   {(dropdownOpen) && (
                                     <ul className="dropdown-menu">
@@ -672,7 +599,7 @@ const Home = () => {
                     <p className='footer-text'>Сумма сделки : <span className='footer-text-spn'>{formatterCurrency(Number(get(mainData, '[0].ALLDOCTOTAL', 0)), "USD")}</span></p>
                   </div>
                   <div className='footer-block'>
-                    <p className='footer-text'>Нетто : <span className='footer-text-spn'>{Number(get(mainData, '[0].ALLNETTO', 0)).toFixed(4)}</span></p>
+                    <p className='footer-text'>Куб : <span className='footer-text-spn'>{Number(get(mainData, '[0].ALLKUB', 0)).toFixed(4)}</span></p>
                   </div>
                   <div className='footer-block'>
                     <p className='footer-text'>Брутто : <span className='footer-text-spn'>{Number(get(mainData, '[0].ALLBRUTTO', 0)).toFixed(4)}</span></p>
@@ -686,6 +613,7 @@ const Home = () => {
       <>
         <ToastContainer />
         <ConfirmModalOrder getRef={confirmModalRef} title={"Oshibka"} fn={statusChange} />
+        <FilterOrderModal getRef={filterModalRef} />
         <ErrorModal
           getRef={getErrorRef}
           title={'Ошибка'}

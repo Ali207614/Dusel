@@ -253,14 +253,14 @@ function getItems({ offset, limit, whsCode, search, items = [] }) {
                 conn.disconnect();
                 return;
             }
-            let innerSql = `SELECT sum(1) FROM ${db}.OITM  T0 INNER JOIN ${db}.OITW  T1 ON T0."ItemCode" = T1."ItemCode" INNER JOIN ${db}.OWHS  T2 ON T1."WhsCode" = T2."WhsCode" INNER JOIN ${db}.ITM1 T3 ON T0."ItemCode" = T3."ItemCode" WHERE T2."WhsCode" = '${whsCode}' and  T3."PriceList"  = 1 and T0."Series" in (73,72)`
+            let innerSql = `SELECT sum(1) FROM ${db}.OITM  T0 INNER JOIN ${db}.OITW  T1 ON T0."ItemCode" = T1."ItemCode" INNER JOIN ${db}.ITM1 T3 ON T0."ItemCode" = T3."ItemCode" WHERE T0."DfltWH" = '${whsCode}' and  T3."PriceList"  = 1 and T0."Series" in (73,72) and T1."WhsCode" = '${whsCode}'`
             if (items.length) {
                 innerSql += ` and T0."ItemCode" not in (${items})`
             }
             if (search?.length) {
                 innerSql += ` and (LOWER(T0."ItemCode") like '%${search}%' or LOWER(T0."ItemName") like '%${search}%' or LOWER(T0."U_model") like '%${search}%') `
             }
-            let sql = `SELECT  (${innerSql}) as length,T0."U_Karobka",  T0."U_U_netto", T0."U_U_brutto", T0."U_model",  T1."IsCommited", T2."WhsCode", T2."WhsName", T1."OnHand", T1."OnOrder", T1."Counted", T0."ItemCode", T0."ItemName", T0."CodeBars", T1."AvgPrice", T3."PriceList", T3."Price" , T3."Currency" FROM ${db}.OITM  T0 INNER JOIN ${db}.OITW  T1 ON T0."ItemCode" = T1."ItemCode" INNER JOIN ${db}.OWHS  T2 ON T1."WhsCode" = T2."WhsCode" INNER JOIN ${db}.ITM1 T3 ON T0."ItemCode" = T3."ItemCode" WHERE T2."WhsCode" = '${whsCode}' and T3."PriceList"  = 1 and T0."Series" in (73,72)`
+            let sql = `SELECT  (${innerSql}) as length , T0."U_Karobka", T0."BVolume", T0."U_U_netto", T0."U_U_brutto", T0."U_model",  T1."IsCommited", T1."OnHand", T1."OnOrder", T1."Counted", T0."ItemCode", T0."ItemName", T0."CodeBars", T1."AvgPrice", T3."PriceList", T3."Price" , T3."Currency" FROM ${db}.OITM  T0 INNER JOIN ${db}.OITW  T1 ON T0."ItemCode" = T1."ItemCode" INNER JOIN ${db}.ITM1 T3 ON T0."ItemCode" = T3."ItemCode" WHERE T0."DfltWH" = '${whsCode}' and T3."PriceList"  = 1 and T0."Series" in (73,72) and T1."WhsCode" = '${whsCode}'`
             if (items.length) {
                 sql += ` and T0."ItemCode" not in (${items})`
             }
@@ -296,21 +296,21 @@ function getOrders({ offset, limit, search }) {
             }
             let jsonData = infoData()
             const jsonDataSlice = jsonData.map((item, i, arr) => {
-                let NETTO = 0;
+                let KUB = 0;
                 let BRUTTO = 0;
                 let DocTotal = 0;
                 for (let i = 0; i < item.state.length; i++) {
-                    NETTO += Number(item.state[i].U_U_netto)
+                    KUB += Number(item.state[i].BVolume)
                     BRUTTO += Number(item.state[i].U_U_brutto)
                     let price = (Number(item.state[i].Price) * Number(item.state[i].value)) - (Number(item.state[i].Price) * Number(item.state[i].value) * Number(item.state[i].disCount) / 100)
                     DocTotal += price
                 }
                 let obj = {
-                    NETTO,
+                    KUB,
                     BRUTTO,
                     U_status: 2,
-                    SlpCode: '',
-                    SlpName: '',
+                    SlpCode: get(item, 'state[0].salesPersonCode'),
+                    SlpName: get(item, 'state[0].salesPerson'),
                     DocDate: item.state[0].DocDate,
                     CreateDate: item.state[0].CreateDate,
                     CardCode: item.state[0].CardCode,
@@ -323,15 +323,18 @@ function getOrders({ offset, limit, search }) {
                     schema: item.state[0].schema,
                     SLP: item.state[0].salesPerson,
                     SLPCODE: item.state[0].salesPersonCode,
-                    COMMENTS: item.state[0].comment
+                    COMMENTS: item.state[0].comment,
+                    WhsCode: item.state[0].WhsCode
                 }
                 return obj
             });
-            let netto = ` SELECT sum(T6."U_U_netto") FROM ${db}.RDR1 T5  INNER JOIN ${db}.OITM T6 ON T5."ItemCode" = T6."ItemCode" WHERE T5."DocEntry"= T0."DocEntry"`
+            let netto = ` SELECT sum(T6."BVolume") FROM ${db}.RDR1 T5  INNER JOIN ${db}.OITM T6 ON T5."ItemCode" = T6."ItemCode" WHERE T5."DocEntry"= T0."DocEntry"`
 
             let brutto = ` SELECT sum(T6."U_U_brutto") FROM ${db}.RDR1 T5  INNER JOIN ${db}.OITM T6 ON T5."ItemCode" = T6."ItemCode" WHERE T5."DocEntry"= T0."DocEntry"`
 
-            let sql = `SELECT  (${netto}) as netto, (${brutto}) as brutto , T0."U_status", T0."CreateDate",  T0."DocNum", T0."DocEntry"  , T0."SlpCode" , T1."SlpName" , T0."DocDate", T0."DocDueDate", T0."CardCode",T0."DocEntry", T0."CardName", T0."CANCELED", T0."DocStatus", T0."DocCur", T0."DocRate", T0."DocTotal", T0."DocTotalFC" FROM ${db}.ORDR  T0 INNER JOIN ${db}.OSLP T1 ON T0."SlpCode" = T1."SlpCode"  WHERE T0."DocStatus" ='O' and T0."CANCELED"='N'`
+            let warehouse = `SELECT TOP(1) T5."WhsCode" FROM ${db}.RDR1 T5  WHERE T5."DocEntry"= T0."DocEntry"`
+
+            let sql = `SELECT T5."WhsCode" , (${netto}) as kub, (${brutto}) as brutto , T0."U_status", T0."CreateDate",  T0."DocNum", T0."DocEntry"  , T0."SlpCode" , T1."SlpName" , T0."DocDate", T0."DocDueDate", T0."CardCode",T0."DocEntry", T0."CardName", T0."CANCELED", T0."DocStatus", T0."DocCur", T0."DocRate", T0."DocTotal", T0."DocTotalFC" FROM ${db}.ORDR  T0 INNER JOIN ${db}.OSLP T1 ON T0."SlpCode" = T1."SlpCode" LEFT JOIN (SELECT DISTINCT "DocEntry", "WhsCode" FROM ${db}.RDR1) T5 ON T0."DocEntry" = T5."DocEntry"  WHERE T0."DocStatus" ='O' and T0."CANCELED"='N'`
 
             conn.exec(sql, function (err, results) {
                 if (err) {
@@ -339,21 +342,56 @@ function getOrders({ offset, limit, search }) {
                     conn.disconnect();
                     return;
                 }
-                resolve({
+                let list = [...jsonDataSlice, ...results.sort((a, b) => b.DocEntry - a.DocEntry)]
 
-                    value: [...jsonDataSlice, ...results.sort((a, b) => b.DocEntry - a.DocEntry)].map((item, i, arr) => {
-                        let ALLNETTO = 0;
-                        let ALLBRUTTO = 0;
-                        let ALLDOCTOTAL = 0;
-                        for (let i = 0; i < arr.length; i++) {
-                            ALLNETTO += +get(arr, `${[i]}.NETTO`, 0)
-                            ALLBRUTTO += +get(arr, `${[i]}.BRUTTO`, 0)
-                            ALLDOCTOTAL += +get(arr, `${[i]}.DocTotal`, 0)
-                        }
-                        return { ...item, LENGTH: results?.length + infoData().length, ALLBRUTTO, ALLNETTO, ALLDOCTOTAL }
-                    }).filter(item => item.CardName.toLowerCase().includes(search)).slice(offset - 1, +offset - 1 + +limit)
+                let uniqueArrSlp = list.filter((obj, index, self) =>
+                    index === self.findIndex((t) => (
+                        t.SlpCode === obj.SlpCode && t.SlpName === obj.SlpName
+                    ))
+                ).map(item => {
+                    return { SlpCode: item.SlpCode, SlpName: item.SlpName }
                 });
 
+                let uniqueArrManager = list.filter((obj, index, self) =>
+                    index === self.findIndex((t) => (
+                        t.U_status === obj.U_status
+                    ))
+                ).map(item => {
+                    return { U_status: item.U_status }
+                });
+
+                let filterData = {
+                    filter: true,
+                    SalesPerson: uniqueArrSlp,
+                    Status: uniqueArrManager
+                }
+                resolve({
+
+                    value: [
+                        ...list.filter(item => {
+                            return get(item, 'CardName', '').toLowerCase().includes(search)
+                        }).map((item, i, arr) => {
+                            let ALLKUB = 0;
+                            let ALLBRUTTO = 0;
+                            let ALLDOCTOTAL = 0;
+                            for (let i = 0; i < arr.length; i++) {
+                                ALLKUB += +get(arr, `${[i]}.KUB`, 0)
+                                ALLBRUTTO += +get(arr, `${[i]}.BRUTTO`, 0)
+                                ALLDOCTOTAL += +get(arr, `${[i]}.DocTotal`, 0)
+                            }
+                            return { ...item, LENGTH: arr.length, ALLBRUTTO, ALLKUB, ALLDOCTOTAL }
+                        }).slice(offset - 1, +offset - 1 + +limit),
+                        filterData
+                    ]
+                });
+
+                /* 
+                sql dan hamma data olingan , keyin json formatdegi datala olingan va bitta array qilingan 
+                 map ni ichida shu bitta qilingan arraylarni brutto va docTotal lar obshi bitta summaga keltirilgan 
+                
+                 keyin bu filterData dgan object bor 
+                 bu joyda asosiy page uchun filter ma'lumotlarni oldinda tortib olinvoti 
+                */
                 conn.disconnect();
             });
         });
@@ -369,7 +407,7 @@ function getOrderByDocEntry({ docEntry }) {
                 return;
             }
 
-            let sql = `SELECT T0."Comments" as COMMENTS, T2."U_Karobka", T2."U_U_netto", T2."U_U_brutto", T2."U_model",  T3."IsCommited" ,T3."OnHand", T3."OnOrder", T3."Counted", T1."DocEntry", T1."LineNum", T1."ItemCode" , T2."ItemName" ,T1."Quantity", T1."Price", T1."PriceBefDi", T1."Currency", T1."WhsCode", T0."DocNum", T0."DocStatus", T0."DocDate", T0."DocDueDate", T0."CardCode", T0."CardName", T0."DocCur", T0."DocTotal", T0."SlpCode" as SLPCODE,T4."SlpName" as SLP, T1."U_model", T1."U_krb" FROM ${db}.ORDR T0  INNER JOIN ${db}.RDR1 T1 ON T0."DocEntry" = T1."DocEntry" INNER JOIN ${db}.OITM T2 on T2."ItemCode" = T1."ItemCode" INNER JOIN ${db}.OITW T3 on T3."ItemCode" = T1."ItemCode" INNER JOIN ${db}.OSLP T4 ON T0."SlpCode" = T4."SlpCode"  where T0."DocEntry"=${docEntry} and T3."WhsCode" = T1."WhsCode"`
+            let sql = `SELECT T0."Comments" as COMMENTS, T2."BVolume", T2."U_Karobka", T2."U_U_netto", T2."U_U_brutto", T2."U_model",  T3."IsCommited" ,T3."OnHand", T3."OnOrder", T3."Counted", T1."DocEntry", T1."LineNum", T1."ItemCode" , T2."ItemName" ,T1."Quantity", T1."Price", T1."PriceBefDi", T1."Currency", T1."WhsCode", T0."DocNum", T0."DocStatus", T0."DocDate", T0."DocDueDate", T0."CardCode", T0."CardName", T0."DocCur", T0."DocTotal", T0."SlpCode" as SLPCODE,T4."SlpName" as SLP, T1."U_model", T1."U_krb" FROM ${db}.ORDR T0  INNER JOIN ${db}.RDR1 T1 ON T0."DocEntry" = T1."DocEntry" INNER JOIN ${db}.OITM T2 on T2."ItemCode" = T1."ItemCode" INNER JOIN ${db}.OITW T3 on T3."ItemCode" = T1."ItemCode" INNER JOIN ${db}.OSLP T4 ON T0."SlpCode" = T4."SlpCode"  where T0."DocEntry"=${docEntry} and T3."WhsCode" = T1."WhsCode"`
 
             conn.exec(sql, function (err, result) {
                 if (err) {
@@ -396,3 +434,5 @@ app.listen(port, () => {
 
 
 //SELECT T1."IsCommited", T2."WhsCode", T2."WhsName", T1."OnHand", T1."IsCommited", T1."OnOrder", T1."Counted", T0."ItemCode", T0."ItemName", T0."CodeBars", T0."OnHand", T1."AvgPrice", T3."PriceList", T3."Price" , T3."Currency" FROM "DUSEL_TEST3"."OITM"  T0 INNER JOIN "DUSEL_TEST3"."OITW"  T1 ON T0."ItemCode" = T1."ItemCode" INNER JOIN "DUSEL_TEST3"."OWHS"  T2 ON T1."WhsCode" = T2."WhsCode" INNER JOIN ITM1 T3 ON T0."ItemCode" = T3."ItemCode" WHERE T0."ItemCode" ='GPX0338' and  T3."PriceList"  = 1
+
+

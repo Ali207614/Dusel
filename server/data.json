@@ -1,1 +1,109 @@
-[]
+[
+    {
+        "state": [
+            {
+                "LENGTH": 116,
+                "U_Karobka": "100",
+                "BVolume": "0.000200",
+                "U_U_netto": "0.029600",
+                "U_U_brutto": "0.032600",
+                "U_model": "DC35 E14",
+                "IsCommited": "0.000000",
+                "OnHand": "9800.000000",
+                "OnOrder": "0.000000",
+                "Counted": "0.000000",
+                "ItemCode": "GPX3407",
+                "ItemName": "LED 7W С35/E14 4000K DUSEL",
+                "CodeBars": null,
+                "AvgPrice": "0.290200",
+                "PriceList": 1,
+                "Price": "0.700000",
+                "Currency": "USD",
+                "value": "100",
+                "karobka": "1",
+                "disCount": 5,
+                "CardName": "Torabek Xorazim",
+                "CardCode": "ZM0010",
+                "DocDate": "2024-06-02",
+                "DocDueDate": "2024-06-02",
+                "WhsCode": "BAZA1",
+                "Quantity": "100",
+                "schema": {
+                    "CardCode": "ZM0010",
+                    "DocDate": "2024-06-02",
+                    "DocDueDate": "2024-06-02",
+                    "SalesPersonCode": -1,
+                    "Comments": "",
+                    "DocumentLines": [
+                        {
+                            "ItemCode": "GPX3407",
+                            "Quantity": 100,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPX0392",
+                            "Quantity": 100,
+                            "WarehouseCode": "BAZA1"
+                        }
+                    ]
+                },
+                "salesPersonCode": -1,
+                "salesPerson": "Нет",
+                "comment": "",
+                "CreateDate": "2024-06-02T15:42:19.556Z"
+            },
+            {
+                "LENGTH": 116,
+                "U_Karobka": "100",
+                "BVolume": "0.000830",
+                "U_U_netto": "0.140000",
+                "U_U_brutto": "0.152000",
+                "U_model": "AD02-15",
+                "IsCommited": "100.000000",
+                "OnHand": "17698.000000",
+                "OnOrder": "0.000000",
+                "Counted": "0.000000",
+                "ItemCode": "GPX0392",
+                "ItemName": "LED 15W akkumulyator s odnoy batareyka AD02-15 DUSEL",
+                "CodeBars": null,
+                "AvgPrice": "1.455800",
+                "PriceList": 1,
+                "Price": "1.900000",
+                "Currency": "USD",
+                "value": "100",
+                "karobka": "1",
+                "disCount": 5,
+                "CardName": "Torabek Xorazim",
+                "CardCode": "ZM0010",
+                "DocDate": "2024-06-02",
+                "DocDueDate": "2024-06-02",
+                "WhsCode": "BAZA1",
+                "Quantity": "100",
+                "schema": {
+                    "CardCode": "ZM0010",
+                    "DocDate": "2024-06-02",
+                    "DocDueDate": "2024-06-02",
+                    "SalesPersonCode": -1,
+                    "Comments": "",
+                    "DocumentLines": [
+                        {
+                            "ItemCode": "GPX3407",
+                            "Quantity": 100,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPX0392",
+                            "Quantity": 100,
+                            "WarehouseCode": "BAZA1"
+                        }
+                    ]
+                },
+                "salesPersonCode": -1,
+                "salesPerson": "Нет",
+                "comment": "",
+                "CreateDate": "2024-06-02T15:42:19.556Z"
+            }
+        ],
+        "ID": 25
+    }
+]
