@@ -15,7 +15,7 @@ import { get, isNumber } from 'lodash';
 import formatterCurrency from '../../helpers/currency';
 import { FadeLoader } from "react-spinners";
 import LazyLoad from "react-lazyload";
-import { ErrorModal, ConfirmModal, FilterModal } from '../../components/Modal';
+import { ErrorModal, ConfirmModal, FilterModal, FilterModalResizable } from '../../components/Modal';
 import { Spinner } from '../../components';
 import { useSelector } from 'react-redux';
 import { FixedSizeList as List } from 'react-window';
@@ -86,11 +86,15 @@ const Order = () => {
   const [filterData, setFilterData] = useState([])
 
   const [filterProperty, setFilterProperty] = useState({})
+  const [filterPropertyResize, setFilterPropertyResize] = useState({})
 
   const errorRef = useRef();
   const confirmRef = useRef();
 
   const filterRef = useRef();
+
+
+ 
 
   const filterModalRef = useCallback(ref => {
     filterRef.current = ref;
@@ -222,7 +226,6 @@ const Order = () => {
   const getItems = (pagination) => {
     setLoading(true)
     let { link } = subQuery(get(pagination, 'filterProperty', {}))
-    console.log(link)
     axios
       .get(
         url + `/api/items?offset=${get(pagination, 'page', 1)}&limit=${get(pagination, 'limit', limit)}&whsCode=${get(pagination, 'warehouse', warehouse)}&search=${get(pagination, 'value', '').toLowerCase()}&items=${state.map(item => `'${item.ItemCode}'`)}` + link,
@@ -789,6 +792,9 @@ const Order = () => {
             setPageSelect={setPageSelect}
             tsSelect={tsSelect}
             setTsSelect={setTsSelect}
+            filterPropertyResize={filterPropertyResize}
+            setFilterPropertyResize={setFilterPropertyResize}
+            filterData={filterData}
           />
         </Layout>
       </Style>
@@ -803,6 +809,7 @@ const Order = () => {
           setPage={setPage}
           setTs={setTs}
         />
+        
         <ErrorModal
           getRef={getErrorRef}
           title={'Ошибка'}

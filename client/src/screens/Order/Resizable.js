@@ -5,15 +5,18 @@ import arrowDown from '../../assets/images/arrow-down.svg';
 import pagination from '../../assets/images/pagination.svg';
 import remove from '../../assets/images/remove.svg';
 import allRemove from '../../assets/images/close.svg';
+import close from '../../assets/images/Close-filter.svg';
+
 import formatterCurrency from '../../helpers/currency';
 import 'react-resizable/css/styles.css';
-import { memo } from 'react';
+import { memo, useRef } from 'react';
 
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { ResizableBox } from 'react-resizable';
 import throttle from 'lodash/throttle';
 import { get } from 'lodash';
+import { FilterModalResizable } from '../../components/Modal';
 
 const Resizable = ({
     state,
@@ -31,6 +34,9 @@ const Resizable = ({
     limitSelect, setLimitSelect,
     pageSelect, setPageSelect,
     tsSelect, setTsSelect,
+    filterPropertyResize,
+    setFilterPropertyResize,
+    filterData
 }) => {
     let limitList = [1, 10, 50, 100, 500, 1000];
     const [height, setHeight] = useState(100);
@@ -42,10 +48,18 @@ const Resizable = ({
     const minTopSpacing = 300;
     const maxHeight = pageHeight - minTopSpacing;
 
+    const filterResizeRef = useRef();
+
+    const filterModalResizeRef = useCallback(ref => {
+        filterResizeRef.current = ref;
+    }, []);
+
     function paginateState(arr, perPage, nextPage) {
         return arr.slice(perPage, nextPage);
     }
-
+    const filterOrders = () => {
+        filterResizeRef.current?.open(filterData, search);
+    }
     const handleResize = useCallback(
         throttle((event, { size }) => {
             setHeight(size.height);
@@ -53,19 +67,26 @@ const Resizable = ({
         []
     );
 
-    const handleChange = e => {
-        const newSearchTerm = e.target.value;
-        if (newSearchTerm.length === 0) {
-            setState(actualData);
-        } else {
-            setState(actualData.filter(item =>
-                get(item, 'ItemCode', '').toLowerCase().includes(newSearchTerm.toLowerCase()) ||
+    const handleChange = (newSearchTerm = '', prop) => {
+        setState(actualData.filter(item => {
+            if (!(get(item, 'ItemCode', '').toLowerCase().includes(newSearchTerm.toLowerCase()) ||
                 get(item, 'ItemName', '').toLowerCase().includes(newSearchTerm.toLowerCase()) ||
-                get(item, 'U_model', '-').toLowerCase().includes(newSearchTerm.toLowerCase())
-            ));
+                get(item, 'U_model', '-').toLowerCase().includes(newSearchTerm.toLowerCase()))) {
+                return false
+            }
+
+            if (get(prop, 'Category', '') && get(item, 'U_Kategoriya') != get(prop, 'Category', '')) {
+                return false
+            }
+            if (get(prop, 'GroupCode', '') && get(item, 'ItmsGrpCod') != get(prop, 'GroupCode', '')) {
+                return false
+            }
+            return true
         }
+        ))
         setSearch(newSearchTerm);
     };
+
 
     const changeValue = (value, itemCode) => {
         let indexAct = actualData.findIndex(el => get(el, 'ItemCode', '') === itemCode);
@@ -151,11 +172,23 @@ const Resizable = ({
                                     </div>
                                     <div className='right-input'>
                                         <img className='right-input-img' src={searchImg} alt="search-img" />
-                                        <input onChange={handleChange} value={search} type="search" className='right-inp bg-white' placeholder='Поиск' />
+                                        <input onChange={(e) => handleChange(e.target.value, filterPropertyResize)} value={search} type="search" className='right-inp bg-white' placeholder='Поиск' />
                                     </div>
-                                    <button className='right-filter bg-white'>
-                                        <img className='right-filter-img' src={filterImg} alt="filter-img" />
-                                    </button>
+                                    <div style={{ position: 'relative' }}>
+                                        {
+                                            (Object.values(filterPropertyResize).length > 1 && get(filterPropertyResize, 'click')) ? (
+                                                <button onClick={() => {
+                                                    setFilterPropertyResize({})
+                                                    handleChange(search, {})
+                                                }} className={`close-btn`}>
+                                                    <img src={close} alt="close-filter" />
+                                                </button>
+                                            ) : ''
+                                        }
+                                        <button onClick={filterOrders} className='right-filter bg-white'>
+                                            <img className='right-filter-img' src={filterImg} alt="filter-img" />
+                                        </button>
+                                    </div>
                                     <div className='right-limit'>
                                         <button onClick={() => setShowDropdownSelect(!showDropdownSelect)} className='right-dropdown bg-white'>
                                             <p className='right-limit-text'>{limitSelect}</p>
@@ -281,6 +314,21 @@ const Resizable = ({
                     </div>
                 </ResizableBox>
             ) : ''}
+            <FilterModalResizable
+                actualData={actualData}
+                getRef={filterModalResizeRef}
+                filterProperty={filterPropertyResize}
+                setFilterProperty={setFilterPropertyResize}
+                limitSelect={limitSelect}
+                setLimitSelect={setLimitSelect}
+                pageSelect={pageSelect}
+                setPageSelect={setPageSelect}
+                tsSelect={tsSelect}
+                setTsSelect={setTsSelect}
+                state={state}
+                setState={setState}
+                search={search}
+            />
         </Style>
     );
 };

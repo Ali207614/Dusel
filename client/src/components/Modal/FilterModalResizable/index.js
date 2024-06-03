@@ -26,8 +26,7 @@ const customStyles = {
   },
 };
 
-const FilterModal = ({ getRef, filterProperty, setFilterProperty, getItems, arg, setPage,
-  setTs }) => {
+const FilterModalResizable = ({ actualData, getRef, filterProperty, setFilterProperty, limitSelect, setLimitSelect, pageSelect, setPageSelect, tsSelect, setTsSelect, state, setState, search }) => {
   const { t } = useTranslation();
   const [showDropDownWarehouse, setShowDropdownWarehouse] = useState(false)
   const [groupName, setGroupName] = useState(false)
@@ -37,10 +36,9 @@ const FilterModal = ({ getRef, filterProperty, setFilterProperty, getItems, arg,
 
   useEffect(() => {
     const ref = {
-      open: (data) => {
+      open: (data, title) => {
         setIsOpenModal(true);
         setFilterData(data)
-        console.log(filterProperty)
       },
       close: () => setIsOpenModal(false),
     };
@@ -50,11 +48,34 @@ const FilterModal = ({ getRef, filterProperty, setFilterProperty, getItems, arg,
 
   const filterOrder = () => {
     setFilterProperty({ ...filterProperty, click: true })
-    getItems({ ...arg, filterProperty })
-    setPage(1)
-    setTs(get(arg, 'limit', 10))
+    setPageSelect(1)
+    setTsSelect(limitSelect)
     setIsOpenModal(false)
+    handleChange()
   }
+
+
+  const handleChange = () => {
+    console.log(filterProperty)
+    console.log(actualData)
+    console.log(search)
+    setState(actualData.filter(item => {
+      if (!(get(item, 'ItemCode', '').toLowerCase().includes(search.toLowerCase()) ||
+        get(item, 'ItemName', '').toLowerCase().includes(search.toLowerCase()) ||
+        get(item, 'U_model', '-').toLowerCase().includes(search.toLowerCase()))) {
+        return false
+      }
+
+      if (get(filterProperty, 'Category', '') && get(item, 'U_Kategoriya') != get(filterProperty, 'Category', '')) {
+        return false
+      }
+      if (get(filterProperty, 'GroupCode', '') && get(item, 'ItmsGrpCod') != get(filterProperty, 'GroupCode', '')) {
+        return false
+      }
+      return true
+    }
+    ));
+  };
 
 
   return (
@@ -143,10 +164,9 @@ const FilterModal = ({ getRef, filterProperty, setFilterProperty, getItems, arg,
             </div>
             <div className='card-buttons'>
               <button className='card-btn-filter card-btn-clear' onClick={() => {
-                getItems({ ...arg })
                 setFilterProperty({})
-                setPage(1)
-                setTs(get(arg, 'limit', 10))
+                setPageSelect(1)
+                setTsSelect(limitSelect)
               }}>Очистить фильтр</button>
               <button className='card-btn-filter' onClick={filterOrder} >Фильтр</button>
             </div>
@@ -157,4 +177,4 @@ const FilterModal = ({ getRef, filterProperty, setFilterProperty, getItems, arg,
   );
 };
 
-export default memo(FilterModal);
+export default memo(FilterModalResizable);

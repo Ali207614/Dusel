@@ -218,8 +218,6 @@ function getFilterItem() {
             
             `
 
-            console.log(sql)
-
             conn.exec(sql, function (err, result) {
                 if (err) {
                     reject(err);
@@ -314,7 +312,6 @@ function getItems({ offset, limit, whsCode, search, items = [], group = '',
                 conn.disconnect();
                 return;
             }
-            console.log(group, category, code)
             let innerSql = `SELECT sum(1) FROM ${db}.OITM  T0 INNER JOIN ${db}.OITW  T1 ON T0."ItemCode" = T1."ItemCode" INNER JOIN ${db}.ITM1 T3 ON T0."ItemCode" = T3."ItemCode"  WHERE T0."DfltWH" = '${whsCode}' and  T3."PriceList"  = 1 and T0."Series" in (73,72) and T1."WhsCode" = '${whsCode}'`
             if (items.length) {
                 innerSql += ` and T0."ItemCode" not in (${items})`
@@ -329,7 +326,7 @@ function getItems({ offset, limit, whsCode, search, items = [], group = '',
             if (search?.length) {
                 innerSql += ` and (LOWER(T0."ItemCode") like '%${search}%' or LOWER(T0."ItemName") like '%${search}%' or LOWER(T0."U_model") like '%${search}%') `
             }
-            let sql = `SELECT  (${innerSql}) as length ,T0."ItmsGrpCod", T0."U_Karobka", T0."BVolume", T0."U_U_netto", T0."U_U_brutto", T0."U_model",  T1."IsCommited", T1."OnHand", T1."OnOrder", T1."Counted", T0."ItemCode", T0."ItemName", T0."CodeBars", T1."AvgPrice", T3."PriceList", T3."Price" , T3."Currency" FROM ${db}.OITM  T0 INNER JOIN ${db}.OITW  T1 ON T0."ItemCode" = T1."ItemCode" INNER JOIN ${db}.ITM1 T3 ON T0."ItemCode" = T3."ItemCode"  WHERE T0."DfltWH" = '${whsCode}' and T3."PriceList"  = 1 and T0."Series" in (73,72) and T1."WhsCode" = '${whsCode}'`
+            let sql = `SELECT  (${innerSql}) as length ,T0."ItmsGrpCod",T0."U_Kategoriya", T0."U_Karobka", T0."BVolume", T0."U_U_netto", T0."U_U_brutto", T0."U_model",  T1."IsCommited", T1."OnHand", T1."OnOrder", T1."Counted", T0."ItemCode", T0."ItemName", T0."CodeBars", T1."AvgPrice", T3."PriceList", T3."Price" , T3."Currency" FROM ${db}.OITM  T0 INNER JOIN ${db}.OITW  T1 ON T0."ItemCode" = T1."ItemCode" INNER JOIN ${db}.ITM1 T3 ON T0."ItemCode" = T3."ItemCode"  WHERE T0."DfltWH" = '${whsCode}' and T3."PriceList"  = 1 and T0."Series" in (73,72) and T1."WhsCode" = '${whsCode}'`
             if (items.length) {
                 sql += ` and T0."ItemCode" not in (${items})`
             }

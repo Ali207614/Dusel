@@ -164,7 +164,7 @@ const Home = () => {
         url + `/api/draft/${doc}`,
       )
       .then(({ data }) => {
-        setMainData(mainData.filter(item => !item.draft && item.DocEntry != doc))
+        setMainData(mainData.filter(item => item.DocEntry != doc))
         setAllPageLength(allPageLength - 1)
         successNotify("Malumot muvaffaqiyatli o'chirldi")
         setUpdateLoading(false)

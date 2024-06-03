@@ -10,6 +10,7 @@ import ConfirmModal from './ConfirmModal'
 import ConfirmModalOrder from "./ConfirmModalOrder"
 import FilterOrderModal from './FilterOrderModal'
 import FilterModal from './FilterModal'
+import FilterModalResizable from './FilterModalResizable';
 export {
   SuccessModal,
   ErrorModal,
@@ -22,5 +23,6 @@ export {
   ConfirmModal,
   ConfirmModalOrder,
   FilterOrderModal,
-  FilterModal
+  FilterModal,
+  FilterModalResizable
 };
