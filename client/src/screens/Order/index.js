@@ -9,12 +9,13 @@ import arrowDown from '../../assets/images/arrow-down.svg';
 import pagination from '../../assets/images/pagination.svg';
 import tickSquare from '../../assets/images/tick-square.svg';
 import add from '../../assets/images/add.svg';
+import close from '../../assets/images/Close-filter.svg';
 import axios from 'axios';
 import { get, isNumber } from 'lodash';
 import formatterCurrency from '../../helpers/currency';
 import { FadeLoader } from "react-spinners";
 import LazyLoad from "react-lazyload";
-import { ErrorModal, ConfirmModal } from '../../components/Modal';
+import { ErrorModal, ConfirmModal, FilterModal } from '../../components/Modal';
 import { Spinner } from '../../components';
 import { useSelector } from 'react-redux';
 import { FixedSizeList as List } from 'react-window';
@@ -82,8 +83,18 @@ const Order = () => {
   const [showDropDownStatus, setShowDropdownStatus] = useState(false)
   const [comment, setComment] = useState('')
 
+  const [filterData, setFilterData] = useState([])
+
+  const [filterProperty, setFilterProperty] = useState({})
+
   const errorRef = useRef();
   const confirmRef = useRef();
+
+  const filterRef = useRef();
+
+  const filterModalRef = useCallback(ref => {
+    filterRef.current = ref;
+  }, []);
 
   const getErrorRef = useCallback(ref => {
     errorRef.current = ref;
@@ -92,11 +103,13 @@ const Order = () => {
     confirmRef.current = ref;
   }, []);
 
+  const filterOrders = () => {
+    filterRef.current?.open(filterData);
+  }
 
 
 
-  useEffect(() => {
-  }, [])
+
 
 
   useEffect(() => {
@@ -104,13 +117,13 @@ const Order = () => {
     let timeoutId;
     if (search) {
       timeoutId = setTimeout(() => {
-        getItems({ page: 1, limit, value: search, warehouse })
+        getItems({ page: 1, limit, value: search, warehouse, filterProperty })
         setTs(limit)
         setPage(1);
       }, delay);
     }
     else {
-      getItems({ page: 1, limit })
+      getItems({ page: 1, limit, filterProperty })
       setTs(limit)
       setPage(1);
     }
@@ -180,6 +193,9 @@ const Order = () => {
       )
       .then(({ data }) => {
         setSalesPersonList(get(data, 'value', []))
+        if (filterData.length == 0) {
+          getFilterItemData()
+        }
       })
       .catch(err => {
         errorNotify("SalesPerson not found")
@@ -188,11 +204,28 @@ const Order = () => {
     return;
   };
 
+  const getFilterItemData = () => {
+    return axios
+      .get(
+        url + `/api/filter` ,
+      )
+      .then(({ data }) => {
+        setFilterData(get(data, 'value', []))
+      })
+      .catch(err => {
+        errorNotify("Filter not found")
+      });
+
+    return;
+  };
+
   const getItems = (pagination) => {
     setLoading(true)
+    let { link } = subQuery(get(pagination, 'filterProperty', {}))
+    console.log(link)
     axios
       .get(
-        url + `/api/items?offset=${get(pagination, 'page', 1)}&limit=${get(pagination, 'limit', limit)}&whsCode=${get(pagination, 'warehouse', warehouse)}&search=${get(pagination, 'value', '').toLowerCase()}&items=${state.map(item => `'${item.ItemCode}'`)}`,
+        url + `/api/items?offset=${get(pagination, 'page', 1)}&limit=${get(pagination, 'limit', limit)}&whsCode=${get(pagination, 'warehouse', warehouse)}&search=${get(pagination, 'value', '').toLowerCase()}&items=${state.map(item => `'${item.ItemCode}'`)}` + link,
       )
       .then(({ data }) => {
         if (get(docEntry, 'id', 0) && !get(docEntry, 'status')) {
@@ -228,6 +261,7 @@ const Order = () => {
             if (salesPersonList.length == 1) {
               getSalesPerson()
             }
+
           })
         }
         else {
@@ -423,6 +457,23 @@ const Order = () => {
       });
   }
 
+  const subQuery = (prop = {}) => {
+    let group = get(prop, 'Group', '')
+    let category = get(prop, 'Category', '')
+    let groupCode = get(prop, 'GroupCode', '').toString()
+
+    let list = [
+      { name: 'group', data: group },
+      { name: 'code', data: groupCode },
+      { name: 'category', data: category },
+    ].filter(item => get(item, 'data', '').length)
+    return {
+      link: list.map(item => {
+        return `&${get(item, 'name', '')}=${get(item, 'data', '')}`
+      }).join(''), status: list.length
+    }
+  }
+
 
 
   return (
@@ -504,7 +555,7 @@ const Order = () => {
                             if (warehouse != item) {
                               setWarehouse(item);
                               setShowDropdownWarehouse(false)
-                              getItems({ page, limit, value: search, warehouse: item })
+                              getItems({ page, limit, value: search, warehouse: item, filterProperty })
                             }
                             return
                           }} className={`dropdown-li ${warehouse == item ? 'dropdown-active' : ''}`}><a className="dropdown-item" href="#">{item}</a></li>)
@@ -541,7 +592,7 @@ const Order = () => {
                     <p className='pagination-text'><span>{page}-{ts}</span> <span>of {allPageLength}</span> </p>
                     <button onClick={() => {
                       if (page > 1) {
-                        getItems({ page: page - limit, limit, value: search, warehouse })
+                        getItems({ page: page - limit, limit, value: search, warehouse, filterProperty })
                         setPage(page - limit);
                         setTs(ts - limit)
                       }
@@ -551,7 +602,7 @@ const Order = () => {
 
                     <button onClick={() => {
                       if (ts < allPageLength) {
-                        getItems({ page: page + limit, limit, value: search, warehouse })
+                        getItems({ page: page + limit, limit, value: search, warehouse, filterProperty })
                         setPage(page + limit)
                         setTs(limit + ts)
                       }
@@ -563,9 +614,24 @@ const Order = () => {
                     <img className='right-input-img' src={searchImg} alt="search-img" />
                     <input onChange={handleChange} value={search} type="search" className='right-inp' placeholder='Поиск' />
                   </div>
-                  <button className='right-filter'>
-                    <img className='right-filter-img' src={filterImg} alt="filter-img" />
-                  </button>
+                  <div style={{ position: 'relative' }}>
+                    {
+                      (get(subQuery(filterProperty), 'status') && get(filterProperty, 'click')) ? (
+                        <button onClick={() => {
+                          setFilterProperty({})
+                          getItems({ page: 1, limit, value: search, warehouse })
+                          setPage(1)
+                          setTs(limit)
+                        }} className={`close-btn`}>
+                          <img src={close} alt="close-filter" />
+                        </button>
+                      ) : ''
+                    }
+                    <button onClick={filterOrders} className='right-filter'>
+                      <img className='right-filter-img' src={filterImg} alt="filter-img" />
+                    </button>
+                  </div>
+
                   <div className='right-limit'>
                     <button onClick={() => setShowDropdown(!showDropdown)} className='right-dropdown'>
                       <p className='right-limit-text'>{limit}</p>
@@ -580,7 +646,7 @@ const Order = () => {
                               setPage(1);
                               setShowDropdown(false);
                               setTs(item)
-                              getItems({ page: 1, limit: item, value: search, warehouse })
+                              getItems({ page: 1, limit: item, value: search, warehouse, filterProperty })
                             }
                             return
                           }} className={`dropdown-li ${limit == item ? 'dropdown-active' : ''}`}><a className="dropdown-item" href="#">{item}</a></li>)
@@ -728,6 +794,15 @@ const Order = () => {
       </Style>
       <>
         <ToastContainer />
+        <FilterModal
+          getRef={filterModalRef}
+          filterProperty={filterProperty}
+          setFilterProperty={setFilterProperty}
+          getItems={getItems}
+          arg={{ page: 1, limit, value: search, warehouse }}
+          setPage={setPage}
+          setTs={setTs}
+        />
         <ErrorModal
           getRef={getErrorRef}
           title={'Ошибка'}

@@ -9,6 +9,7 @@ import LogoutModal from './LogoutModal';
 import ConfirmModal from './ConfirmModal'
 import ConfirmModalOrder from "./ConfirmModalOrder"
 import FilterOrderModal from './FilterOrderModal'
+import FilterModal from './FilterModal'
 export {
   SuccessModal,
   ErrorModal,
@@ -20,5 +21,6 @@ export {
   LogoutModal,
   ConfirmModal,
   ConfirmModalOrder,
-  FilterOrderModal
+  FilterOrderModal,
+  FilterModal
 };

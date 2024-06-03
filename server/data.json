@@ -105,5 +105,56 @@
             }
         ],
         "ID": 25
+    },
+    {
+        "state": [
+            {
+                "LENGTH": 366,
+                "U_Karobka": "100",
+                "BVolume": "0.000380",
+                "U_U_netto": "0.029400",
+                "U_U_brutto": "0.034400",
+                "U_model": "D55-5",
+                "IsCommited": "1200.000000",
+                "OnHand": "19700.000000",
+                "OnOrder": "0.000000",
+                "Counted": "0.000000",
+                "ItemCode": "GPZ0001",
+                "ItemName": "LED 5W 6500K DUSEL",
+                "CodeBars": null,
+                "AvgPrice": "0.248600",
+                "PriceList": 1,
+                "Price": "0.630000",
+                "Currency": "USD",
+                "value": "100",
+                "karobka": "1",
+                "disCount": 5,
+                "CardName": "Doniyor Yangiyol Distrbyutor",
+                "CardCode": "ZM0170",
+                "DocDate": "2024-06-03",
+                "DocDueDate": "2024-06-03",
+                "WhsCode": "BAZA2",
+                "Quantity": "100",
+                "schema": {
+                    "CardCode": "ZM0170",
+                    "DocDate": "2024-06-03",
+                    "DocDueDate": "2024-06-03",
+                    "SalesPersonCode": -1,
+                    "Comments": "",
+                    "DocumentLines": [
+                        {
+                            "ItemCode": "GPZ0001",
+                            "Quantity": 100,
+                            "WarehouseCode": "BAZA2"
+                        }
+                    ]
+                },
+                "salesPersonCode": -1,
+                "salesPerson": "Нет",
+                "comment": "",
+                "CreateDate": "2024-06-03T12:29:43.204Z"
+            }
+        ],
+        "ID": 26
     }
 ]

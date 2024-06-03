@@ -5,6 +5,7 @@ let cookieParser = require('cookie-parser')
 let cors = require('cors')
 var bodyParser = require("body-parser");
 let https = require('https')
+let moment = require('moment')
 const { get } = require('lodash')
 const { writeData, infoData, updateData, deleteData } = require('./helper')
 require("dotenv").config();
@@ -113,6 +114,18 @@ app.get('/api/order', async function (req, res) {
     }
 })
 
+app.get('/api/filter', async function (req, res) {
+    try {
+        const ret = await getFilterItem()
+        return res.status(200).send(ret)
+    } catch (e) {
+        return res.status(400).send({
+            message: e
+        });
+    }
+})
+
+
 app.get('/api/items', async function (req, res) {
     try {
         const ret = await getItems(req.query)
@@ -187,6 +200,44 @@ app.get('/api/sales', async function (req, res) {
     }
 })
 
+function getFilterItem() {
+    return new Promise((resolve, reject) => {
+        conn.connect(conn_params, function (err) {
+            if (err) {
+                reject(err);
+                conn.disconnect();
+                return;
+            }
+
+            let sql = `
+            SELECT DISTINCT T0."ItmsGrpNam" AS Value, T0."ItmsGrpCod" AS Code ,'ItmsGrpNam' AS Type
+            FROM ${db}.OITB T0
+            UNION
+            SELECT DISTINCT T0."U_Kategoriya" AS Value ,T0."U_Kategoriya" AS Code, 'U_Kategoriya' AS Type
+            FROM ${db}.OITM T0
+            
+            `
+
+            console.log(sql)
+
+            conn.exec(sql, function (err, result) {
+                if (err) {
+                    reject(err);
+                    conn.disconnect();
+                    return;
+                }
+
+                resolve({
+                    value: result
+                });
+
+                conn.disconnect();
+            });
+        });
+    });
+}
+
+
 function getCustomer({ search }) {
     return new Promise((resolve, reject) => {
         conn.connect(conn_params, function (err) {
@@ -245,7 +296,17 @@ function getSalesPerson() {
     });
 }
 
-function getItems({ offset, limit, whsCode, search, items = [] }) {
+// SELECT DISTINCT T0."ItmsGrpNam" AS Value, 'ItmsGrpNam' AS Type 
+// FROM OITB T0
+
+// UNION 
+
+// SELECT DISTINCT T0."U_Kategoriya" AS Value, 'U_Kategoriya' AS Type 
+// FROM OITM T0
+
+// T0."ItmsGrpCod", T0."ItmsGrpNam"
+function getItems({ offset, limit, whsCode, search, items = [], group = '',
+    category = '', code = '' }) {
     return new Promise((resolve, reject) => {
         conn.connect(conn_params, function (err) {
             if (err) {
@@ -253,22 +314,36 @@ function getItems({ offset, limit, whsCode, search, items = [] }) {
                 conn.disconnect();
                 return;
             }
-            let innerSql = `SELECT sum(1) FROM ${db}.OITM  T0 INNER JOIN ${db}.OITW  T1 ON T0."ItemCode" = T1."ItemCode" INNER JOIN ${db}.ITM1 T3 ON T0."ItemCode" = T3."ItemCode" WHERE T0."DfltWH" = '${whsCode}' and  T3."PriceList"  = 1 and T0."Series" in (73,72) and T1."WhsCode" = '${whsCode}'`
+            console.log(group, category, code)
+            let innerSql = `SELECT sum(1) FROM ${db}.OITM  T0 INNER JOIN ${db}.OITW  T1 ON T0."ItemCode" = T1."ItemCode" INNER JOIN ${db}.ITM1 T3 ON T0."ItemCode" = T3."ItemCode"  WHERE T0."DfltWH" = '${whsCode}' and  T3."PriceList"  = 1 and T0."Series" in (73,72) and T1."WhsCode" = '${whsCode}'`
             if (items.length) {
                 innerSql += ` and T0."ItemCode" not in (${items})`
+            }
+
+            if (code.length) {
+                innerSql += ` and T0."ItmsGrpCod" = '${code}'`
+            }
+            if (category.length) {
+                innerSql += ` and T0."U_Kategoriya" = '${category}'`
             }
             if (search?.length) {
                 innerSql += ` and (LOWER(T0."ItemCode") like '%${search}%' or LOWER(T0."ItemName") like '%${search}%' or LOWER(T0."U_model") like '%${search}%') `
             }
-            let sql = `SELECT  (${innerSql}) as length , T0."U_Karobka", T0."BVolume", T0."U_U_netto", T0."U_U_brutto", T0."U_model",  T1."IsCommited", T1."OnHand", T1."OnOrder", T1."Counted", T0."ItemCode", T0."ItemName", T0."CodeBars", T1."AvgPrice", T3."PriceList", T3."Price" , T3."Currency" FROM ${db}.OITM  T0 INNER JOIN ${db}.OITW  T1 ON T0."ItemCode" = T1."ItemCode" INNER JOIN ${db}.ITM1 T3 ON T0."ItemCode" = T3."ItemCode" WHERE T0."DfltWH" = '${whsCode}' and T3."PriceList"  = 1 and T0."Series" in (73,72) and T1."WhsCode" = '${whsCode}'`
+            let sql = `SELECT  (${innerSql}) as length ,T0."ItmsGrpCod", T0."U_Karobka", T0."BVolume", T0."U_U_netto", T0."U_U_brutto", T0."U_model",  T1."IsCommited", T1."OnHand", T1."OnOrder", T1."Counted", T0."ItemCode", T0."ItemName", T0."CodeBars", T1."AvgPrice", T3."PriceList", T3."Price" , T3."Currency" FROM ${db}.OITM  T0 INNER JOIN ${db}.OITW  T1 ON T0."ItemCode" = T1."ItemCode" INNER JOIN ${db}.ITM1 T3 ON T0."ItemCode" = T3."ItemCode"  WHERE T0."DfltWH" = '${whsCode}' and T3."PriceList"  = 1 and T0."Series" in (73,72) and T1."WhsCode" = '${whsCode}'`
             if (items.length) {
                 sql += ` and T0."ItemCode" not in (${items})`
             }
             if (search?.length) {
                 sql += `and (LOWER(T0."ItemCode") like '%${search}%' or LOWER(T0."ItemName") like '%${search}%' or LOWER(T0."U_model") like '%${search}%')  `
             }
-            sql += ` ORDER BY T0."U_prn"  limit ${limit} offset ${offset - 1} `
 
+            if (code.length) {
+                sql += ` and T0."ItmsGrpCod" = '${code}'`
+            }
+            if (category.length) {
+                sql += ` and T0."U_Kategoriya" = '${category}'`
+            }
+            sql += ` ORDER BY T0."U_prn"  limit ${limit} offset ${offset - 1} `
 
             conn.exec(sql, function (err, result) {
                 if (err) {
@@ -286,7 +361,11 @@ function getItems({ offset, limit, whsCode, search, items = [] }) {
     });
 }
 
-function getOrders({ offset, limit, search }) {
+
+
+function getOrders({
+    offset, limit, search, creationDateStart, creationDateEnd, docDateStart, docDateEnd, salesPerson, status, warehouseCode
+}) {
     return new Promise((resolve, reject) => {
         conn.connect(conn_params, function (err) {
             if (err) {
@@ -358,19 +437,19 @@ function getOrders({ offset, limit, search }) {
                     ))
                 ).map(item => {
                     return { U_status: item.U_status }
-                });
+                }).sort((a, b) => Number(a.U_status) - Number(b.U_status));
 
                 let filterData = {
                     filter: true,
                     SalesPerson: uniqueArrSlp,
                     Status: uniqueArrManager
                 }
+
+
                 resolve({
 
-                    value: [
-                        ...list.filter(item => {
-                            return get(item, 'CardName', '').toLowerCase().includes(search)
-                        }).map((item, i, arr) => {
+                    value: [...filterHelper({ list, search, creationDateStart, creationDateEnd, docDateStart, docDateEnd, salesPerson, status, warehouseCode })
+                        .map((item, i, arr) => {
                             let ALLKUB = 0;
                             let ALLBRUTTO = 0;
                             let ALLDOCTOTAL = 0;
@@ -379,7 +458,9 @@ function getOrders({ offset, limit, search }) {
                                 ALLBRUTTO += +get(arr, `${[i]}.BRUTTO`, 0)
                                 ALLDOCTOTAL += +get(arr, `${[i]}.DocTotal`, 0)
                             }
-                            return { ...item, LENGTH: arr.length, ALLBRUTTO, ALLKUB, ALLDOCTOTAL }
+                            return { ...item, ALLBRUTTO, ALLKUB, ALLDOCTOTAL }
+                        }).map((item, i, self) => {
+                            return { ...item, LENGTH: self.length }
                         }).slice(offset - 1, +offset - 1 + +limit),
                         filterData
                     ]
@@ -397,6 +478,67 @@ function getOrders({ offset, limit, search }) {
         });
     });
 }
+
+let filterHelper = ({
+    list,
+    search = '',
+    creationDateStart,
+    creationDateEnd,
+    docDateStart,
+    docDateEnd,
+    salesPerson,
+    status,
+    warehouseCode
+}) => {
+    return list.filter(item => {
+        // Search by CardName
+        if (search && !get(item, 'CardName', '').toLowerCase().includes(search.toLowerCase())) {
+            return false;
+        }
+
+        // Filter by CreateDate
+        const creationDate = new Date(get(item, 'CreateDate'));
+        if (creationDateStart && creationDate <= new Date(creationDateStart)) {
+            return false;
+        }
+        if (creationDateEnd && creationDate >= new Date(creationDateEnd)) {
+            return false;
+        }
+
+        // Filter by DocDate
+        const docDate = new Date(get(item, 'DocDate'));
+        if (docDateStart && docDate <= new Date(docDateStart)) {
+            return false;
+        }
+        if (docDateEnd && docDate >= new Date(docDateEnd)) {
+            return false;
+        }
+
+        // Filter by salesPerson
+        if (salesPerson) {
+            const salesPersonArray = salesPerson.split(',').map(s => parseInt(s.trim(), 10));
+            if (!salesPersonArray.includes(get(item, 'SlpCode'))) {
+                return false;
+            }
+        }
+
+        // Filter by status
+        if (status) {
+            const statusArray = status.split(',').map(s => s.trim());
+            if (!statusArray.includes(get(item, 'U_status', '').toString())) {
+                return false;
+            }
+        }
+
+        // Filter by warehouseCode
+        if (warehouseCode && get(item, 'WhsCode') !== warehouseCode) {
+            return false;
+        }
+
+        // If all conditions pass, include this item
+        return true;
+    });
+};
 
 function getOrderByDocEntry({ docEntry }) {
     return new Promise((resolve, reject) => {

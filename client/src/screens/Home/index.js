@@ -13,6 +13,7 @@ import filterImg from '../../assets/images/filter-search.svg';
 import arrowDown from '../../assets/images/arrow-down.svg';
 import pagination from '../../assets/images/pagination.svg';
 import editIcon from '../../assets/images/edit-icon.svg';
+import close from '../../assets/images/Close-filter.svg';
 import { get } from 'lodash';
 import formatterCurrency from '../../helpers/currency';
 import moment from 'moment';
@@ -43,6 +44,8 @@ const Home = () => {
   const [search, setSearch] = useState('')
   const [fnState, setFnState] = useState(false)
   const [filterData, setFilterData] = useState({})
+
+  const [filterProperty, setFilterProperty] = useState({})
 
   const [updateLoading, setUpdateLoading] = useState(false)
 
@@ -85,13 +88,13 @@ const Home = () => {
 
     if (search) {
       timeoutId = setTimeout(() => {
-        getOrders({ page: 1, limit, value: search })
+        getOrders({ page: 1, limit, value: search, filterProperty })
         setTs(limit)
         setPage(1);
       }, delay);
     }
     else {
-      getOrders({ page: 1, limit })
+      getOrders({ page: 1, limit, filterProperty })
       setTs(limit)
       setPage(1);
     }
@@ -103,20 +106,47 @@ const Home = () => {
 
   useEffect(() => {
     getOrderApi()
-    getOrders({ page, limit })
+    getOrders({ page, limit, value: search, filterProperty })
   }, []);
+
+  const subQuery = (prop = {}) => {
+    let creationDateStart = get(prop, 'CreationDate.start', {})
+    let creationDateEnd = get(prop, 'CreationDate.end', {})
+    let docDateStart = get(prop, 'DocDate.start', {})
+    let docDateEnd = get(prop, 'DocDate.end', {})
+
+    let salesPerson = get(prop, 'SalesPerson', [])
+    let status = get(prop, 'Status', [])
+    let warehouseCode = get(prop, 'WarehouseCode', '')
+
+    let list = [
+      { name: 'creationDateStart', data: creationDateStart },
+      { name: 'creationDateEnd', data: creationDateEnd },
+      { name: 'docDateStart', data: docDateStart },
+      { name: 'docDateEnd', data: docDateEnd },
+      { name: 'salesPerson', data: salesPerson },
+      { name: 'status', data: status },
+      { name: 'warehouseCode', data: warehouseCode },
+    ].filter(item => get(item, 'data', '').length)
+    return {
+      link: list.map(item => {
+        return `&${get(item, 'name', '')}=${get(item, 'data', '')}`
+      }).join(''), status: list.length
+    }
+  }
 
   const getOrders = (pagination) => {
     setLoading(true)
+    let { link } = subQuery(get(pagination, 'filterProperty', {}))
     axios
       .get(
-        url + `/api/orders?offset=${get(pagination, 'page', 1)}&limit=${get(pagination, 'limit', limit)}&search=${get(pagination, 'value', '').toLowerCase()}`,
+        url + `/api/orders?offset=${get(pagination, 'page', 1)}&limit=${get(pagination, 'limit', limit)}&search=${get(pagination, 'value', '').toLowerCase()}` + link,
       )
       .then(({ data }) => {
         setLoading(false)
         setMainData(get(data, 'value', []).filter(item => !get(item, 'filter')))
         setFilterData(get(data, 'value', []).find(item => get(item, 'filter')))
-        setAllPageLength(get(data, 'value[0].LENGTH', 1) - 1)
+        setAllPageLength(get(data, 'value[0].LENGTH', 0))
       })
       .catch(err => {
         setLoading(false)
@@ -410,7 +440,7 @@ const Home = () => {
                   <p className='pagination-text'><span>{page}-{ts}</span> <span>of {allPageLength}</span> </p>
                   <button onClick={() => {
                     if (page > 1) {
-                      getOrders({ page: page - limit, limit, value: search })
+                      getOrders({ page: page - limit, limit, value: search, filterProperty })
                       setPage(page - limit);
                       setTs(ts - limit)
                       setSelect([])
@@ -421,7 +451,7 @@ const Home = () => {
 
                   <button onClick={() => {
                     if (ts < allPageLength) {
-                      getOrders({ page: page + limit, limit, value: search })
+                      getOrders({ page: page + limit, limit, value: search, filterProperty })
                       setPage(page + limit)
                       setTs(limit + ts)
                       setSelect([])
@@ -435,9 +465,24 @@ const Home = () => {
                   <input onChange={handleChange} value={search} type="search" className='right-inp' placeholder='Поиск' />
                 </div>
 
-                <button onClick={filterOrders} className='right-filter'>
-                  <img className='right-filter-img' src={filterImg} alt="filter-img" />
-                </button>
+                <div style={{ position: 'relative' }}>
+                  {
+                    (get(subQuery(filterProperty), 'status') && get(filterProperty, 'click')) ? (
+                      <button onClick={() => {
+                        setFilterProperty({})
+                        getOrders({ page: 1, limit, value: search })
+                        setPage(1)
+                        setTs(limit)
+                      }} className={`close-btn`}>
+                        <img src={close} alt="close-filter" />
+                      </button>
+                    ) : ''
+                  }
+
+                  <button onClick={filterOrders} className='right-filter'>
+                    <img className='right-filter-img' src={filterImg} alt="filter-img" />
+                  </button>
+                </div>
 
                 <div className='right-limit'>
                   <button onClick={() => setShowDropdown(!showDropdown)} className='right-dropdown'>
@@ -453,7 +498,7 @@ const Home = () => {
                             setPage(1);
                             setShowDropdown(false);
                             setTs(item)
-                            getOrders({ page: 1, limit: item, value: search })
+                            getOrders({ page: 1, limit: item, value: search, filterProperty })
                             setSelect([])
                             setMainCheck(false)
                           }
@@ -613,7 +658,15 @@ const Home = () => {
       <>
         <ToastContainer />
         <ConfirmModalOrder getRef={confirmModalRef} title={"Oshibka"} fn={statusChange} />
-        <FilterOrderModal getRef={filterModalRef} />
+        <FilterOrderModal
+          getRef={filterModalRef}
+          filterProperty={filterProperty}
+          setFilterProperty={setFilterProperty}
+          getOrders={getOrders}
+          arg={{ page: 1, limit, value: search }}
+          setPage={setPage}
+          setTs={setTs}
+        />
         <ErrorModal
           getRef={getErrorRef}
           title={'Ошибка'}

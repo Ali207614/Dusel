@@ -405,5 +405,19 @@ margin-left: 12px;
 .w-70{
   width: 70%;
 }
+
+.close-btn{
+  outline: none;
+  border:none;
+  background-color: transparent;
+  position: absolute;
+  right: 0px;
+  top: -10px;
+  border-radius: 50%;
+  border: 1px solid #EEE;
+  background: #FFF;
+  width: 18px;
+  height: 18px;
+}
 `;
 export default Style;
