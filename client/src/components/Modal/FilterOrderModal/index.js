@@ -38,6 +38,7 @@ const FilterOrderModal = ({ getRef, filterProperty, setFilterProperty, getOrders
       open: (data) => {
         setIsOpenModal(true);
         setFilterData(data)
+
       },
       close: () => setIsOpenModal(false),
     };
@@ -104,7 +105,7 @@ const FilterOrderModal = ({ getRef, filterProperty, setFilterProperty, getOrders
                     get(filterData, 'SalesPerson', []).map(item => {
                       return (
                         <div className='df align mr-24 filter-wrapper-inner'>
-                          <input checked={get(filterProperty, 'SalesPerson', []).find(el => el == get(item, 'SlpCode'))} onChange={(e) => handleCheckboxChangeSalesPerson(e, get(item, 'SlpCode'))} className='checkbox-filter' type="checkbox" id={get(item, 'SlpCode')} />
+                          <input checked={get(filterProperty, 'SalesPerson', []).includes(get(item, 'SlpCode'))} onChange={(e) => handleCheckboxChangeSalesPerson(e, get(item, 'SlpCode'))} className='checkbox-filter' type="checkbox" id={get(item, 'SlpCode')} />
                           <label className='checkbox-label' for={get(item, 'SlpCode')}>{get(item, 'SlpName')}</label>
                         </div>
                       )
@@ -134,7 +135,7 @@ const FilterOrderModal = ({ getRef, filterProperty, setFilterProperty, getOrders
                     get(filterData, 'Status', []).map(item => {
                       return (
                         <div className='df align mr-24 filter-wrapper-inner'>
-                          <input checked={get(filterProperty, 'Status', []).find(el => el == get(item, 'U_status', ''))} onChange={(e) => handleCheckboxChangeStatus(e, get(item, 'U_status', ''))} className='checkbox-filter' type="checkbox" id={statuses[get(item, 'U_status', '')]?.name} />
+                          <input checked={get(filterProperty, 'Status', []).includes(get(item, 'U_status', ''))} onChange={(e) => handleCheckboxChangeStatus(e, get(item, 'U_status', ''))} className='checkbox-filter' type="checkbox" id={statuses[get(item, 'U_status', '')]?.name} />
                           <label className='checkbox-label' for={statuses[get(item, 'U_status', '')]?.name}>{statuses[get(item, 'U_status', '')]?.name}</label>
                         </div>
                       )
@@ -175,10 +176,11 @@ const FilterOrderModal = ({ getRef, filterProperty, setFilterProperty, getOrders
             </div>
             <div className='card-buttons'>
               <button className='card-btn-filter card-btn-clear' onClick={() => {
+                setFilterProperty({})
                 getOrders({ ...arg })
                 setPage(1)
                 setTs(get(arg, 'limit', 10))
-                setFilterProperty({})
+                setWarehouse('-')
               }}>Очистить фильтр</button>
               <button className='card-btn-filter' onClick={filterOrder} >Фильтр</button>
             </div>

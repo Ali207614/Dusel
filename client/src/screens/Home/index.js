@@ -469,7 +469,7 @@ const Home = () => {
                   {
                     (get(subQuery(filterProperty), 'status') && get(filterProperty, 'click')) ? (
                       <button onClick={() => {
-                        setFilterProperty({})
+                        setFilterProperty({ clear: true })
                         getOrders({ page: 1, limit, value: search })
                         setPage(1)
                         setTs(limit)
@@ -603,7 +603,10 @@ const Home = () => {
                                 <button className='table-item-btn d-flex align'>
                                   <Link className='table-item-text d-flex align' to={(get(item, 'draft') ? `/order/${item.DocEntry}/draft` : `/order/${item.DocEntry}`)}>Просмотреть и изменить заказ  <img src={editIcon} alt="arrow right" /></Link>
                                 </button>
-                                <button className='table-item-btn d-flex align table-item-text'> Накладный <img src={editIcon} alt="arrow-right" /></button>
+                                {/* invoice */}
+                                <button className='table-item-btn d-flex align table-item-text'>
+                                  <Link className='table-item-text d-flex align' to={(get(item, 'draft') ? `/invoice/${item.DocEntry}/draft` : `/invoice/${item.DocEntry}`)}>Накладный <img src={editIcon} alt="arrow-right" /></Link>
+                                </button>
                                 <div className="dropdown-container">
                                   <button style={{ width: '110px' }} disabled={updateLoading} className="table-item-btn d-flex align table-item-text position-relative" onClick={() => setDropdownOpen(!dropdownOpen)}>
                                     Состояние  {updateLoading ?

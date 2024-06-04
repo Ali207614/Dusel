@@ -2,110 +2,1242 @@
     {
         "state": [
             {
-                "LENGTH": 116,
-                "ItmsGrpCod": 102,
-                "U_Karobka": "100",
-                "BVolume": "0.000200",
-                "U_U_netto": "0.029600",
-                "U_U_brutto": "0.032600",
-                "U_model": "DC35 E14",
-                "IsCommited": "0.000000",
-                "OnHand": "9800.000000",
+                "LENGTH": 1,
+                "ItmsGrpCod": 108,
+                "U_Kategoriya": "31",
+                "U_Karobka": "120",
+                "BVolume": "0.000370",
+                "U_U_netto": "0.086830",
+                "U_U_brutto": "0.091500",
+                "U_model": "Du83",
+                "IsCommited": "120.000000",
+                "OnHand": "4012.000000",
                 "OnOrder": "0.000000",
                 "Counted": "0.000000",
-                "ItemCode": "GPX3407",
-                "ItemName": "LED 7W С35/E14 4000K DUSEL",
+                "ItemCode": "GPZ0663",
+                "ItemName": "RICH TV Dusel",
                 "CodeBars": null,
-                "AvgPrice": "0.290200",
+                "AvgPrice": "0.635000",
                 "PriceList": 1,
-                "Price": "0.700000",
+                "Price": "1.400000",
                 "Currency": "USD",
-                "value": "100",
+                "value": "120",
                 "karobka": "1",
                 "disCount": 5,
-                "CardName": "Doniyor Yangiyol Distrbyutor",
-                "CardCode": "ZM0170",
-                "DocDate": "2024-06-03",
-                "DocDueDate": "2024-06-03",
+                "CardName": "Elyor Aka Nukus",
+                "CardCode": "ZM0011",
+                "DocDate": "2024-06-04",
+                "DocDueDate": "2024-06-04",
                 "WhsCode": "BAZA1",
-                "Quantity": "100",
+                "Quantity": "120",
                 "schema": {
-                    "CardCode": "ZM0170",
-                    "DocDate": "2024-06-03",
-                    "DocDueDate": "2024-06-03",
+                    "CardCode": "ZM0011",
+                    "DocDate": "2024-06-04",
+                    "DocDueDate": "2024-06-04",
                     "SalesPersonCode": -1,
-                    "Comments": "",
+                    "Comments": "salom",
                     "DocumentLines": [
                         {
-                            "ItemCode": "GPX3407",
+                            "ItemCode": "GPZ0663",
+                            "Quantity": 120,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPZ0669",
+                            "Quantity": 120,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPX0286",
+                            "Quantity": 60,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPX0272",
+                            "Quantity": 50,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPX0443",
+                            "Quantity": 15,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPX0471",
                             "Quantity": 100,
                             "WarehouseCode": "BAZA1"
                         },
                         {
-                            "ItemCode": "GPX0392",
-                            "Quantity": 100,
+                            "ItemCode": "GPZ0596",
+                            "Quantity": 10,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPZ0594",
+                            "Quantity": 20,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPZ0599",
+                            "Quantity": 40,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPZ0603",
+                            "Quantity": 10,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPX0720",
+                            "Quantity": 6,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPX0723",
+                            "Quantity": 2,
                             "WarehouseCode": "BAZA1"
                         }
                     ]
                 },
                 "salesPersonCode": -1,
                 "salesPerson": "Нет",
-                "comment": "",
-                "CreateDate": "2024-06-03T16:49:23.314Z"
+                "comment": "salom",
+                "CreateDate": "2024-06-04T18:30:37.759Z"
             },
             {
-                "LENGTH": 116,
-                "ItmsGrpCod": 102,
-                "U_Karobka": "100",
-                "BVolume": "0.000830",
-                "U_U_netto": "0.140000",
-                "U_U_brutto": "0.152000",
-                "U_model": "AD02-15",
-                "IsCommited": "100.000000",
-                "OnHand": "17698.000000",
+                "LENGTH": 1,
+                "ItmsGrpCod": 108,
+                "U_Kategoriya": "31",
+                "U_Karobka": "120",
+                "BVolume": "0.000370",
+                "U_U_netto": "0.094830",
+                "U_U_brutto": "0.099500",
+                "U_model": "Du72",
+                "IsCommited": "120.000000",
+                "OnHand": "55332.000000",
                 "OnOrder": "0.000000",
                 "Counted": "0.000000",
-                "ItemCode": "GPX0392",
-                "ItemName": "LED 15W akkumulyator s odnoy batareyka AD02-15 DUSEL",
+                "ItemCode": "GPZ0669",
+                "ItemName": "RICH VKL 2 Dusel",
                 "CodeBars": null,
-                "AvgPrice": "1.455800",
+                "AvgPrice": "0.452300",
                 "PriceList": 1,
-                "Price": "1.900000",
+                "Price": "0.900000",
                 "Currency": "USD",
-                "value": "100",
+                "value": "120",
                 "karobka": "1",
                 "disCount": 5,
-                "CardName": "Doniyor Yangiyol Distrbyutor",
-                "CardCode": "ZM0170",
-                "DocDate": "2024-06-03",
-                "DocDueDate": "2024-06-03",
+                "CardName": "Elyor Aka Nukus",
+                "CardCode": "ZM0011",
+                "DocDate": "2024-06-04",
+                "DocDueDate": "2024-06-04",
                 "WhsCode": "BAZA1",
-                "Quantity": "100",
+                "Quantity": "120",
                 "schema": {
-                    "CardCode": "ZM0170",
-                    "DocDate": "2024-06-03",
-                    "DocDueDate": "2024-06-03",
+                    "CardCode": "ZM0011",
+                    "DocDate": "2024-06-04",
+                    "DocDueDate": "2024-06-04",
                     "SalesPersonCode": -1,
-                    "Comments": "",
+                    "Comments": "salom",
                     "DocumentLines": [
                         {
-                            "ItemCode": "GPX3407",
+                            "ItemCode": "GPZ0663",
+                            "Quantity": 120,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPZ0669",
+                            "Quantity": 120,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPX0286",
+                            "Quantity": 60,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPX0272",
+                            "Quantity": 50,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPX0443",
+                            "Quantity": 15,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPX0471",
                             "Quantity": 100,
                             "WarehouseCode": "BAZA1"
                         },
                         {
-                            "ItemCode": "GPX0392",
-                            "Quantity": 100,
+                            "ItemCode": "GPZ0596",
+                            "Quantity": 10,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPZ0594",
+                            "Quantity": 20,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPZ0599",
+                            "Quantity": 40,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPZ0603",
+                            "Quantity": 10,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPX0720",
+                            "Quantity": 6,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPX0723",
+                            "Quantity": 2,
                             "WarehouseCode": "BAZA1"
                         }
                     ]
                 },
                 "salesPersonCode": -1,
                 "salesPerson": "Нет",
-                "comment": "",
-                "CreateDate": "2024-06-03T16:49:23.314Z"
+                "comment": "salom",
+                "CreateDate": "2024-06-04T18:30:37.760Z"
+            },
+            {
+                "LENGTH": 1,
+                "ItmsGrpCod": 104,
+                "U_Kategoriya": "28",
+                "U_Karobka": "60",
+                "BVolume": "0.000540",
+                "U_U_netto": "0.450000",
+                "U_U_brutto": "0.466670",
+                "U_model": "Du204",
+                "IsCommited": "60.000000",
+                "OnHand": "1134.000000",
+                "OnOrder": "0.000000",
+                "Counted": "0.000000",
+                "ItemCode": "GPX0286",
+                "ItemName": "Du204 Metr 10m Dusel",
+                "CodeBars": null,
+                "AvgPrice": "1.255500",
+                "PriceList": 1,
+                "Price": "1.750000",
+                "Currency": "USD",
+                "value": "60",
+                "karobka": "1",
+                "disCount": 5,
+                "CardName": "Elyor Aka Nukus",
+                "CardCode": "ZM0011",
+                "DocDate": "2024-06-04",
+                "DocDueDate": "2024-06-04",
+                "WhsCode": "BAZA1",
+                "Quantity": "60",
+                "schema": {
+                    "CardCode": "ZM0011",
+                    "DocDate": "2024-06-04",
+                    "DocDueDate": "2024-06-04",
+                    "SalesPersonCode": -1,
+                    "Comments": "salom",
+                    "DocumentLines": [
+                        {
+                            "ItemCode": "GPZ0663",
+                            "Quantity": 120,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPZ0669",
+                            "Quantity": 120,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPX0286",
+                            "Quantity": 60,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPX0272",
+                            "Quantity": 50,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPX0443",
+                            "Quantity": 15,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPX0471",
+                            "Quantity": 100,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPZ0596",
+                            "Quantity": 10,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPZ0594",
+                            "Quantity": 20,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPZ0599",
+                            "Quantity": 40,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPZ0603",
+                            "Quantity": 10,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPX0720",
+                            "Quantity": 6,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPX0723",
+                            "Quantity": 2,
+                            "WarehouseCode": "BAZA1"
+                        }
+                    ]
+                },
+                "salesPersonCode": -1,
+                "salesPerson": "Нет",
+                "comment": "salom",
+                "CreateDate": "2024-06-04T18:30:37.760Z"
+            },
+            {
+                "LENGTH": 1,
+                "ItmsGrpCod": 103,
+                "U_Kategoriya": "27",
+                "U_Karobka": "50",
+                "BVolume": "0.001330",
+                "U_U_netto": "0.227200",
+                "U_U_brutto": "0.242800",
+                "U_model": "Akril 8-24W",
+                "IsCommited": "350.000000",
+                "OnHand": "16850.000000",
+                "OnOrder": "5110.000000",
+                "Counted": "0.000000",
+                "ItemCode": "GPX0272",
+                "ItemName": "Drayver akril 8-24W",
+                "CodeBars": null,
+                "AvgPrice": "0.316500",
+                "PriceList": 1,
+                "Price": "0.600000",
+                "Currency": "USD",
+                "value": "50",
+                "karobka": "1",
+                "disCount": 5,
+                "CardName": "Elyor Aka Nukus",
+                "CardCode": "ZM0011",
+                "DocDate": "2024-06-04",
+                "DocDueDate": "2024-06-04",
+                "WhsCode": "BAZA1",
+                "Quantity": "50",
+                "schema": {
+                    "CardCode": "ZM0011",
+                    "DocDate": "2024-06-04",
+                    "DocDueDate": "2024-06-04",
+                    "SalesPersonCode": -1,
+                    "Comments": "salom",
+                    "DocumentLines": [
+                        {
+                            "ItemCode": "GPZ0663",
+                            "Quantity": 120,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPZ0669",
+                            "Quantity": 120,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPX0286",
+                            "Quantity": 60,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPX0272",
+                            "Quantity": 50,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPX0443",
+                            "Quantity": 15,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPX0471",
+                            "Quantity": 100,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPZ0596",
+                            "Quantity": 10,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPZ0594",
+                            "Quantity": 20,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPZ0599",
+                            "Quantity": 40,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPZ0603",
+                            "Quantity": 10,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPX0720",
+                            "Quantity": 6,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPX0723",
+                            "Quantity": 2,
+                            "WarehouseCode": "BAZA1"
+                        }
+                    ]
+                },
+                "salesPersonCode": -1,
+                "salesPerson": "Нет",
+                "comment": "salom",
+                "CreateDate": "2024-06-04T18:30:37.760Z"
+            },
+            {
+                "LENGTH": 1,
+                "ItmsGrpCod": 103,
+                "U_Kategoriya": "26",
+                "U_Karobka": "15",
+                "BVolume": "0.004410",
+                "U_U_netto": "0.533330",
+                "U_U_brutto": "0.573330",
+                "U_model": "DSR-24",
+                "IsCommited": "17.000000",
+                "OnHand": "1269.000000",
+                "OnOrder": "0.000000",
+                "Counted": "0.000000",
+                "ItemCode": "GPX0443",
+                "ItemName": "Sensor Panel Naruj 24W krug DUSEL",
+                "CodeBars": null,
+                "AvgPrice": "4.125800",
+                "PriceList": 1,
+                "Price": "8.000000",
+                "Currency": "USD",
+                "value": "15",
+                "karobka": "1",
+                "disCount": 5,
+                "CardName": "Elyor Aka Nukus",
+                "CardCode": "ZM0011",
+                "DocDate": "2024-06-04",
+                "DocDueDate": "2024-06-04",
+                "WhsCode": "BAZA1",
+                "Quantity": "15",
+                "schema": {
+                    "CardCode": "ZM0011",
+                    "DocDate": "2024-06-04",
+                    "DocDueDate": "2024-06-04",
+                    "SalesPersonCode": -1,
+                    "Comments": "salom",
+                    "DocumentLines": [
+                        {
+                            "ItemCode": "GPZ0663",
+                            "Quantity": 120,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPZ0669",
+                            "Quantity": 120,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPX0286",
+                            "Quantity": 60,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPX0272",
+                            "Quantity": 50,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPX0443",
+                            "Quantity": 15,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPX0471",
+                            "Quantity": 100,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPZ0596",
+                            "Quantity": 10,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPZ0594",
+                            "Quantity": 20,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPZ0599",
+                            "Quantity": 40,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPZ0603",
+                            "Quantity": 10,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPX0720",
+                            "Quantity": 6,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPX0723",
+                            "Quantity": 2,
+                            "WarehouseCode": "BAZA1"
+                        }
+                    ]
+                },
+                "salesPersonCode": -1,
+                "salesPerson": "Нет",
+                "comment": "salom",
+                "CreateDate": "2024-06-04T18:30:37.760Z"
+            },
+            {
+                "LENGTH": 1,
+                "ItmsGrpCod": 103,
+                "U_Kategoriya": "25",
+                "U_Karobka": "100",
+                "BVolume": "0.001490",
+                "U_U_netto": "0.140000",
+                "U_U_brutto": "0.158400",
+                "U_model": "PR12",
+                "IsCommited": "300.000000",
+                "OnHand": "7115.000000",
+                "OnOrder": "9300.000000",
+                "Counted": "0.000000",
+                "ItemCode": "GPX0471",
+                "ItemName": "Sauna plafon 12W krug DUSEL",
+                "CodeBars": null,
+                "AvgPrice": "0.907800",
+                "PriceList": 1,
+                "Price": "2.300000",
+                "Currency": "USD",
+                "value": "100",
+                "karobka": "1",
+                "disCount": 5,
+                "CardName": "Elyor Aka Nukus",
+                "CardCode": "ZM0011",
+                "DocDate": "2024-06-04",
+                "DocDueDate": "2024-06-04",
+                "WhsCode": "BAZA1",
+                "Quantity": "100",
+                "schema": {
+                    "CardCode": "ZM0011",
+                    "DocDate": "2024-06-04",
+                    "DocDueDate": "2024-06-04",
+                    "SalesPersonCode": -1,
+                    "Comments": "salom",
+                    "DocumentLines": [
+                        {
+                            "ItemCode": "GPZ0663",
+                            "Quantity": 120,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPZ0669",
+                            "Quantity": 120,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPX0286",
+                            "Quantity": 60,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPX0272",
+                            "Quantity": 50,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPX0443",
+                            "Quantity": 15,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPX0471",
+                            "Quantity": 100,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPZ0596",
+                            "Quantity": 10,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPZ0594",
+                            "Quantity": 20,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPZ0599",
+                            "Quantity": 40,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPZ0603",
+                            "Quantity": 10,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPX0720",
+                            "Quantity": 6,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPX0723",
+                            "Quantity": 2,
+                            "WarehouseCode": "BAZA1"
+                        }
+                    ]
+                },
+                "salesPersonCode": -1,
+                "salesPerson": "Нет",
+                "comment": "salom",
+                "CreateDate": "2024-06-04T18:30:37.760Z"
+            },
+            {
+                "LENGTH": 1,
+                "ItmsGrpCod": 107,
+                "U_Kategoriya": "24",
+                "U_Karobka": "10",
+                "BVolume": "0.005320",
+                "U_U_netto": "0.760000",
+                "U_U_brutto": "0.826000",
+                "U_model": "ASS48",
+                "IsCommited": "10.000000",
+                "OnHand": "180.000000",
+                "OnOrder": "0.000000",
+                "Counted": "0.000000",
+                "ItemCode": "GPZ0596",
+                "ItemName": "Akril panel naruj 48W kvad DUSEL",
+                "CodeBars": null,
+                "AvgPrice": "16.758400",
+                "PriceList": 1,
+                "Price": "7.600000",
+                "Currency": "USD",
+                "value": "10",
+                "karobka": "1",
+                "disCount": 5,
+                "CardName": "Elyor Aka Nukus",
+                "CardCode": "ZM0011",
+                "DocDate": "2024-06-04",
+                "DocDueDate": "2024-06-04",
+                "WhsCode": "BAZA1",
+                "Quantity": "10",
+                "schema": {
+                    "CardCode": "ZM0011",
+                    "DocDate": "2024-06-04",
+                    "DocDueDate": "2024-06-04",
+                    "SalesPersonCode": -1,
+                    "Comments": "salom",
+                    "DocumentLines": [
+                        {
+                            "ItemCode": "GPZ0663",
+                            "Quantity": 120,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPZ0669",
+                            "Quantity": 120,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPX0286",
+                            "Quantity": 60,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPX0272",
+                            "Quantity": 50,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPX0443",
+                            "Quantity": 15,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPX0471",
+                            "Quantity": 100,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPZ0596",
+                            "Quantity": 10,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPZ0594",
+                            "Quantity": 20,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPZ0599",
+                            "Quantity": 40,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPZ0603",
+                            "Quantity": 10,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPX0720",
+                            "Quantity": 6,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPX0723",
+                            "Quantity": 2,
+                            "WarehouseCode": "BAZA1"
+                        }
+                    ]
+                },
+                "salesPersonCode": -1,
+                "salesPerson": "Нет",
+                "comment": "salom",
+                "CreateDate": "2024-06-04T18:30:37.760Z"
+            },
+            {
+                "LENGTH": 1,
+                "ItmsGrpCod": 107,
+                "U_Kategoriya": "24",
+                "U_Karobka": "20",
+                "BVolume": "0.003310",
+                "U_U_netto": "0.450000",
+                "U_U_brutto": "0.485000",
+                "U_model": "ASS36",
+                "IsCommited": "260.000000",
+                "OnHand": "20560.000000",
+                "OnOrder": "0.000000",
+                "Counted": "0.000000",
+                "ItemCode": "GPZ0594",
+                "ItemName": "Akril panel naruj 36W kvad DUSEL",
+                "CodeBars": null,
+                "AvgPrice": "2.513000",
+                "PriceList": 1,
+                "Price": "4.500000",
+                "Currency": "USD",
+                "value": "20",
+                "karobka": "1",
+                "disCount": 5,
+                "CardName": "Elyor Aka Nukus",
+                "CardCode": "ZM0011",
+                "DocDate": "2024-06-04",
+                "DocDueDate": "2024-06-04",
+                "WhsCode": "BAZA1",
+                "Quantity": "20",
+                "schema": {
+                    "CardCode": "ZM0011",
+                    "DocDate": "2024-06-04",
+                    "DocDueDate": "2024-06-04",
+                    "SalesPersonCode": -1,
+                    "Comments": "salom",
+                    "DocumentLines": [
+                        {
+                            "ItemCode": "GPZ0663",
+                            "Quantity": 120,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPZ0669",
+                            "Quantity": 120,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPX0286",
+                            "Quantity": 60,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPX0272",
+                            "Quantity": 50,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPX0443",
+                            "Quantity": 15,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPX0471",
+                            "Quantity": 100,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPZ0596",
+                            "Quantity": 10,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPZ0594",
+                            "Quantity": 20,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPZ0599",
+                            "Quantity": 40,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPZ0603",
+                            "Quantity": 10,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPX0720",
+                            "Quantity": 6,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPX0723",
+                            "Quantity": 2,
+                            "WarehouseCode": "BAZA1"
+                        }
+                    ]
+                },
+                "salesPersonCode": -1,
+                "salesPerson": "Нет",
+                "comment": "salom",
+                "CreateDate": "2024-06-04T18:30:37.760Z"
+            },
+            {
+                "LENGTH": 1,
+                "ItmsGrpCod": 107,
+                "U_Kategoriya": "24",
+                "U_Karobka": "40",
+                "BVolume": "0.000920",
+                "U_U_netto": "0.176500",
+                "U_U_brutto": "0.189500",
+                "U_model": "ASS18",
+                "IsCommited": "360.000000",
+                "OnHand": "15620.000000",
+                "OnOrder": "0.000000",
+                "Counted": "0.000000",
+                "ItemCode": "GPZ0599",
+                "ItemName": "Akril panel naruj 18W kvad DUSEL",
+                "CodeBars": null,
+                "AvgPrice": "1.028800",
+                "PriceList": 1,
+                "Price": "2.000000",
+                "Currency": "USD",
+                "value": "40",
+                "karobka": "1",
+                "disCount": 5,
+                "CardName": "Elyor Aka Nukus",
+                "CardCode": "ZM0011",
+                "DocDate": "2024-06-04",
+                "DocDueDate": "2024-06-04",
+                "WhsCode": "BAZA1",
+                "Quantity": "40",
+                "schema": {
+                    "CardCode": "ZM0011",
+                    "DocDate": "2024-06-04",
+                    "DocDueDate": "2024-06-04",
+                    "SalesPersonCode": -1,
+                    "Comments": "salom",
+                    "DocumentLines": [
+                        {
+                            "ItemCode": "GPZ0663",
+                            "Quantity": 120,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPZ0669",
+                            "Quantity": 120,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPX0286",
+                            "Quantity": 60,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPX0272",
+                            "Quantity": 50,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPX0443",
+                            "Quantity": 15,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPX0471",
+                            "Quantity": 100,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPZ0596",
+                            "Quantity": 10,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPZ0594",
+                            "Quantity": 20,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPZ0599",
+                            "Quantity": 40,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPZ0603",
+                            "Quantity": 10,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPX0720",
+                            "Quantity": 6,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPX0723",
+                            "Quantity": 2,
+                            "WarehouseCode": "BAZA1"
+                        }
+                    ]
+                },
+                "salesPersonCode": -1,
+                "salesPerson": "Нет",
+                "comment": "salom",
+                "CreateDate": "2024-06-04T18:30:37.760Z"
+            },
+            {
+                "LENGTH": 1,
+                "ItmsGrpCod": 107,
+                "U_Kategoriya": "24",
+                "U_Karobka": "10",
+                "BVolume": "0.005320",
+                "U_U_netto": "0.618000",
+                "U_U_brutto": "0.684000",
+                "U_model": "ASR48",
+                "IsCommited": "60.000000",
+                "OnHand": "2210.000000",
+                "OnOrder": "0.000000",
+                "Counted": "0.000000",
+                "ItemCode": "GPZ0603",
+                "ItemName": "Akril panel naruj 48W krug DUSEL",
+                "CodeBars": null,
+                "AvgPrice": "3.423200",
+                "PriceList": 1,
+                "Price": "7.400000",
+                "Currency": "USD",
+                "value": "10",
+                "karobka": "1",
+                "disCount": 5,
+                "CardName": "Elyor Aka Nukus",
+                "CardCode": "ZM0011",
+                "DocDate": "2024-06-04",
+                "DocDueDate": "2024-06-04",
+                "WhsCode": "BAZA1",
+                "Quantity": "10",
+                "schema": {
+                    "CardCode": "ZM0011",
+                    "DocDate": "2024-06-04",
+                    "DocDueDate": "2024-06-04",
+                    "SalesPersonCode": -1,
+                    "Comments": "salom",
+                    "DocumentLines": [
+                        {
+                            "ItemCode": "GPZ0663",
+                            "Quantity": 120,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPZ0669",
+                            "Quantity": 120,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPX0286",
+                            "Quantity": 60,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPX0272",
+                            "Quantity": 50,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPX0443",
+                            "Quantity": 15,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPX0471",
+                            "Quantity": 100,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPZ0596",
+                            "Quantity": 10,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPZ0594",
+                            "Quantity": 20,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPZ0599",
+                            "Quantity": 40,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPZ0603",
+                            "Quantity": 10,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPX0720",
+                            "Quantity": 6,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPX0723",
+                            "Quantity": 2,
+                            "WarehouseCode": "BAZA1"
+                        }
+                    ]
+                },
+                "salesPersonCode": -1,
+                "salesPerson": "Нет",
+                "comment": "salom",
+                "CreateDate": "2024-06-04T18:30:37.760Z"
+            },
+            {
+                "LENGTH": 1,
+                "ItmsGrpCod": 109,
+                "U_Kategoriya": "41",
+                "U_Karobka": "6",
+                "BVolume": "0.000590",
+                "U_U_netto": "0.161500",
+                "U_U_brutto": "0.177500",
+                "U_model": "RKU-50",
+                "IsCommited": "6.000000",
+                "OnHand": "1010.000000",
+                "OnOrder": "276.000000",
+                "Counted": "0.000000",
+                "ItemCode": "GPX0720",
+                "ItemName": "RKU-50W Veral",
+                "CodeBars": null,
+                "AvgPrice": "3.305400",
+                "PriceList": 1,
+                "Price": "6.000000",
+                "Currency": "USD",
+                "value": "6",
+                "karobka": "1",
+                "disCount": 5,
+                "CardName": "Elyor Aka Nukus",
+                "CardCode": "ZM0011",
+                "DocDate": "2024-06-04",
+                "DocDueDate": "2024-06-04",
+                "WhsCode": "BAZA1",
+                "Quantity": "6",
+                "schema": {
+                    "CardCode": "ZM0011",
+                    "DocDate": "2024-06-04",
+                    "DocDueDate": "2024-06-04",
+                    "SalesPersonCode": -1,
+                    "Comments": "salom",
+                    "DocumentLines": [
+                        {
+                            "ItemCode": "GPZ0663",
+                            "Quantity": 120,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPZ0669",
+                            "Quantity": 120,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPX0286",
+                            "Quantity": 60,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPX0272",
+                            "Quantity": 50,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPX0443",
+                            "Quantity": 15,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPX0471",
+                            "Quantity": 100,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPZ0596",
+                            "Quantity": 10,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPZ0594",
+                            "Quantity": 20,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPZ0599",
+                            "Quantity": 40,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPZ0603",
+                            "Quantity": 10,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPX0720",
+                            "Quantity": 6,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPX0723",
+                            "Quantity": 2,
+                            "WarehouseCode": "BAZA1"
+                        }
+                    ]
+                },
+                "salesPersonCode": -1,
+                "salesPerson": "Нет",
+                "comment": "salom",
+                "CreateDate": "2024-06-04T18:30:37.760Z"
+            },
+            {
+                "LENGTH": 1,
+                "ItmsGrpCod": 109,
+                "U_Kategoriya": "41",
+                "U_Karobka": "2",
+                "BVolume": "0.007560",
+                "U_U_netto": "1.275000",
+                "U_U_brutto": "1.450000",
+                "U_model": "RKU-100",
+                "IsCommited": "2.000000",
+                "OnHand": "5230.000000",
+                "OnOrder": "600.000000",
+                "Counted": "0.000000",
+                "ItemCode": "GPX0723",
+                "ItemName": "RKU-100W Veral",
+                "CodeBars": null,
+                "AvgPrice": "6.965400",
+                "PriceList": 1,
+                "Price": "13.000000",
+                "Currency": "USD",
+                "value": "2",
+                "karobka": "1",
+                "disCount": 5,
+                "CardName": "Elyor Aka Nukus",
+                "CardCode": "ZM0011",
+                "DocDate": "2024-06-04",
+                "DocDueDate": "2024-06-04",
+                "WhsCode": "BAZA1",
+                "Quantity": "2",
+                "schema": {
+                    "CardCode": "ZM0011",
+                    "DocDate": "2024-06-04",
+                    "DocDueDate": "2024-06-04",
+                    "SalesPersonCode": -1,
+                    "Comments": "salom",
+                    "DocumentLines": [
+                        {
+                            "ItemCode": "GPZ0663",
+                            "Quantity": 120,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPZ0669",
+                            "Quantity": 120,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPX0286",
+                            "Quantity": 60,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPX0272",
+                            "Quantity": 50,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPX0443",
+                            "Quantity": 15,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPX0471",
+                            "Quantity": 100,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPZ0596",
+                            "Quantity": 10,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPZ0594",
+                            "Quantity": 20,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPZ0599",
+                            "Quantity": 40,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPZ0603",
+                            "Quantity": 10,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPX0720",
+                            "Quantity": 6,
+                            "WarehouseCode": "BAZA1"
+                        },
+                        {
+                            "ItemCode": "GPX0723",
+                            "Quantity": 2,
+                            "WarehouseCode": "BAZA1"
+                        }
+                    ]
+                },
+                "salesPersonCode": -1,
+                "salesPerson": "Нет",
+                "comment": "salom",
+                "CreateDate": "2024-06-04T18:30:37.760Z"
             }
         ],
-        "ID": 28
+        "ID": 32
     }
 ]
