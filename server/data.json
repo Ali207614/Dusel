@@ -15,7 +15,7 @@
                 "OnOrder": "0.000000",
                 "Counted": "0.000000",
                 "ItemCode": "GPZ0663",
-                "ItemName": "RICH TV Dusel",
+                "ItemName": "RICH TV Dusel Assalomu Aleykum qanday nima gaplar",
                 "CodeBars": null,
                 "AvgPrice": "0.635000",
                 "PriceList": 1,
@@ -1239,5 +1239,112 @@
             }
         ],
         "ID": 32
+    },
+    {
+        "state": [
+            {
+                "LENGTH": 116,
+                "ItmsGrpCod": 108,
+                "U_Kategoriya": "31",
+                "U_Karobka": "120",
+                "BVolume": "0.000330",
+                "U_U_netto": "0.085330",
+                "U_U_brutto": "0.090000",
+                "U_model": "Du81 Coffee bez ramka",
+                "IsCommited": "0.000000",
+                "OnHand": "343.000000",
+                "OnOrder": "0.000000",
+                "Counted": "0.000000",
+                "ItemCode": "GPZ0656",
+                "ItemName": "RICH Roz 2 COFFEE bez ramka Dusel",
+                "CodeBars": null,
+                "AvgPrice": "0.352400",
+                "PriceList": 1,
+                "Price": "1.350000",
+                "Currency": "USD",
+                "value": "120",
+                "karobka": "1",
+                "disCount": 5,
+                "CardName": "Torabek Xorazim",
+                "CardCode": "ZM0010",
+                "DocDate": "2024-06-06",
+                "DocDueDate": "2024-06-06",
+                "WhsCode": "BAZA1",
+                "Quantity": "120",
+                "schema": {
+                    "CardCode": "ZM0010",
+                    "DocDate": "2024-06-06",
+                    "DocDueDate": "2024-06-06",
+                    "SalesPersonCode": 1,
+                    "Comments": "",
+                    "DocumentLines": [
+                        {
+                            "ItemCode": "GPZ0656",
+                            "Quantity": 120,
+                            "WarehouseCode": "BAZA1"
+                        }
+                    ]
+                },
+                "salesPersonCode": 1,
+                "salesPerson": "bilol",
+                "comment": "",
+                "CreateDate": "2024-06-05T19:48:39.644Z"
+            }
+        ],
+        "ID": 33
+    },
+    {
+        "state": [
+            {
+                "LENGTH": 1,
+                "Discount": "13.000000",
+                "ItmsGrpCod": 108,
+                "U_Kategoriya": "37",
+                "U_Karobka": "200",
+                "BVolume": "0.000400",
+                "U_U_netto": "0.094800",
+                "U_U_brutto": "0.109700",
+                "U_model": "Du21",
+                "IsCommited": "0.000000",
+                "OnHand": "115860.000000",
+                "OnOrder": "0.000000",
+                "Counted": "0.000000",
+                "ItemCode": "GPZ0687",
+                "ItemName": "Vnut VKL 1 Veral",
+                "CodeBars": null,
+                "AvgPrice": "0.282700",
+                "PriceList": 1,
+                "Price": "0.520000",
+                "Currency": "USD",
+                "value": "200",
+                "karobka": "1",
+                "disCount": 5,
+                "CardName": "Maqsud  Samarqand 0040",
+                "CardCode": "ZM0017",
+                "DocDate": "2024-06-06",
+                "DocDueDate": "2024-06-06",
+                "WhsCode": "BAZA1",
+                "Quantity": "200",
+                "schema": {
+                    "CardCode": "ZM0017",
+                    "DocDate": "2024-06-06",
+                    "DocDueDate": "2024-06-06",
+                    "SalesPersonCode": -1,
+                    "Comments": "",
+                    "DocumentLines": [
+                        {
+                            "ItemCode": "GPZ0687",
+                            "Quantity": 200,
+                            "WarehouseCode": "BAZA1"
+                        }
+                    ]
+                },
+                "salesPersonCode": -1,
+                "salesPerson": "Нет",
+                "comment": "",
+                "CreateDate": "2024-06-05T21:09:29.722Z"
+            }
+        ],
+        "ID": 34
     }
 ]

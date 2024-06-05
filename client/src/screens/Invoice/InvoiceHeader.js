@@ -3,7 +3,6 @@ import moment from 'moment';
 import React from 'react';
 
 const InvoiceHeader = ({ header }) => {
-    console.log(header, ' bu header')
     return (
         <div className="invoice-header">
             <h2>Накладная: №  от {moment(get(header, '[0].DocDate')).format('DD.MM.YYYY')}</h2>

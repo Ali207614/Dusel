@@ -29,7 +29,8 @@ const ConsignmentStyle = styled.div`
     line-height: 18px;
     text-align:center;
     outline:none;
-    border:none;
+    
+    border: 1px solid #E9E9E9;
   }
 
 h2 {

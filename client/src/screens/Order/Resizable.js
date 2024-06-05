@@ -219,12 +219,14 @@ const Resizable = ({
                                             <li className='table-head-item'>Куб / Brutto</li>
                                             <li className='table-head-item w-50'>Цена</li>
                                             <li className='table-head-item'>Остаток</li>
-                                            {/* <li className='table-head-item'>Скидка</li> */}
+                                            <li className='table-head-item'>Скидка</li>
                                             <li className='table-head-item'>Количество</li>
                                             <li className='table-head-item'>В кейсе</li>
                                             <li className='table-head-item w-47px'>
                                                 <button onClick={() => {
-                                                    setMainData([...state, ...mainData]);
+                                                    setMainData([...state.map(item => {
+                                                        return { ...item, value: '', karobka: '' }
+                                                    }), ...mainData]);
                                                     setState([]);
                                                     setActualData([]);
                                                     setAllPageLength(allPageLength + state.length);
@@ -271,11 +273,11 @@ const Resizable = ({
                                                                 {Number(get(item, 'OnHand', ''))} / <span className='isCommited'>{Number(get(item, 'OnHand', '')) - Number(get(item, 'IsCommited', ''))}</span>
                                                             </p>
                                                         </div>
-                                                        {/* <div className='w-100 p-16'>
+                                                        <div className='w-100 p-16'>
                                                             <p className='table-body-text truncated-text' title={get(item, 'ItemName', '')}>
-                                                                {get(item, 'disCount', '-') || '-'}
+                                                                -{Number(get(item, 'Discount', 0))} %
                                                             </p>
-                                                        </div> */}
+                                                        </div>
                                                         <div className='w-100 p-16'>
                                                             <p className='table-body-text'>
                                                                 <input value={get(item, 'value', '')} onChange={e => {
@@ -296,7 +298,7 @@ const Resizable = ({
                                                             <button onClick={() => {
                                                                 setState([...state.filter(el => get(el, 'ItemCode') !== get(item, 'ItemCode'))]);
                                                                 setActualData([...actualData.filter(el => get(el, 'ItemCode') !== get(item, 'ItemCode'))]);
-                                                                setMainData([item, ...mainData]);
+                                                                setMainData([{ ...item, value: '', karobka: '' }, ...mainData]);
                                                                 setAllPageLength(allPageLength + 1);
                                                                 setAllPageLengthSelect(allPageLengthSelect - 1);
                                                             }} className='table-body-text table-head-check-btn'>

@@ -47,7 +47,7 @@ const InvoiceTable = ({ items, setItems, draft = false }) => {
                         <td>{(Number(get(item, 'Quantity')) / Number(get(item, 'U_Karobka', 1))).toFixed(1)}</td>
                         <td>{Number(get(item, 'Quantity'))}</td>
                         <td>{Number(get(item, 'PriceBefDi'))}</td>
-                        <td>-{Number(get(item, 'DiscPrcnt', 5))}%</td>
+                        <td>-{Number(get(item, 'Discount', 0))}%</td>
                         <td>{Number(get(item, 'Price')).toFixed(3)}</td>
                         <td>{Number(get(item, 'LineTotal')).toFixed(2)}</td>
                     </tr>)
