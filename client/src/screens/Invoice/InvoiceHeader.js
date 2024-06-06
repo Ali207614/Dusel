@@ -11,7 +11,7 @@ const InvoiceHeader = ({ header }) => {
                 <div>
                     <p>Контрагент : {get(header, '[0].CardName', '')}</p>
                     <p>ИНН: {get(header, '[0].LicTradNum', '')}</p>
-                    <p>Район: {get(header, 'region', '')}</p>
+                    <p>Район: {get(header, '[0].descript', '')}</p>
                     <p>Адрес: {get(header, '[0].Address', '')}</p>
                     <p>Ориентир: {get(header, 'landmark')}</p>
                     <p>Телефон: {get(header, '[0].Phone1', '')} , {get(header, '[0].Phone2', '')}</p>

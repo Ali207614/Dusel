@@ -245,7 +245,7 @@ function getCustomer({ search }) {
                 return;
             }
 
-            let sql = `SELECT T0."Address", T0."ZipCode", T0."Phone1", T0."Phone2", T0."LicTradNum", T0."CardCode", T0."CardName", T0."CardType" FROM ${db}.OCRD T0 WHERE T0."CardType" ='C'`
+            let sql = `SELECT  T1."descript", T0."Address", T0."ZipCode", T0."Phone1", T0."Phone2", T0."LicTradNum", T0."CardCode", T0."CardName", T0."CardType" FROM ${db}.OCRD T0 INNER JOIN ${db}.OTER T1 ON T0."Territory" = T1."territryID" WHERE T0."CardType" ='C'`
             if (search?.length) {
                 sql += `and (LOWER(T0."CardCode") like '%${search}%' or LOWER(T0."CardName") like '%${search}%')`
             }
@@ -304,7 +304,8 @@ function getItems({ offset, limit, whsCode, search, items = [], group = '',
                 conn.disconnect();
                 return;
             }
-            let innerSql = `SELECT sum(1) FROM ${db}.OITM  T0 INNER JOIN ${db}.OITW  T1 ON T0."ItemCode" = T1."ItemCode" INNER JOIN ${db}.ITM1 T3 ON T0."ItemCode" = T3."ItemCode" LEFT JOIN ${db}.EDG1  T4 ON T0."ItemCode" = T4."ObjKey" and  T4."ObjType" = '4' WHERE  T0."DfltWH" = '${whsCode}' and  T3."PriceList"  = 1 and T0."Series" in (73,72) and T1."WhsCode" = '${whsCode}'`
+            let innerSql = `SELECT sum(1) FROM ${db}.OITM  T0 INNER JOIN ${db}.OITW  T1 ON T0."ItemCode" = T1."ItemCode" INNER JOIN ${db}.ITM1 T3 ON T0."ItemCode" = T3."ItemCode" LEFT JOIN ${db}.EDG1  T4 ON T0."ItemCode" = T4."ObjKey" and  T4."ObjType" = '4' WHERE  T0."DfltWH" = '${whsCode}' and  T3."PriceList"  = 1 and T0."Series" in (76,77) and T1."WhsCode" = '${whsCode}'`
+            //  76,77
             if (items.length) {
                 innerSql += ` and T0."ItemCode" not in (${items})`
             }
@@ -318,7 +319,8 @@ function getItems({ offset, limit, whsCode, search, items = [], group = '',
             if (search?.length) {
                 innerSql += ` and (LOWER(T0."ItemCode") like '%${search}%' or LOWER(T0."ItemName") like '%${search}%' or LOWER(T0."U_model") like '%${search}%') `
             }
-            let sql = `SELECT  (${innerSql}) as length  ,T4."Discount",T0."ItmsGrpCod",T0."U_Kategoriya", T0."U_Karobka", T0."BVolume", T0."U_U_netto", T0."U_U_brutto", T0."U_model",  T1."IsCommited", T1."OnHand", T1."OnOrder", T1."Counted", T0."ItemCode", T0."ItemName", T0."CodeBars", T1."AvgPrice", T3."PriceList", T3."Price" , T3."Currency" FROM ${db}.OITM  T0 INNER JOIN ${db}.OITW  T1 ON T0."ItemCode" = T1."ItemCode" INNER JOIN ${db}.ITM1 T3 ON T0."ItemCode" = T3."ItemCode" LEFT JOIN ${db}.EDG1  T4 ON  T0."ItemCode" = T4."ObjKey" and T4."ObjType" = '4'  WHERE  T0."DfltWH" = '${whsCode}' and T3."PriceList"  = 1 and T0."Series" in (73,72) and T1."WhsCode" = '${whsCode}'`
+            let sql = `SELECT  (${innerSql}) as length  ,T4."Discount",T0."ItmsGrpCod",T0."U_Kategoriya", T0."U_Karobka", T0."BVolume", T0."U_U_netto", T0."U_U_brutto", T0."U_model",T0."U_smr",  T1."IsCommited", T1."OnHand", T1."OnOrder", T1."Counted", T0."ItemCode", T0."ItemName", T0."CodeBars", T1."AvgPrice", T3."PriceList", T3."Price" , T3."Currency" FROM ${db}.OITM  T0 INNER JOIN ${db}.OITW  T1 ON T0."ItemCode" = T1."ItemCode" INNER JOIN ${db}.ITM1 T3 ON T0."ItemCode" = T3."ItemCode" LEFT JOIN ${db}.EDG1  T4 ON  T0."ItemCode" = T4."ObjKey" and T4."ObjType" = '4'  WHERE  T0."DfltWH" = '${whsCode}' and T3."PriceList"  = 1 and T0."Series" in (76,77) and T1."WhsCode" = '${whsCode}'`
+            //  76,77
             if (items.length) {
                 sql += ` and T0."ItemCode" not in (${items})`
             }
@@ -333,8 +335,6 @@ function getItems({ offset, limit, whsCode, search, items = [], group = '',
                 sql += ` and T0."U_Kategoriya" = '${category}'`
             }
             sql += ` ORDER BY T0."U_prn"  limit ${limit} offset ${offset - 1} `
-
-            console.log(sql)
 
             conn.exec(sql, function (err, result) {
                 if (err) {
@@ -540,9 +540,10 @@ function getOrderByDocEntry({ docEntry }) {
                 return;
             }
 
-            let sql = `SELECT  T4."Mobil", T6."Address", T6."ZipCode", T6."Phone1", T6."Phone2", T6."LicTradNum", T5."Discount", T1."DiscPrcnt",T1."LineTotal"  , T0."Comments" as COMMENTS, T2."BVolume", T2."U_Karobka", T2."U_U_netto", T2."U_U_brutto", T2."U_model",  T3."IsCommited" ,T3."OnHand", T3."OnOrder", T3."Counted", T1."DocEntry", T1."LineNum", T1."ItemCode" , T2."ItemName" ,T1."Quantity", T1."Price", T1."PriceBefDi", T1."Currency", T1."WhsCode", T0."DocNum", T0."DocStatus", T0."DocDate", T0."DocDueDate", T0."CardCode", T0."CardName", T0."DocCur", T0."DocTotal", T0."SlpCode" as SLPCODE, T4."SlpName" as SLP, T1."U_model", T1."U_krb" FROM ${db}.ORDR T0  INNER JOIN ${db}.RDR1 T1 ON T0."DocEntry" = T1."DocEntry" INNER JOIN ${db}.OITM T2 on T2."ItemCode" = T1."ItemCode" INNER JOIN ${db}.OITW T3 on T3."ItemCode" = T1."ItemCode" INNER JOIN ${db}.OSLP T4 ON T0."SlpCode" = T4."SlpCode" 
+            let sql = `SELECT T7."descript",  T4."Mobil", T6."Address", T6."ZipCode", T6."Phone1", T6."Phone2", T6."LicTradNum", T5."Discount", T1."DiscPrcnt",T1."LineTotal"  , T0."Comments" as COMMENTS, T2."BVolume", T2."U_Karobka", T2."U_U_netto", T2."U_U_brutto", T2."U_model",  T3."IsCommited" ,T3."OnHand", T3."OnOrder", T3."Counted", T1."DocEntry", T1."LineNum", T1."ItemCode" , T2."ItemName" ,T1."Quantity", T1."Price", T1."PriceBefDi", T1."Currency", T1."WhsCode", T0."DocNum", T0."DocStatus", T0."DocDate", T0."DocDueDate", T0."CardCode", T0."CardName", T0."DocCur", T0."DocTotal", T0."SlpCode" as SLPCODE, T4."SlpName" as SLP, T1."U_model", T1."U_krb" FROM ${db}.ORDR T0  INNER JOIN ${db}.RDR1 T1 ON T0."DocEntry" = T1."DocEntry" INNER JOIN ${db}.OITM T2 on T2."ItemCode" = T1."ItemCode" INNER JOIN ${db}.OITW T3 on T3."ItemCode" = T1."ItemCode" INNER JOIN ${db}.OSLP T4 ON T0."SlpCode" = T4."SlpCode" 
             LEFT JOIN ${db}.EDG1 T5 ON T2."ItemCode" = T5."ObjKey" and  T5."ObjType" = '4'
             INNER JOIN ${db}.OCRD T6 on T6."CardCode" = T0."CardCode"
+            LEFT JOIN ${db}.OTER T7 ON T6."Territory" = T7."territryID"
              where T0."DocEntry"=${docEntry} and T3."WhsCode" = T1."WhsCode"`
 
             conn.exec(sql, function (err, result) {

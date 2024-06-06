@@ -45,7 +45,7 @@ const InvoiceTable = ({ total = false, items, setItems, draft = false }) => {
                 {items.map((item, i) => {
                     return (<tr key={i + 1}>
                         <td>{i + 1}</td>
-                        <td>{get(item, 'ItemCode')}</td>
+                        <td>{get(item, 'U_model')}</td>
                         <td>{get(item, 'ItemName')}</td>
                         <td>{(Number(get(item, 'Quantity')) / Number(get(item, 'U_Karobka', 1))).toFixed(1)}</td>
                         <td>{Number(get(item, 'Quantity'))}</td>

@@ -57,6 +57,7 @@ const Order = () => {
   const [customer, setCustomer] = useState('')
   const [customerCode, setCustomerCode] = useState('')
   const [customerData, setCustomerData] = useState([])
+  const [customerDataInvoice, setCustomerDataInvoice] = useState({})
   const [orderLoading, setOrderLoading] = useState(false)
   const [date, setDate] = useState({ DocDate: moment().format("YYYY-MM-DD"), DocDueDate: moment().format("YYYY-MM-DD") })
   const [limitSelect, setLimitSelect] = useState(10);
@@ -368,7 +369,7 @@ const Order = () => {
       })
     }
     let body = orderStatus == 1 ? schema : state.map(item => {
-      return { ...item, CardName: customer, CardCode: customerCode, ...date, WhsCode: warehouse, Quantity: item.value, schema, salesPersonCode, salesPerson, comment, ...customerData.find(el => el.CardCode == customerCode) }
+      return { ...item, CardName: customer, CardCode: customerCode, ...date, WhsCode: warehouse, Quantity: item.value, schema, salesPersonCode, salesPerson, comment, ...customerDataInvoice }
     })
     axios
       .post(
@@ -429,7 +430,7 @@ const Order = () => {
       })
     }
     let body = !get(docEntry, 'draft') ? schema : state.map(item => {
-      return { ...item, CardName: customer, CardCode: customerCode, ...date, WhsCode: warehouse, Quantity: item.value, schema, salesPersonCode, salesPerson, comment, ...customerData.find(el => el.CardCode == customerCode) }
+      return { ...item, CardName: customer, CardCode: customerCode, ...date, WhsCode: warehouse, Quantity: item.value, schema, salesPersonCode, salesPerson, comment, ...customerDataInvoice }
     })
     setOrderLoading(true)
     axios
@@ -504,6 +505,7 @@ const Order = () => {
                         <li onClick={() => {
                           setCustomer(get(customerItem, 'CardName', ''))
                           setCustomerCode(get(customerItem, 'CardCode', ''))
+                          setCustomerDataInvoice(customerData.find(e => get(e, 'CardCode', '') == get(customerItem, 'CardCode', '')))
                           setCustomerData([])
                         }} key={i} className={`dropdown-li`}><a className="dropdown-item" href="#">
                             {get(customerItem, 'CardCode', '') || '-'} - {get(customerItem, 'CardName', '') || '-'}

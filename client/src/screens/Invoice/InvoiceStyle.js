@@ -80,5 +80,22 @@ tfoot td {
     align-items: center;
     justify-content: space-between;
 }
+.btn-excel{
+    width: 141px;
+    padding: 9px 12px;
+    border-radius: 8px;
+    background: #4CAF50;
+    color: #fff;
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 18px;
+    text-align: center;
+    outline: none;
+    border: none;
+}
+.btn-excel:hover {
+    background-color: #45a049; /* Hover qilinganda ozgina quyuqroq yashil rang */
+}
 `;
 export default ConsignmentStyle;

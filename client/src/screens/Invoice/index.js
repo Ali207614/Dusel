@@ -5,7 +5,7 @@ import { useParams, useLocation } from 'react-router-dom';
 import InvoiceHeader from './InvoiceHeader';
 import InvoiceTable from './InvoiceTable';
 import { useNavigate } from 'react-router-dom';
-import exportTableToExcel from './excel';
+import { exportTableToExcel } from './excel';
 import { errorNotify, override } from '../../components/Helper';
 import { get } from 'lodash';
 import axios from 'axios';
@@ -63,9 +63,7 @@ const Invoice = () => {
           <div className='container'>
             <div className="order-main ">
               <button onClick={() => navigate('/home')} className='btn-back'>Закрить</button>
-              {
-                (mainData?.length && !get(docEntry, 'draft')) ? <button onClick={() => exportTableToExcel({ mainData, total: get(docEntry, 'total') })}>Download as Excel</button> : ''
-              }
+              <button className='btn-excel' onClick={() => exportTableToExcel({ mainData, total: get(docEntry, 'total') })}>Download as Excel</button>
             </div>
             <div className="invoice">
               {

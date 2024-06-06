@@ -21,6 +21,7 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { errorNotify, successNotify, warningNotify, limitList, override, statuses } from '../../components/Helper';
 import { main } from '../../store/slices';
+import { sandTableToExcelWithoutTotal } from '../Invoice/excel';
 
 let url = process.env.REACT_APP_API_URL
 
@@ -389,6 +390,12 @@ const Home = () => {
         let index = mainData.findIndex((el => el.DocEntry == docEntry))
         mainData[index].U_status = status
         setMainData([...mainData])
+        if (status == '4') {
+          getOrderByDocEntry(docEntry).then(data => {
+            sandTableToExcelWithoutTotal({ mainData: get(data, 'value', []) })
+            setUpdateLoading(false)
+          })
+        }
         successNotify(`Status muvaffaqiyatli o'zgartirildi`)
       })
       .catch(err => {
@@ -429,6 +436,23 @@ const Home = () => {
   const filterOrders = () => {
     filterRef.current?.open(filterData);
   }
+
+  const getOrderByDocEntry = (doc) => {
+    let link = `/api/order?docEntry=${doc}`
+    return axios
+      .get(
+        url + link ,
+      )
+      .then(({ data }) => {
+        return data
+      })
+      .catch(err => {
+        errorNotify("Telegramga jo'natishda muomo yuzaga keldi")
+      });
+
+    return;
+  };
+
 
   return (
     <>
