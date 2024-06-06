@@ -1,7 +1,7 @@
 import { get } from 'lodash';
 import React, { useEffect } from 'react';
 
-const InvoiceTable = ({ items, setItems, draft = false }) => {
+const InvoiceTable = ({ total = false, items, setItems, draft = false }) => {
 
     let sumWithoutDisCount = items?.length ? items.reduce((a, b) => a + (Number(b.Quantity) * Number(get(b, 'PriceBefDi'))), 0) : 0
 
@@ -31,51 +31,72 @@ const InvoiceTable = ({ items, setItems, draft = false }) => {
                     <th>Продукция</th>
                     <th>Кол-во (в кейсе)</th>
                     <th>Кол-во (в шт.)</th>
-                    <th>Цена</th>
-                    <th>Скидка/наценка</th>
-                    <th>Цена с наценкой</th>
-                    <th>Сумма</th>
+                    {
+                        total ? <>
+                            <th>Цена</th>
+                            <th>Скидка/наценка</th>
+                            <th>Цена с наценкой</th>
+                            <th>Сумма</th>
+                        </> : ''
+                    }
                 </tr>
             </thead>
             <tbody>
                 {items.map((item, i) => {
-
                     return (<tr key={i + 1}>
                         <td>{i + 1}</td>
                         <td>{get(item, 'ItemCode')}</td>
                         <td>{get(item, 'ItemName')}</td>
                         <td>{(Number(get(item, 'Quantity')) / Number(get(item, 'U_Karobka', 1))).toFixed(1)}</td>
                         <td>{Number(get(item, 'Quantity'))}</td>
-                        <td>{Number(get(item, 'PriceBefDi'))}</td>
-                        <td>-{Number(get(item, 'Discount', 0))}%</td>
-                        <td>{Number(get(item, 'Price')).toFixed(3)}</td>
-                        <td>{Number(get(item, 'LineTotal')).toFixed(2)}</td>
+                        {
+                            total ? (
+                                <>
+                                    <td>{Number(get(item, 'PriceBefDi'))}</td>
+                                    <td>-{Number(get(item, 'Discount', 0))}%</td>
+                                    <td>{Number(get(item, 'Price')).toFixed(3)}</td>
+                                    <td>{Number(get(item, 'LineTotal')).toFixed(2)}</td>
+                                </>
+                            ) : ''
+                        }
                     </tr>)
                 })}
             </tbody>
             <tfoot>
                 <tr>
-                    <td rowSpan={'4'} colSpan="3">Итого</td>
+                    <td {...(total ? { rowSpan: 4 } : {})} colSpan="3">Итого</td>
                     <td></td>
                     <td>{items?.length ? items.reduce((a, b) => a + Number(b.Quantity), 0) : 0}</td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td>{sumWithoutDisCount.toFixed(2)}</td>
+                    {
+                        total ? (
+                            <>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>{sumWithoutDisCount.toFixed(2)}</td>
+                            </>
+                        ) : ""
+                    }
                 </tr>
 
-                <tr>
-                    <td colSpan="5">Сумма переоценки (к заказу)</td>
-                    <td>{(sumWithoutDisCount - Number(get(items, '[0].DocTotal', 0))).toFixed(2)}</td>
-                </tr>
-                <tr>
-                    <td colSpan="5">Сумма с учётом переоценки</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td colSpan="5">Сумма с учётом переоценки</td>
-                    <td>{Number(get(items, '[0].DocTotal', 0)).toFixed(2)}</td>
-                </tr>
+                {
+                    total ? (
+                        <>
+                            <tr>
+                                <td colSpan="5">Сумма переоценки (к заказу)</td>
+                                <td>{(sumWithoutDisCount - Number(get(items, '[0].DocTotal', 0))).toFixed(2)}</td>
+                            </tr>
+                            <tr>
+                                <td colSpan="5">Сумма с учётом переоценки</td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td colSpan="5">Сумма с учётом переоценки</td>
+                                <td>{Number(get(items, '[0].DocTotal', 0)).toFixed(2)}</td>
+                            </tr>
+                        </>
+                    ) : ''
+                }
             </tfoot>
         </table>
     );

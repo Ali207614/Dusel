@@ -10,8 +10,13 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/home" element={<Home />} />
         <Route path="/order" element={<Order />} />
+
         <Route path="/invoice/:id" element={<Invoice />} />
         <Route path="/invoice/:id/draft" element={<Invoice />} />
+
+        <Route path="/invoice/:id/total" element={<Invoice />} />
+        <Route path="/invoice/:id/draft/total" element={<Invoice />} />
+
         <Route path="/order/:id" element={<Order />} />
         <Route path="/order/:id/draft" element={<Order />} />
       </Routes>

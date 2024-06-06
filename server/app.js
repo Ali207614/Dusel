@@ -245,7 +245,7 @@ function getCustomer({ search }) {
                 return;
             }
 
-            let sql = `SELECT T0."CardCode", T0."CardName", T0."CardType" FROM ${db}.OCRD T0 WHERE T0."CardType" ='C'`
+            let sql = `SELECT T0."Address", T0."ZipCode", T0."Phone1", T0."Phone2", T0."LicTradNum", T0."CardCode", T0."CardName", T0."CardType" FROM ${db}.OCRD T0 WHERE T0."CardType" ='C'`
             if (search?.length) {
                 sql += `and (LOWER(T0."CardCode") like '%${search}%' or LOWER(T0."CardName") like '%${search}%')`
             }
@@ -294,15 +294,7 @@ function getSalesPerson() {
     });
 }
 
-// SELECT DISTINCT T0."ItmsGrpNam" AS Value, 'ItmsGrpNam' AS Type 
-// FROM OITB T0
 
-// UNION 
-
-// SELECT DISTINCT T0."U_Kategoriya" AS Value, 'U_Kategoriya' AS Type 
-// FROM OITM T0
-
-// T0."ItmsGrpCod", T0."ItmsGrpNam"
 function getItems({ offset, limit, whsCode, search, items = [], group = '',
     category = '', code = '' }) {
     return new Promise((resolve, reject) => {
@@ -373,7 +365,7 @@ function getOrders({
                 return;
             }
             let jsonData = infoData()
-            const jsonDataSlice = jsonData.sort((a,b) => b.ID - a.ID).map((item, i, arr) => {
+            const jsonDataSlice = jsonData.sort((a, b) => b.ID - a.ID).map((item, i, arr) => {
                 let KUB = 0;
                 let BRUTTO = 0;
                 let DocTotal = 0;
@@ -548,7 +540,10 @@ function getOrderByDocEntry({ docEntry }) {
                 return;
             }
 
-            let sql = `SELECT T1."DiscPrcnt",T1."LineTotal"  , T0."Comments" as COMMENTS, T2."BVolume", T2."U_Karobka", T2."U_U_netto", T2."U_U_brutto", T2."U_model",  T3."IsCommited" ,T3."OnHand", T3."OnOrder", T3."Counted", T1."DocEntry", T1."LineNum", T1."ItemCode" , T2."ItemName" ,T1."Quantity", T1."Price", T1."PriceBefDi", T1."Currency", T1."WhsCode", T0."DocNum", T0."DocStatus", T0."DocDate", T0."DocDueDate", T0."CardCode", T0."CardName", T0."DocCur", T0."DocTotal", T0."SlpCode" as SLPCODE,T4."SlpName" as SLP, T1."U_model", T1."U_krb" FROM ${db}.ORDR T0  INNER JOIN ${db}.RDR1 T1 ON T0."DocEntry" = T1."DocEntry" INNER JOIN ${db}.OITM T2 on T2."ItemCode" = T1."ItemCode" INNER JOIN ${db}.OITW T3 on T3."ItemCode" = T1."ItemCode" INNER JOIN ${db}.OSLP T4 ON T0."SlpCode" = T4."SlpCode"  where T0."DocEntry"=${docEntry} and T3."WhsCode" = T1."WhsCode"`
+            let sql = `SELECT  T4."Mobil", T6."Address", T6."ZipCode", T6."Phone1", T6."Phone2", T6."LicTradNum", T5."Discount", T1."DiscPrcnt",T1."LineTotal"  , T0."Comments" as COMMENTS, T2."BVolume", T2."U_Karobka", T2."U_U_netto", T2."U_U_brutto", T2."U_model",  T3."IsCommited" ,T3."OnHand", T3."OnOrder", T3."Counted", T1."DocEntry", T1."LineNum", T1."ItemCode" , T2."ItemName" ,T1."Quantity", T1."Price", T1."PriceBefDi", T1."Currency", T1."WhsCode", T0."DocNum", T0."DocStatus", T0."DocDate", T0."DocDueDate", T0."CardCode", T0."CardName", T0."DocCur", T0."DocTotal", T0."SlpCode" as SLPCODE, T4."SlpName" as SLP, T1."U_model", T1."U_krb" FROM ${db}.ORDR T0  INNER JOIN ${db}.RDR1 T1 ON T0."DocEntry" = T1."DocEntry" INNER JOIN ${db}.OITM T2 on T2."ItemCode" = T1."ItemCode" INNER JOIN ${db}.OITW T3 on T3."ItemCode" = T1."ItemCode" INNER JOIN ${db}.OSLP T4 ON T0."SlpCode" = T4."SlpCode" 
+            LEFT JOIN ${db}.EDG1 T5 ON T2."ItemCode" = T5."ObjKey" and  T5."ObjType" = '4'
+            INNER JOIN ${db}.OCRD T6 on T6."CardCode" = T0."CardCode"
+             where T0."DocEntry"=${docEntry} and T3."WhsCode" = T1."WhsCode"`
 
             conn.exec(sql, function (err, result) {
                 if (err) {

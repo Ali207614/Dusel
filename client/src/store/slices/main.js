@@ -1,4 +1,4 @@
-import {createSlice} from '@reduxjs/toolkit';
+import { createSlice } from '@reduxjs/toolkit';
 
 export const main = createSlice({
   name: 'main',
@@ -6,6 +6,7 @@ export const main = createSlice({
     getMe: {},
     language: 'uz',
     login: false,
+    getFilter: {}
   },
   reducers: {
     setMe: (state, action) => {
@@ -16,6 +17,9 @@ export const main = createSlice({
     },
     setLogins: (state, action) => {
       state.login = action.payload;
+    },
+    setFilter: (state, action) => {
+      state.getFilter = action.payload;
     },
   },
 });

@@ -2,12 +2,10 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Style from './Style';
 import Layout from '../../components/Layout';
-import Button from '../../components/Button';
 import { useTranslation } from 'react-i18next';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import i18next from 'i18next';
+
 import axios from 'axios';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import searchImg from '../../assets/images/search-normal.svg';
 import filterImg from '../../assets/images/filter-search.svg';
 import arrowDown from '../../assets/images/arrow-down.svg';
@@ -19,10 +17,10 @@ import formatterCurrency from '../../helpers/currency';
 import moment from 'moment';
 import { FadeLoader } from "react-spinners";
 import { ConfirmModal, ErrorModal, ConfirmModalOrder, FilterOrderModal } from '../../components/Modal';
-import { Spinner } from '../../components';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { errorNotify, successNotify, warningNotify, limitList, override, statuses } from '../../components/Helper';
+import { main } from '../../store/slices';
 
 let url = process.env.REACT_APP_API_URL
 
@@ -31,29 +29,34 @@ let url = process.env.REACT_APP_API_URL
 const Home = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { setFilter } = main.actions;
+  const { getMe, getFilter } = useSelector(state => state.main);
+
   const [showDropdown, setShowDropdown] = useState(false);
-  const [limit, setLimit] = useState(10);
-  const [page, setPage] = useState(1);
-  const [activeData, setActiveData] = useState(false);
+  const [limit, setLimit] = useState(get(getFilter, 'limit', 10));
+  const [page, setPage] = useState(get(getFilter, 'page', 1));
+  const [ts, setTs] = useState(get(getFilter, 'ts', 10));
+  const [select, setSelect] = useState(get(getFilter, 'select', []))
+  const [search, setSearch] = useState(get(getFilter, 'search', ''))
+
+  const [activeData, setActiveData] = useState(get(getFilter, 'activeData', false));
   const [allPageLength, setAllPageLength] = useState(0);
   const [loading, setLoading] = useState(false)
   const [mainCheck, setMainCheck] = useState(false)
   const [mainData, setMainData] = useState([])
-  const [ts, setTs] = useState(10);
-  const [select, setSelect] = useState([])
-  const [search, setSearch] = useState('')
   const [fnState, setFnState] = useState(false)
   const [filterData, setFilterData] = useState({})
 
-  const [filterProperty, setFilterProperty] = useState({})
+  const [filterProperty, setFilterProperty] = useState(get(getFilter, 'filterProperty', {}))
 
   const [updateLoading, setUpdateLoading] = useState(false)
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [invoiceDropDown, setInvoiceDropDown] = useState(false);
 
   let [color, setColor] = useState("#3C3F47");
 
-  const { getMe } = useSelector(state => state.main);
 
   const confirmRef = useRef();
 
@@ -80,6 +83,9 @@ const Home = () => {
     setSearch(newSearchTerm);
   };
 
+  useEffect(() => {
+    dispatch(setFilter({ limit, ts, search, filterProperty, activeData }));
+  }, [limit, ts, search, filterProperty, activeData])
 
 
   useEffect(() => {
@@ -604,9 +610,25 @@ const Home = () => {
                                   <Link className='table-item-text d-flex align' to={(get(item, 'draft') ? `/order/${item.DocEntry}/draft` : `/order/${item.DocEntry}`)}>Просмотреть и изменить заказ  <img src={editIcon} alt="arrow right" /></Link>
                                 </button>
                                 {/* invoice */}
-                                <button className='table-item-btn d-flex align table-item-text'>
-                                  <Link className='table-item-text d-flex align' to={(get(item, 'draft') ? `/invoice/${item.DocEntry}/draft` : `/invoice/${item.DocEntry}`)}>Накладный <img src={editIcon} alt="arrow-right" /></Link>
-                                </button>
+                                <div className="dropdown-container" >
+                                  <button onClick={() => setInvoiceDropDown(!invoiceDropDown)} style={{ width: '110px' }} className='table-item-btn d-flex align table-item-text position-relative'>
+                                    <Link className='table-item-text d-flex align' to={(get(item, 'draft') ? `/invoice/${item.DocEntry}/draft` : `/invoice/${item.DocEntry}`)}>
+                                    </Link>
+                                    Накладный <img src={editIcon} alt="arrow-right" />
+                                  </button>
+                                  {(invoiceDropDown) && (
+                                    <ul className="dropdown-menu">
+                                      {['N1 Накладная', 'N2 Накладная'].map((status, i) => (
+                                        <li key={i} className={`dropdown-li`}>
+                                          <Link to={(get(item, 'draft') ? `/invoice/${item.DocEntry}/draft/${i === 0 ? 'total' : ''}` : `/invoice/${item.DocEntry}/${i === 0 ? 'total' : ''}`)} className="dropdown-item display-b" href="#">
+                                            {status}
+                                          </Link>
+                                        </li>
+                                      ))}
+
+                                    </ul>
+                                  )}
+                                </div>
                                 <div className="dropdown-container">
                                   <button style={{ width: '110px' }} disabled={updateLoading} className="table-item-btn d-flex align table-item-text position-relative" onClick={() => setDropdownOpen(!dropdownOpen)}>
                                     Состояние  {updateLoading ?

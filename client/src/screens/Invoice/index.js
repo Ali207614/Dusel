@@ -21,7 +21,8 @@ const Invoice = () => {
   const navigate = useNavigate();
   const [docEntry, setDocEntry] = useState({
     id,
-    draft: get(location, 'pathname').includes('draft')
+    draft: get(location, 'pathname').includes('/draft'),
+    total: get(location, 'pathname').includes('/total')
   });
   let [color, setColor] = useState("#3C3F47");
   const [mainData, setMainData] = useState([])
@@ -63,7 +64,7 @@ const Invoice = () => {
             <div className="order-main ">
               <button onClick={() => navigate('/home')} className='btn-back'>Закрить</button>
               {
-                (mainData?.length && !get(docEntry, 'draft')) ? <button onClick={() => exportTableToExcel({ mainData })}>Download as Excel</button> : ''
+                (mainData?.length && !get(docEntry, 'draft')) ? <button onClick={() => exportTableToExcel({ mainData, total: get(docEntry, 'total') })}>Download as Excel</button> : ''
               }
             </div>
             <div className="invoice">
@@ -71,7 +72,7 @@ const Invoice = () => {
                 !loading ? (
                   <>
                     <InvoiceHeader header={mainData} />
-                    <InvoiceTable items={mainData} setItems={setMainData} draft={get(docEntry, 'draft')} />
+                    <InvoiceTable total={get(docEntry, 'total')} items={mainData} setItems={setMainData} draft={get(docEntry, 'draft')} />
                   </>
                 ) : <FadeLoader color={color} loading={loading} cssOverride={override} size={100} />
               }

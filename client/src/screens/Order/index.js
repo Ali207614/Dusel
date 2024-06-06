@@ -94,7 +94,7 @@ const Order = () => {
   const filterRef = useRef();
 
 
- 
+
 
   const filterModalRef = useCallback(ref => {
     filterRef.current = ref;
@@ -368,7 +368,7 @@ const Order = () => {
       })
     }
     let body = orderStatus == 1 ? schema : state.map(item => {
-      return { ...item, CardName: customer, CardCode: customerCode, ...date, WhsCode: warehouse, Quantity: item.value, schema, salesPersonCode, salesPerson, comment }
+      return { ...item, CardName: customer, CardCode: customerCode, ...date, WhsCode: warehouse, Quantity: item.value, schema, salesPersonCode, salesPerson, comment, ...customerData.find(el => el.CardCode == customerCode) }
     })
     axios
       .post(
@@ -429,7 +429,7 @@ const Order = () => {
       })
     }
     let body = !get(docEntry, 'draft') ? schema : state.map(item => {
-      return { ...item, CardName: customer, CardCode: customerCode, ...date, WhsCode: warehouse, Quantity: item.value, schema, salesPersonCode, salesPerson, comment }
+      return { ...item, CardName: customer, CardCode: customerCode, ...date, WhsCode: warehouse, Quantity: item.value, schema, salesPersonCode, salesPerson, comment, ...customerData.find(el => el.CardCode == customerCode) }
     })
     setOrderLoading(true)
     axios
@@ -809,7 +809,7 @@ const Order = () => {
           setPage={setPage}
           setTs={setTs}
         />
-        
+
         <ErrorModal
           getRef={getErrorRef}
           title={'Ошибка'}
