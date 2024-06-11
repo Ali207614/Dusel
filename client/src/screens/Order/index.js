@@ -483,33 +483,71 @@ const Order = () => {
 
   const handleKarobkaKeyDown = (event, index) => {
     if (event.key === 'ArrowDown') {
+      event.preventDefault(); // ArrowDown tugmasining default harakatini to'xtatish
       if (index < inputKarobkaRefs.current.length - 1) {
-        // Keyingi inputga o'tamiz
         inputKarobkaRefs.current[index + 1].focus();
+        setTimeout(() => {
+          const nextInput = inputKarobkaRefs.current[index + 1];
+          if (nextInput.type === 'number') {
+            const value = nextInput.value; // Hozirgi qiymatini saqlab qo'yamiz
+            nextInput.type = 'text'; // Vaqtinchalik text turiga o'zgartirish
+            nextInput.setSelectionRange(value.length, value.length);
+            nextInput.type = 'number'; // Qayta number turiga o'zgartirish
+            nextInput.value = value; // Qiymatini qaytarish
+          }
+        }, 0);
       }
     } else if (event.key === 'ArrowUp') {
+      event.preventDefault(); // ArrowUp tugmasining default harakatini to'xtatish
       if (index > 0) {
-        // Oldingi inputga qaytamiz
         inputKarobkaRefs.current[index - 1].focus();
+        setTimeout(() => {
+          const prevInput = inputKarobkaRefs.current[index - 1];
+          if (prevInput.type === 'number') {
+            const value = prevInput.value; // Hozirgi qiymatini saqlab qo'yamiz
+            prevInput.type = 'text'; // Vaqtinchalik text turiga o'zgartirish
+            prevInput.setSelectionRange(value.length, value.length);
+            prevInput.type = 'number'; // Qayta number turiga o'zgartirish
+            prevInput.value = value; // Qiymatini qaytarish
+          }
+        }, 0);
       }
     }
   };
 
   const handleKeyDown = (event, index) => {
     if (event.key === 'ArrowDown') {
+      event.preventDefault(); // ArrowDown tugmasining default harakatini to'xtatish
       if (index < inputRefs.current.length - 1) {
-        // Keyingi inputga o'tamiz
         inputRefs.current[index + 1].focus();
+        setTimeout(() => {
+          const nextInput = inputRefs.current[index + 1];
+          if (nextInput.type === 'number') {
+            const value = nextInput.value; // Hozirgi qiymatini saqlab qo'yamiz
+            nextInput.type = 'text'; // Vaqtinchalik text turiga o'zgartirish
+            nextInput.setSelectionRange(value.length, value.length);
+            nextInput.type = 'number'; // Qayta number turiga o'zgartirish
+            nextInput.value = value; // Qiymatini qaytarish
+          }
+        }, 0);
       }
     } else if (event.key === 'ArrowUp') {
+      event.preventDefault(); // ArrowUp tugmasining default harakatini to'xtatish
       if (index > 0) {
-        // Oldingi inputga qaytamiz
         inputRefs.current[index - 1].focus();
+        setTimeout(() => {
+          const prevInput = inputRefs.current[index - 1];
+          if (prevInput.type === 'number') {
+            const value = prevInput.value; // Hozirgi qiymatini saqlab qo'yamiz
+            prevInput.type = 'text'; // Vaqtinchalik text turiga o'zgartirish
+            prevInput.setSelectionRange(value.length, value.length);
+            prevInput.type = 'number'; // Qayta number turiga o'zgartirish
+            prevInput.value = value; // Qiymatini qaytarish
+          }
+        }, 0);
       }
     }
   };
-
-
 
   return (
     <>
@@ -769,27 +807,28 @@ const Order = () => {
                                   </div>
                                   <div className='w-70 p-16' >
                                     <input
-                                      ref={(el) => (inputKarobkaRefs.current[i] = el)}
-                                      onKeyDown={(event) => handleKarobkaKeyDown(event, i)}
+                                      ref={(el) => (inputRefs.current[i] = el)}
+                                      onKeyDown={(event) => handleKeyDown(event, i)}
                                       value={get(item, 'value', '')}
                                       onChange={(e) => {
                                         changeValue(e.target.value, get(item, 'ItemCode', ''))
                                         changeKarobka((e.target.value ? (Math.floor(e.target.value / Number(get(item, 'U_Karobka', 1) || 1))).toString() : ''), get(item, 'ItemCode', ''))
                                       }}
-                                      type="text"
+                                      type="number"
                                       className='table-body-inp'
                                       placeholder='-' />
                                   </div>
                                   <div className='w-70 p-16' >
                                     <input
-                                      ref={(el) => (inputRefs.current[i] = el)}
-                                      onKeyDown={(event) => handleKeyDown(event, i)}
+
+                                      ref={(el) => (inputKarobkaRefs.current[i] = el)}
+                                      onKeyDown={(event) => handleKarobkaKeyDown(event, i)}
                                       value={get(item, 'karobka', '')}
                                       onChange={(e) => {
                                         changeKarobka(e.target.value, get(item, 'ItemCode', ''))
                                         changeValue((e.target.value ? ((e.target.value || 1) * Number(get(item, 'U_Karobka', 1) || 1)).toString() : ''), get(item, 'ItemCode', ''))
                                       }}
-                                      type="text"
+                                      type="number"
                                       className='table-body-inp'
                                       placeholder={`${Number(get(item, 'U_Karobka', 1) || 1)} / кор`}
                                     />

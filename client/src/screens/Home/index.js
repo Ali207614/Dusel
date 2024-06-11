@@ -561,9 +561,9 @@ const Home = () => {
                     }} type="checkbox" name="checkbox" />
                     Контрагент
                   </li>
-                  <li className='table-head-item '>Менеджер</li>
-                  <li className='table-head-item '>Дата заказа</li>
-                  <li className='table-head-item'>Дата создания</li>
+                  <li className='table-head-item w-50'>Менеджер</li>
+                  <li className='table-head-item w-50'>Дата заказа</li>
+                  <li className='table-head-item w-50'>Дата создания</li>
                   <li className='table-head-item w-70'>Сумма сделки</li>
                   <li className='table-head-item w-70'>Склад</li>
                   <li className='table-head-item w-70'>Куб / Брутто</li>
@@ -582,28 +582,27 @@ const Home = () => {
                                 <div className='d-flex align  w-100 p-16'>
                                   <input checked={select.find(item => item == i + 1)} className='m-right-16 inp-checkbox' onClick={(e) => {
                                     if (select.find(item => item == i + 1)) {
-                                      console.log('olindi')
                                       setSelect([...select.filter(item => item != i + 1)])
                                     }
                                     else {
                                       setSelect([i + 1])
                                     }
                                   }} type="checkbox" name="checkbox" />
-                                  <p className='table-body-text truncated-text w-100' title={get(item, 'CardName', '')} onClick={() => setActiveData(activeData === i + 1 ? 0 : (i + 1))}>
+                                  <p className='table-body-text truncated-text ' style={{ width: '200px' }} title={get(item, 'CardName', '')} onClick={() => setActiveData(activeData === i + 1 ? 0 : (i + 1))}>
                                     {get(item, 'CardName', '')}
                                   </p>
                                 </div>
-                                <div className='w-100 p-16' onClick={() => setActiveData(activeData === i + 1 ? 0 : (i + 1))}>
+                                <div className='w-50 p-16' onClick={() => setActiveData(activeData === i + 1 ? 0 : (i + 1))}>
                                   <p className='table-body-text'>
                                     {get(item, 'SlpName', '')}
                                   </p>
                                 </div>
-                                <div className='w-100 p-16' onClick={() => setActiveData(activeData === i + 1 ? 0 : (i + 1))}>
+                                <div className='w-50 p-16' onClick={() => setActiveData(activeData === i + 1 ? 0 : (i + 1))}>
                                   <p className='table-body-text '>
                                     {moment(get(item, 'DocDate', '')).format("DD-MM-YYYY")}
                                   </p>
                                 </div>
-                                <div className='w-100 p-16' onClick={() => setActiveData(activeData === i + 1 ? 0 : (i + 1))}>
+                                <div className='w-50 p-16' onClick={() => setActiveData(activeData === i + 1 ? 0 : (i + 1))}>
                                   <p className='table-body-text '>
                                     {moment(get(item, 'CreateDate', '')).format("DD-MM-YYYY")}
                                   </p>
@@ -620,7 +619,7 @@ const Home = () => {
                                 </div>
                                 <div className='w-70 p-16' onClick={() => setActiveData(activeData === i + 1 ? 0 : (i + 1))}>
                                   <p className='table-body-text w-70'>
-                                    {parseFloat(Number(get(item, 'KUB', '-')).toFixed(4))} / {parseFloat(Number(get(item, 'BRUTTO', '-')).toFixed(4))}
+                                    {parseFloat(Number(get(item, 'KUB', '-')).toFixed(2))} / {parseFloat(Number(get(item, 'BRUTTO', '-')).toFixed(2))}
                                   </p>
                                 </div>
                                 <div className='w-50 p-16' onClick={() => setActiveData(activeData === i + 1 ? 0 : (i + 1))}>

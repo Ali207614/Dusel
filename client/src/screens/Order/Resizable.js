@@ -122,6 +122,78 @@ const Resizable = ({
         }
     }, [actualData]);
 
+
+    const inputRefs = useRef([]);
+    const inputKarobkaRefs = useRef([]);
+
+    const handleKarobkaKeyDown = (event, index) => {
+        if (event.key === 'ArrowDown') {
+            event.preventDefault(); // ArrowDown tugmasining default harakatini to'xtatish
+            if (index < inputKarobkaRefs.current.length - 1) {
+                inputKarobkaRefs.current[index + 1].focus();
+                setTimeout(() => {
+                    const nextInput = inputKarobkaRefs.current[index + 1];
+                    if (nextInput.type === 'number') {
+                        const value = nextInput.value; // Hozirgi qiymatini saqlab qo'yamiz
+                        nextInput.type = 'text'; // Vaqtinchalik text turiga o'zgartirish
+                        nextInput.setSelectionRange(value.length, value.length);
+                        nextInput.type = 'number'; // Qayta number turiga o'zgartirish
+                        nextInput.value = value; // Qiymatini qaytarish
+                    }
+                }, 0);
+            }
+        } else if (event.key === 'ArrowUp') {
+            event.preventDefault(); // ArrowUp tugmasining default harakatini to'xtatish
+            if (index > 0) {
+                inputKarobkaRefs.current[index - 1].focus();
+                setTimeout(() => {
+                    const prevInput = inputKarobkaRefs.current[index - 1];
+                    if (prevInput.type === 'number') {
+                        const value = prevInput.value; // Hozirgi qiymatini saqlab qo'yamiz
+                        prevInput.type = 'text'; // Vaqtinchalik text turiga o'zgartirish
+                        prevInput.setSelectionRange(value.length, value.length);
+                        prevInput.type = 'number'; // Qayta number turiga o'zgartirish
+                        prevInput.value = value; // Qiymatini qaytarish
+                    }
+                }, 0);
+            }
+        }
+    };
+
+    const handleKeyDown = (event, index) => {
+        if (event.key === 'ArrowDown') {
+            event.preventDefault(); // ArrowDown tugmasining default harakatini to'xtatish
+            if (index < inputRefs.current.length - 1) {
+                inputRefs.current[index + 1].focus();
+                setTimeout(() => {
+                    const nextInput = inputRefs.current[index + 1];
+                    if (nextInput.type === 'number') {
+                        const value = nextInput.value; // Hozirgi qiymatini saqlab qo'yamiz
+                        nextInput.type = 'text'; // Vaqtinchalik text turiga o'zgartirish
+                        nextInput.setSelectionRange(value.length, value.length);
+                        nextInput.type = 'number'; // Qayta number turiga o'zgartirish
+                        nextInput.value = value; // Qiymatini qaytarish
+                    }
+                }, 0);
+            }
+        } else if (event.key === 'ArrowUp') {
+            event.preventDefault(); // ArrowUp tugmasining default harakatini to'xtatish
+            if (index > 0) {
+                inputRefs.current[index - 1].focus();
+                setTimeout(() => {
+                    const prevInput = inputRefs.current[index - 1];
+                    if (prevInput.type === 'number') {
+                        const value = prevInput.value; // Hozirgi qiymatini saqlab qo'yamiz
+                        prevInput.type = 'text'; // Vaqtinchalik text turiga o'zgartirish
+                        prevInput.setSelectionRange(value.length, value.length);
+                        prevInput.type = 'number'; // Qayta number turiga o'zgartirish
+                        prevInput.value = value; // Qiymatini qaytarish
+                    }
+                }, 0);
+            }
+        }
+    };
+
     return (
         <Style>
             {actualData.length ? (
@@ -275,12 +347,12 @@ const Resizable = ({
                                                             <p className='table-body-text'>{get(item, 'ItemCode', '')}</p>
                                                         </div>
                                                         <div className='w-100 p-16'>
-                                                            <p style={{ width: '200px' }} className='table-body-text truncated-text' title={get(item, 'ItemName', '')}>
+                                                            <p style={{ width: '190px' }} className='table-body-text truncated-text' title={get(item, 'ItemName', '')}>
                                                                 {get(item, 'ItemName', '') || '-'}
                                                             </p>
                                                         </div>
                                                         <div className='w-50 p-16'>
-                                                            <p className='table-body-text truncated-text' title={get(item, 'ItemName', '')}>
+                                                            <p style={{ width: '100px' }} className='table-body-text truncated-text' title={get(item, 'ItemName', '')}>
                                                                 {get(item, 'U_model', '-') || '-'}
                                                             </p>
                                                         </div>
@@ -306,18 +378,32 @@ const Resizable = ({
                                                         </div>
                                                         <div className='w-100 p-16'>
                                                             <p className='table-body-text'>
-                                                                <input value={get(item, 'value', '')} onChange={e => {
-                                                                    changeValue(e.target.value, get(item, 'ItemCode', ''));
-                                                                    changeKarobka((e.target.value ? (Math.floor(e.target.value / Number(get(item, 'U_Karobka', 1) || 1))).toString() : ''), get(item, 'ItemCode', ''));
-                                                                }} type="text" className={`table-body-inp bg-white ${(isEmpty && item?.value.length === 0) ? 'borderRed' : ''}`} placeholder='-' />
+                                                                <input
+                                                                    ref={(el) => (inputRefs.current[i] = el)}
+                                                                    onKeyDown={(event) => handleKeyDown(event, i)}
+                                                                    value={get(item, 'value', '')}
+                                                                    onChange={e => {
+                                                                        changeValue(e.target.value, get(item, 'ItemCode', ''));
+                                                                        changeKarobka((e.target.value ? (Math.floor(e.target.value / Number(get(item, 'U_Karobka', 1) || 1))).toString() : ''), get(item, 'ItemCode', ''));
+                                                                    }}
+                                                                    type="number"
+                                                                    className={`table-body-inp bg-white ${(isEmpty && item?.value.length === 0) ? 'borderRed' : ''}`}
+                                                                    placeholder='-' />
                                                             </p>
                                                         </div>
                                                         <div className='w-100 p-16'>
                                                             <p className='table-body-text'>
-                                                                <input value={get(item, 'karobka', '')} onChange={e => {
-                                                                    changeKarobka(e.target.value, get(item, 'ItemCode', ''));
-                                                                    changeValue((e.target.value ? ((e.target.value || 1) * Number(get(item, 'U_Karobka', 1) || 1)).toString() : ''), get(item, 'ItemCode', ''));
-                                                                }} type="text" className='table-body-inp bg-white' placeholder={`${Number(get(item, 'U_Karobka', 1) || 1)} / кор`} />
+                                                                <input
+                                                                    ref={(el) => (inputKarobkaRefs.current[i] = el)}
+                                                                    onKeyDown={(event) => handleKarobkaKeyDown(event, i)}
+                                                                    value={get(item, 'karobka', '')}
+                                                                    onChange={e => {
+                                                                        changeKarobka(e.target.value, get(item, 'ItemCode', ''));
+                                                                        changeValue((e.target.value ? ((e.target.value || 1) * Number(get(item, 'U_Karobka', 1) || 1)).toString() : ''), get(item, 'ItemCode', ''));
+                                                                    }}
+                                                                    type="number"
+                                                                    className='table-body-inp bg-white'
+                                                                    placeholder={`${Number(get(item, 'U_Karobka', 1) || 1)} / кор`} />
                                                             </p>
                                                         </div>
                                                         <div className='w-47px p-16'>
