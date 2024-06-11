@@ -54,8 +54,8 @@ const InvoiceTable = ({ total = false, items, setItems, draft = false }) => {
                                 <>
                                     <td>{Number(get(item, 'PriceBefDi'))}</td>
                                     <td>-{Number(get(item, 'Discount', 0))}%</td>
-                                    <td>{Number(get(item, 'Price')).toFixed(3)}</td>
-                                    <td>{Number(get(item, 'LineTotal')).toFixed(2)}</td>
+                                    <td>{parseFloat(Number(get(item, 'Price')).toFixed(3))}</td>
+                                    <td>{parseFloat(Number(get(item, 'LineTotal')).toFixed(2))}</td>
                                 </>
                             ) : ''
                         }
@@ -65,8 +65,8 @@ const InvoiceTable = ({ total = false, items, setItems, draft = false }) => {
             <tfoot>
                 <tr>
                     <td {...(total ? { rowSpan: 4 } : {})} colSpan="3">Итого</td>
-                    <td> {items?.length ? items.reduce((a, b) => a + (Number(get(b, 'Quantity')) / Number(get(b, 'U_Karobka', 1))), 0) : 0}</td>
-                    <td>{items?.length ? items.reduce((a, b) => a + Number(b.Quantity), 0) : 0}</td>
+                    <td> {parseFloat((items?.length ? items.reduce((a, b) => a + (Number(get(b, 'Quantity')) / Number(get(b, 'U_Karobka', 1))), 0) : 0).toFixed(4))}</td>
+                    <td>{parseFloat((items?.length ? items.reduce((a, b) => a + Number(b.Quantity), 0) : 0).toFixed(4))}</td>
                     {
                         total ? (
                             <>

@@ -35,7 +35,7 @@ const exportTableToExcelWithTotal = async ({ mainData = [] }) => {
         worksheet.mergeCells(`A${row.number}:C${row.number}`);
         worksheet.mergeCells(`G${row.number}:H${row.number}`);
         row.eachCell({ includeEmpty: true }, cell => {
-            cell.font = { size: 10 };
+            cell.font = { size: 10, bold: true };
             cell.alignment = { vertical: 'middle', horizontal: 'left' };
         });
     });
@@ -45,22 +45,26 @@ const exportTableToExcelWithTotal = async ({ mainData = [] }) => {
     worksheet.columns = [
         { header: '№', key: 'no', width: 5 },
         { header: 'Код', key: 'itemCode', width: 15 },
-        { header: 'Продукция', key: 'itemName', width: 55 },
-        { header: 'Кол-во (в кейсе)', key: 'quantityCase', width: 15 },
-        { header: 'Кол-во (в шт.)', key: 'quantity', width: 15 },
-        { header: 'Цена', key: 'priceBefDi', width: 10 },
-        { header: 'Скидка/наценка', key: 'discPrcnt', width: 15 },
-        { header: 'Цена с наценкой', key: 'price', width: 15 },
-        { header: 'Сумма', key: 'lineTotal', width: 15 }
+        { header: 'Продукция', key: 'itemName', width: 45 },
+        { header: 'Кол-во (в кейсе)', key: 'quantityCase', width: 10 },
+        { header: 'Кол-во (в шт.)', key: 'quantity', width: 8 },
+        { header: 'Цена', key: 'priceBefDi', width: 9 },
+        { header: 'Скидка/наценка', key: 'discPrcnt', width: 8 },
+        { header: 'Цена с наценкой', key: 'price', width: 8 },
+        { header: 'Сумма', key: 'lineTotal', width: 10 }
     ];
 
     let headerRowNumber = worksheet.rowCount + 1;
     worksheet.addRow(['№', 'Код', 'Продукция', 'Кол-во (в кейсе)', 'Кол-во (в шт.)', 'Цена', 'Скидка / наценка', 'Цена с наценкой', 'Сумма']);
     const headerRow = worksheet.getRow(headerRowNumber);
-    headerRow.height = 24;
-    headerRow.eachCell({ includeEmpty: true }, cell => {
+    headerRow.height = 30;
+    headerRow.eachCell({ includeEmpty: true }, (cell, colNumber) => {
+        if (colNumber === 3) { // Assuming 'itemName' is the third column
+            cell.alignment = { vertical: 'middle', horizontal: 'left', wrapText: true };
+        } else {
+            cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+        }
         cell.font = { size: 9, bold: true };
-        cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
         cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE0E0E0' } };
         cell.border = {
             top: { style: 'thin' },
@@ -79,12 +83,16 @@ const exportTableToExcelWithTotal = async ({ mainData = [] }) => {
             quantity: Number(get(item, 'Quantity')),
             priceBefDi: Number(get(item, 'PriceBefDi')),
             discPrcnt: `-${Number(get(item, 'Discount', 0))}%`,
-            price: Number(get(item, 'Price')).toFixed(3),
-            lineTotal: Number(get(item, 'LineTotal')).toFixed(2)
+            price: parseFloat(Number(get(item, 'Price')).toFixed(3)),
+            lineTotal: parseFloat(Number(get(item, 'LineTotal')).toFixed(2))
         });
-        row.height = 24;
-        row.eachCell((cell) => {
-            cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+        row.height = 30;
+        row.eachCell((cell, colNumber) => {
+            if (colNumber === 3) { // Assuming 'itemName' is the third column
+                cell.alignment = { vertical: 'middle', horizontal: 'left', wrapText: true };
+            } else {
+                cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+            }
             cell.font = { size: 9, };
             cell.border = {
                 top: { style: 'thin' },
@@ -98,12 +106,12 @@ const exportTableToExcelWithTotal = async ({ mainData = [] }) => {
 
     const totalRow = worksheet.addRow({
         no: 'Итого',
-        quantityCase: mainData?.length ? mainData.reduce((a, b) => a + (Number(get(b, 'Quantity')) / Number(get(b, 'U_Karobka', 1))), 0) : 0,
+        quantityCase: parseFloat((mainData?.length ? mainData.reduce((a, b) => a + (Number(get(b, 'Quantity')) / Number(get(b, 'U_Karobka', 1))), 0) : 0).toFixed(4)),
         quantity: mainData?.length ? mainData.reduce((a, b) => a + Number(b.Quantity), 0) : 0,
         priceBefDi: '',
         discPrcnt: '',
         price: '',
-        lineTotal: sumWithoutDisCount.toFixed(2)
+        lineTotal: parseFloat(sumWithoutDisCount.toFixed(2))
     });
 
     totalRow.getCell(1).alignment = { horizontal: 'center' };
@@ -149,7 +157,7 @@ const exportTableToExcelWithTotal = async ({ mainData = [] }) => {
 
     const buffer = await workbook.xlsx.writeBuffer();
     const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-    saveAs(blob, 'Invoice.xlsx');
+    saveAs(blob, `${get(mainData, '[0].CardName')}`);
 };
 
 const exportTableToExcelWithoutTotal = async ({ mainData = [] }) => {
@@ -179,7 +187,7 @@ const exportTableToExcelWithoutTotal = async ({ mainData = [] }) => {
         worksheet.mergeCells(`A${row.number}:C${row.number}`);
         worksheet.mergeCells(`G${row.number}:H${row.number}`);
         row.eachCell({ includeEmpty: true }, cell => {
-            cell.font = { size: 10 };
+            cell.font = { size: 10, bold: true };
             cell.alignment = { vertical: 'middle', horizontal: 'left' };
         });
     });
@@ -187,11 +195,13 @@ const exportTableToExcelWithoutTotal = async ({ mainData = [] }) => {
     worksheet.addRow([]);
 
     worksheet.columns = [
+
         { header: '№', key: 'no', width: 5 },
         { header: 'Код', key: 'itemCode', width: 15 },
-        { header: 'Продукция', key: 'itemName', width: 55 },
-        { header: 'Кол-во (в кейсе)', key: 'quantityCase', width: 15 },
-        { header: 'Кол-во (в шт.)', key: 'quantity', width: 15 },
+        { header: 'Продукция', key: 'itemName', width: 45 },
+        { header: 'Кол-во (в кейсе)', key: 'quantityCase', width: 10 },
+        { header: 'Кол-во (в шт.)', key: 'quantity', width: 8 },
+
         // { header: 'Цена', key: 'priceBefDi', width: 10 },
         // { header: 'Скидка/наценка', key: 'discPrcnt', width: 15 },
         // { header: 'Цена с наценкой', key: 'price', width: 15 },
@@ -201,10 +211,14 @@ const exportTableToExcelWithoutTotal = async ({ mainData = [] }) => {
     let headerRowNumber = worksheet.rowCount + 1;
     worksheet.addRow(['№', 'Код', 'Продукция', 'Кол-во (в кейсе)', 'Кол-во (в шт.)']);
     const headerRow = worksheet.getRow(headerRowNumber);
-    headerRow.height = 24;
-    headerRow.eachCell({ includeEmpty: true }, cell => {
+    headerRow.height = 30;
+    headerRow.eachCell({ includeEmpty: true }, (cell, colNumber) => {
+        if (colNumber === 3) { // Assuming 'itemName' is the third column
+            cell.alignment = { vertical: 'middle', horizontal: 'left', wrapText: true };
+        } else {
+            cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+        }
         cell.font = { size: 9, bold: true };
-        cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
         cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE0E0E0' } };
         cell.border = {
             top: { style: 'thin' },
@@ -219,13 +233,17 @@ const exportTableToExcelWithoutTotal = async ({ mainData = [] }) => {
             no: i + 1,
             itemCode: get(item, 'U_model'),
             itemName: get(item, 'ItemName'),
-            quantityCase: (Number(get(item, 'Quantity')) / Number(get(item, 'U_Karobka', 1))).toFixed(4),
+            quantityCase: parseFloat((Number(get(item, 'Quantity')) / Number(get(item, 'U_Karobka', 1))).toFixed(4)),
             quantity: Number(get(item, 'Quantity')),
 
         });
-        row.height = 24;
-        row.eachCell((cell) => {
-            cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+        row.height = 30;
+        row.eachCell((cell, colNumber) => {
+            if (colNumber === 3) { // Assuming 'itemName' is the third column
+                cell.alignment = { vertical: 'middle', horizontal: 'left', wrapText: true };
+            } else {
+                cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+            }
             cell.font = { size: 9, };
             cell.border = {
                 top: { style: 'thin' },
@@ -238,7 +256,7 @@ const exportTableToExcelWithoutTotal = async ({ mainData = [] }) => {
 
     const totalRow = worksheet.addRow({
         no: 'Итого',
-        quantityCase: mainData?.length ? mainData.reduce((a, b) => a + (Number(get(b, 'Quantity')) / Number(get(b, 'U_Karobka', 1))), 0) : 0,
+        quantityCase: parseFloat((mainData?.length ? mainData.reduce((a, b) => a + (Number(get(b, 'Quantity')) / Number(get(b, 'U_Karobka', 1))), 0) : 0).toFixed(4)),
         quantity: mainData?.length ? mainData.reduce((a, b) => a + Number(b.Quantity), 0) : 0,
 
     });
@@ -267,13 +285,11 @@ const exportTableToExcelWithoutTotal = async ({ mainData = [] }) => {
 
     const buffer = await workbook.xlsx.writeBuffer();
     const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-    saveAs(blob, 'Invoice.xlsx');
+    saveAs(blob, `${get(mainData, '[0].CardName')}`);
 
 };
 
 const sandTableToExcelWithoutTotal = async ({ mainData = [] }) => {
-    // 
-
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Invoice');
 
@@ -297,7 +313,7 @@ const sandTableToExcelWithoutTotal = async ({ mainData = [] }) => {
         worksheet.mergeCells(`A${row.number}:C${row.number}`);
         worksheet.mergeCells(`G${row.number}:H${row.number}`);
         row.eachCell({ includeEmpty: true }, cell => {
-            cell.font = { size: 10 };
+            cell.font = { size: 10, bold: true };
             cell.alignment = { vertical: 'middle', horizontal: 'left' };
         });
     });
@@ -307,9 +323,9 @@ const sandTableToExcelWithoutTotal = async ({ mainData = [] }) => {
     worksheet.columns = [
         { header: '№', key: 'no', width: 5 },
         { header: 'Код', key: 'itemCode', width: 15 },
-        { header: 'Продукция', key: 'itemName', width: 55 },
-        { header: 'Кол-во (в кейсе)', key: 'quantityCase', width: 15 },
-        { header: 'Кол-во (в шт.)', key: 'quantity', width: 15 },
+        { header: 'Продукция', key: 'itemName', width: 45 },
+        { header: 'Кол-во (в кейсе)', key: 'quantityCase', width: 10 },
+        { header: 'Кол-во (в шт.)', key: 'quantity', width: 8 },
         // { header: 'Цена', key: 'priceBefDi', width: 10 },
         // { header: 'Скидка/наценка', key: 'discPrcnt', width: 15 },
         // { header: 'Цена с наценкой', key: 'price', width: 15 },
@@ -319,10 +335,14 @@ const sandTableToExcelWithoutTotal = async ({ mainData = [] }) => {
     let headerRowNumber = worksheet.rowCount + 1;
     worksheet.addRow(['№', 'Код', 'Продукция', 'Кол-во (в кейсе)', 'Кол-во (в шт.)']);
     const headerRow = worksheet.getRow(headerRowNumber);
-    headerRow.height = 24;
-    headerRow.eachCell({ includeEmpty: true }, cell => {
+    headerRow.height = 30;
+    headerRow.eachCell({ includeEmpty: true }, (cell, colNumber) => {
+        if (colNumber === 3) { // Assuming 'itemName' is the third column
+            cell.alignment = { vertical: 'middle', horizontal: 'left', wrapText: true };
+        } else {
+            cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+        }
         cell.font = { size: 9, bold: true };
-        cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
         cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE0E0E0' } };
         cell.border = {
             top: { style: 'thin' },
@@ -337,13 +357,17 @@ const sandTableToExcelWithoutTotal = async ({ mainData = [] }) => {
             no: i + 1,
             itemCode: get(item, 'U_model'),
             itemName: get(item, 'ItemName'),
-            quantityCase: (Number(get(item, 'Quantity')) / Number(get(item, 'U_Karobka', 1))).toFixed(4),
+            quantityCase: parseFloat((Number(get(item, 'Quantity')) / Number(get(item, 'U_Karobka', 1))).toFixed(4)),
             quantity: Number(get(item, 'Quantity')),
 
         });
-        row.height = 24;
-        row.eachCell((cell) => {
-            cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+        row.height = 30;
+        row.eachCell((cell, colNumber) => {
+            if (colNumber === 3) { // Assuming 'itemName' is the third column
+                cell.alignment = { vertical: 'middle', horizontal: 'left', wrapText: true };
+            } else {
+                cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+            }
             cell.font = { size: 9, };
             cell.border = {
                 top: { style: 'thin' },
@@ -356,9 +380,8 @@ const sandTableToExcelWithoutTotal = async ({ mainData = [] }) => {
 
     const totalRow = worksheet.addRow({
         no: 'Итого',
-        quantityCase: mainData?.length ? mainData.reduce((a, b) => a + (Number(get(b, 'Quantity')) / Number(get(b, 'U_Karobka', 1))), 0) : 0,
+        quantityCase: parseFloat((mainData?.length ? mainData.reduce((a, b) => a + (Number(get(b, 'Quantity')) / Number(get(b, 'U_Karobka', 1))), 0) : 0).toFixed(4)),
         quantity: mainData?.length ? mainData.reduce((a, b) => a + Number(b.Quantity), 0) : 0,
-
     });
 
 
@@ -391,7 +414,7 @@ const sandTableToExcelWithoutTotal = async ({ mainData = [] }) => {
 
     const formData = new FormData();
     formData.append('chat_id', groupChatId); // replace with your Telegram chat ID
-    formData.append('document', new File([blob], 'Invoice.xlsx', { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }));
+    formData.append('document', new File([blob], `${get(mainData, '[0].CardName')}`, { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }));
 
     // Send the file to the Telegram bot
     await axios.post(`https://api.telegram.org/bot7059322860:AAF4OCocNRPMwQ86DUUHWpD_igqIUTeDp5Y/sendDocument`, formData, {
