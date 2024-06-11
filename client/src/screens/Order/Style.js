@@ -17,7 +17,6 @@ li{
   z-index: 1000; /* Overlay boshqa kontentdan ustun turishi uchun */
 }
 .truncated-text {
-  width: 140px; /* Matn uzunligi */
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -105,6 +104,8 @@ li{
   .w-100{
     width:100%;
   }
+
+ 
 
   .order-inp{
     border-radius: 8px;
@@ -506,7 +507,25 @@ li{
 }
 
 
+.footer-block{
+  background-color: #fff;
+  padding: 10px 12px;
+  border-radius: 12px;
+border: 1px solid  #E9E9E9;
+margin-left: 12px;
+}
 
-
+.footer-text{
+    color: #000;
+font-variant-numeric: lining-nums tabular-nums stacked-fractions;
+font-feature-settings: 'clig' off, 'liga' off;
+font-size: 13px;
+font-style: normal;
+font-weight: 500;
+line-height: normal;
+}
+.w-70{
+    width: 70%;
+  }
 `;
 export default Style;

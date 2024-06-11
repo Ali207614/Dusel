@@ -62,7 +62,7 @@ const Invoice = () => {
         <Layout>
           <div className='container'>
             <div className="order-main ">
-              <button onClick={() => navigate('/home')} className='btn-back'>Закрить</button>
+              <button onClick={() => navigate('/home')} className='btn-back'>Назад</button>
               <button className='btn-excel' onClick={() => exportTableToExcel({ mainData, total: get(docEntry, 'total') })}>Download as Excel</button>
             </div>
             <div className="invoice">

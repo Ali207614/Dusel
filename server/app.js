@@ -334,10 +334,18 @@ function getItems({ offset, limit, whsCode, search, items = [], group = '',
             if (category.length) {
                 sql += ` and T0."U_Kategoriya" = '${category}'`
             }
-            sql += ` ORDER BY T0."U_prn"  limit ${limit} offset ${offset - 1} `
+            sql += `
+            ORDER BY
+            CASE
+                WHEN T0."U_prn" IS NULL OR T0."U_prn" = 0 THEN 9999
+                ELSE T0."U_prn"
+            END 
+            limit ${limit} offset ${offset - 1} `
+
 
             conn.exec(sql, function (err, result) {
                 if (err) {
+                    console.log(err, ' bu err')
                     reject(err);
                     conn.disconnect();
                     return;
@@ -370,8 +378,8 @@ function getOrders({
                 let BRUTTO = 0;
                 let DocTotal = 0;
                 for (let i = 0; i < item.state.length; i++) {
-                    KUB += Number(item.state[i].BVolume)
-                    BRUTTO += Number(item.state[i].U_U_brutto)
+                    KUB += (Number(item.state[i].BVolume) * Number(item.state[i].value))
+                    BRUTTO += (Number(item.state[i].U_U_brutto) * Number(item.state[i].value))
                     let price = (Number(item.state[i].Price) * Number(item.state[i].value)) - (Number(item.state[i].Price) * Number(item.state[i].value) * Number(item.state[i].disCount) / 100)
                     DocTotal += price
                 }
@@ -398,9 +406,9 @@ function getOrders({
                 }
                 return obj
             });
-            let netto = ` SELECT sum(T6."BVolume") FROM ${db}.RDR1 T5  INNER JOIN ${db}.OITM T6 ON T5."ItemCode" = T6."ItemCode" WHERE T5."DocEntry"= T0."DocEntry"`
+            let netto = ` SELECT sum(T6."BVolume" * T5."Quantity") FROM ${db}.RDR1 T5  INNER JOIN ${db}.OITM T6 ON T5."ItemCode" = T6."ItemCode" WHERE T5."DocEntry"= T0."DocEntry"`
 
-            let brutto = ` SELECT sum(T6."U_U_brutto") FROM ${db}.RDR1 T5  INNER JOIN ${db}.OITM T6 ON T5."ItemCode" = T6."ItemCode" WHERE T5."DocEntry"= T0."DocEntry"`
+            let brutto = ` SELECT sum(T6."U_U_brutto"  * T5."Quantity") FROM ${db}.RDR1 T5  INNER JOIN ${db}.OITM T6 ON T5."ItemCode" = T6."ItemCode" WHERE T5."DocEntry"= T0."DocEntry"`
 
             let warehouse = `SELECT TOP(1) T5."WhsCode" FROM ${db}.RDR1 T5  WHERE T5."DocEntry"= T0."DocEntry"`
 

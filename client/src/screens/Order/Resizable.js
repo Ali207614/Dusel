@@ -116,6 +116,7 @@ const Resizable = ({
     };
 
     useEffect(() => {
+        console.log(actualData, ' bu actual data')
         if (actualData.length === 0) {
             setSearch('');
         }
@@ -148,66 +149,91 @@ const Resizable = ({
                             backgroundColor: 'transparent'
                         }} className="select-items">
                             <div className='container' style={{ display: "flex", flexDirection: "column", height: "100%" }}>
-                                <div className='right-head select-items-filter'>
-                                    <div className='right-pagination'>
-                                        <p className='pagination-text'>
-                                            <span>{pageSelect}-{tsSelect}</span> <span>of {allPageLengthSelect}</span>
-                                        </p>
-                                        <button onClick={() => {
-                                            if (pageSelect > 1) {
-                                                setPageSelect(pageSelect - limitSelect);
-                                                setTsSelect(tsSelect - limitSelect);
+                                <div className='right-head select-items-filter' style={{ justifyContent: 'space-between' }}>
+
+                                    <div className='right-head' style={{ justifyContent: 'space-between' }}>
+                                        <div className='footer-block'>
+                                            <p className='footer-text'>Сумма сделки : <span className='footer-text-spn'>
+                                                {
+
+                                                    (state.length ? formatterCurrency(
+                                                        state.reduce((a, b) => a + (Number(get(b, 'Price', 0)) * Number(get(b, 'value', 0))) - (Number(get(b, 'Price', 0)) * Number(get(b, 'value', 0)) * Number(get(b, 'disCount', 0)) / 100), 0)
+                                                        , "USD") : 0)
+                                                }</span></p>
+                                        </div>
+                                        <div className='footer-block'>
+                                            <p className='footer-text'>Куб : <span className='footer-text-spn'>{
+                                                parseFloat((state.length ? state.reduce((a, b) => a + (Number(get(b, 'BVolume', 0) || 0) * Number(get(b, 'value', 0) || 0)), 0) : 0).toFixed(4))
+                                            }</span></p>
+                                        </div>
+                                        <div className='footer-block'>
+                                            <p className='footer-text'>Брутто : <span className='footer-text-spn'>{
+                                                parseFloat((state.length ? parseFloat(state.reduce((a, b) => a + (Number(get(b, 'U_U_brutto', 0) || 0) * Number(get(b, 'value', 0) || 0)), 0)) : 0).toFixed(4))
+                                            }</span></p>
+                                        </div>
+                                    </div>
+
+                                    <div style={{ display: 'flex' }}>
+                                        <div className='right-pagination'>
+                                            <p className='pagination-text'>
+                                                <span>{pageSelect}-{tsSelect}</span> <span>of {allPageLengthSelect}</span>
+                                            </p>
+                                            <button onClick={() => {
+                                                if (pageSelect > 1) {
+                                                    setPageSelect(pageSelect - limitSelect);
+                                                    setTsSelect(tsSelect - limitSelect);
+                                                }
+                                            }} disabled={pageSelect === 1} className={`pagination-button left-pagination bg-white ${pageSelect === 1 ? 'opcity-5' : ''}`}>
+                                                <img src={pagination} alt="arrow-button-pagination" />
+                                            </button>
+                                            <button onClick={() => {
+                                                if (tsSelect < allPageLengthSelect) {
+                                                    setPageSelect(pageSelect + limitSelect);
+                                                    setTsSelect(limitSelect + tsSelect);
+                                                }
+                                            }} disabled={tsSelect >= allPageLengthSelect} className={`pagination-button margin-right bg-white ${tsSelect >= allPageLengthSelect ? 'opcity-5' : ''}`}>
+                                                <img src={pagination} alt="arrow-button-pagination" />
+                                            </button>
+                                        </div>
+                                        <div className='right-input'>
+                                            <img className='right-input-img' src={searchImg} alt="search-img" />
+                                            <input onChange={(e) => handleChange(e.target.value, filterPropertyResize)} value={search} type="search" className='right-inp bg-white' placeholder='Поиск' />
+                                        </div>
+                                        <div style={{ position: 'relative' }}>
+                                            {
+                                                (Object.values(filterPropertyResize).length > 1 && get(filterPropertyResize, 'click')) ? (
+                                                    <button onClick={() => {
+                                                        setFilterPropertyResize({})
+                                                        handleChange(search, {})
+                                                    }} className={`close-btn`}>
+                                                        <img src={close} alt="close-filter" />
+                                                    </button>
+                                                ) : ''
                                             }
-                                        }} disabled={pageSelect === 1} className={`pagination-button left-pagination bg-white ${pageSelect === 1 ? 'opcity-5' : ''}`}>
-                                            <img src={pagination} alt="arrow-button-pagination" />
-                                        </button>
-                                        <button onClick={() => {
-                                            if (tsSelect < allPageLengthSelect) {
-                                                setPageSelect(pageSelect + limitSelect);
-                                                setTsSelect(limitSelect + tsSelect);
-                                            }
-                                        }} disabled={tsSelect >= allPageLengthSelect} className={`pagination-button margin-right bg-white ${tsSelect >= allPageLengthSelect ? 'opcity-5' : ''}`}>
-                                            <img src={pagination} alt="arrow-button-pagination" />
-                                        </button>
-                                    </div>
-                                    <div className='right-input'>
-                                        <img className='right-input-img' src={searchImg} alt="search-img" />
-                                        <input onChange={(e) => handleChange(e.target.value, filterPropertyResize)} value={search} type="search" className='right-inp bg-white' placeholder='Поиск' />
-                                    </div>
-                                    <div style={{ position: 'relative' }}>
-                                        {
-                                            (Object.values(filterPropertyResize).length > 1 && get(filterPropertyResize, 'click')) ? (
-                                                <button onClick={() => {
-                                                    setFilterPropertyResize({})
-                                                    handleChange(search, {})
-                                                }} className={`close-btn`}>
-                                                    <img src={close} alt="close-filter" />
-                                                </button>
-                                            ) : ''
-                                        }
-                                        <button onClick={filterOrders} className='right-filter bg-white'>
-                                            <img className='right-filter-img' src={filterImg} alt="filter-img" />
-                                        </button>
-                                    </div>
-                                    <div className='right-limit'>
-                                        <button onClick={() => setShowDropdownSelect(!showDropdownSelect)} className='right-dropdown bg-white'>
-                                            <p className='right-limit-text'>{limitSelect}</p>
-                                            <img src={arrowDown} className={showDropdownSelect ? "up-arrow" : ""} alt="arrow-down-img" />
-                                        </button>
-                                        <ul className={`dropdown-menu bg-white ${showDropdownSelect ? "display-b" : "display-n"}`} aria-labelledby="dropdownMenuButton1">
-                                            {limitList.map((item, i) => (
-                                                <li key={i} onClick={() => {
-                                                    if (limitSelect !== item) {
-                                                        setLimitSelect(item);
-                                                        setPageSelect(1);
-                                                        setShowDropdownSelect(false);
-                                                        setTsSelect(item);
-                                                    }
-                                                }} className={`dropdown-li ${limitSelect === item ? 'dropdown-active' : ''}`}>
-                                                    <a className="dropdown-item" href="#">{item}</a>
-                                                </li>
-                                            ))}
-                                        </ul>
+                                            <button onClick={filterOrders} className='right-filter bg-white'>
+                                                <img className='right-filter-img' src={filterImg} alt="filter-img" />
+                                            </button>
+                                        </div>
+                                        <div className='right-limit'>
+                                            <button onClick={() => setShowDropdownSelect(!showDropdownSelect)} className='right-dropdown bg-white'>
+                                                <p className='right-limit-text'>{limitSelect}</p>
+                                                <img src={arrowDown} className={showDropdownSelect ? "up-arrow" : ""} alt="arrow-down-img" />
+                                            </button>
+                                            <ul className={`dropdown-menu bg-white ${showDropdownSelect ? "display-b" : "display-n"}`} aria-labelledby="dropdownMenuButton1">
+                                                {limitList.map((item, i) => (
+                                                    <li key={i} onClick={() => {
+                                                        if (limitSelect !== item) {
+                                                            setLimitSelect(item);
+                                                            setPageSelect(1);
+                                                            setShowDropdownSelect(false);
+                                                            setTsSelect(item);
+                                                        }
+                                                    }} className={`dropdown-li ${limitSelect === item ? 'dropdown-active' : ''}`}>
+                                                        <a className="dropdown-item" href="#">{item}</a>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
                                     </div>
                                 </div>
                                 <div className='table tab-table'>
@@ -215,11 +241,11 @@ const Resizable = ({
                                         <ul className='table-head-list d-flex align justify'>
                                             <li className='table-head-item w-50'>Код</li>
                                             <li className='table-head-item'>Продукция / Производитель</li>
-                                            <li className='table-head-item'>Модел</li>
-                                            <li className='table-head-item'>Куб / Brutto</li>
+                                            <li className='table-head-item w-50'>Модел</li>
+                                            <li className='table-head-item w-70'>Куб / Brutto</li>
                                             <li className='table-head-item w-50'>Цена</li>
-                                            <li className='table-head-item'>Остаток</li>
-                                            <li className='table-head-item'>Скидка</li>
+                                            <li className='table-head-item w-50'>Остаток</li>
+                                            <li className='table-head-item w-50'>Скидка</li>
                                             <li className='table-head-item'>Количество</li>
                                             <li className='table-head-item'>В кейсе</li>
                                             <li className='table-head-item w-47px'>
@@ -249,17 +275,17 @@ const Resizable = ({
                                                             <p className='table-body-text'>{get(item, 'ItemCode', '')}</p>
                                                         </div>
                                                         <div className='w-100 p-16'>
-                                                            <p className='table-body-text truncated-text' title={get(item, 'ItemName', '')}>
+                                                            <p style={{ width: '200px' }} className='table-body-text truncated-text' title={get(item, 'ItemName', '')}>
                                                                 {get(item, 'ItemName', '') || '-'}
                                                             </p>
                                                         </div>
-                                                        <div className='w-100 p-16'>
+                                                        <div className='w-50 p-16'>
                                                             <p className='table-body-text truncated-text' title={get(item, 'ItemName', '')}>
                                                                 {get(item, 'U_model', '-') || '-'}
                                                             </p>
                                                         </div>
-                                                        <div className='w-100 p-16'>
-                                                            <p className='table-body-text truncated-text' title={get(item, 'ItemName', '')}>
+                                                        <div className='w-70 p-16'>
+                                                            <p className='table-body-text ' >
                                                                 {Number(get(item, 'BVolume', '-')) || '-'} / {Number(get(item, 'U_U_brutto', '-')) || '-'}
                                                             </p>
                                                         </div>
@@ -268,13 +294,13 @@ const Resizable = ({
                                                                 {formatterCurrency(Number(get(item, 'Price', 0)), get(item, 'Currency', "USD") || 'USD')}
                                                             </p>
                                                         </div>
-                                                        <div className='w-100 p-16'>
+                                                        <div className='w-50 p-16'>
                                                             <p className='table-body-text'>
                                                                 {Number(get(item, 'OnHand', ''))} / <span className='isCommited'>{Number(get(item, 'OnHand', '')) - Number(get(item, 'IsCommited', ''))}</span>
                                                             </p>
                                                         </div>
-                                                        <div className='w-100 p-16'>
-                                                            <p className='table-body-text truncated-text' title={get(item, 'ItemName', '')}>
+                                                        <div className='w-50 p-16'>
+                                                            <p className='table-body-text'>
                                                                 -{Number(get(item, 'Discount', 0))} %
                                                             </p>
                                                         </div>

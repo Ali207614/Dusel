@@ -14,7 +14,7 @@ const exportTableToExcelWithTotal = async ({ mainData = [] }) => {
 
     worksheet.addRow([])
     worksheet.addRow([])
-    let header = worksheet.addRow([`Накладная: № от ${moment(get(mainData, '[0].DocDate')).format('DD.MM.YYYY')}`])
+    let header = worksheet.addRow([`Накладная: № ${get(mainData, '[0].DocNum', 0)} от ${moment(get(mainData, '[0].DocDate')).format('DD.MM.YYYY')}`])
     worksheet.mergeCells(`A${header.number}:I${header.number}`);
     header.eachCell({ includeEmpty: true }, cell => {
         cell.font = { size: 11, bold: true };
@@ -26,8 +26,7 @@ const exportTableToExcelWithTotal = async ({ mainData = [] }) => {
         { label: `Контрагент: ${get(mainData, '[0].CardName')}`, value: '' },
         { label: `ИНН : ${get(mainData, '[0].LicTradNum', '') || ''}`, value: `ТП: ${get(mainData, '[0].SLP', '') || ''}` },
         { label: `Район: ${get(mainData, '[0].descript', '') || ''}`, value: `Тел. ТП: ${get(mainData, '[0].Mobil', '') || ''}` },
-        { label: `Адрес: ${get(mainData, '[0].Address', '') || ''}`, value: '' },
-        { label: 'Ориентир:', value: '' },
+        { label: `Адрес: ${get(mainData, '[0].Address', '') || ''}`, value: `Примечания: ${get(mainData, '[0].COMMENTS') || ''}` },
         { label: `Телефон: ${get(mainData, '[0].Phone1', '') || ''} , ${get(mainData, '[0].Phone2', '') || ''}`, value: '' }
     ];
 
@@ -76,7 +75,7 @@ const exportTableToExcelWithTotal = async ({ mainData = [] }) => {
             no: i + 1,
             itemCode: get(item, 'U_model'),
             itemName: get(item, 'ItemName'),
-            quantityCase: (Number(get(item, 'Quantity')) / Number(get(item, 'U_Karobka', 1))).toFixed(1),
+            quantityCase: parseFloat((Number(get(item, 'Quantity')) / Number(get(item, 'U_Karobka', 1))).toFixed(4)),
             quantity: Number(get(item, 'Quantity')),
             priceBefDi: Number(get(item, 'PriceBefDi')),
             discPrcnt: `-${Number(get(item, 'Discount', 0))}%`,
@@ -96,9 +95,10 @@ const exportTableToExcelWithTotal = async ({ mainData = [] }) => {
         });
     });
 
+
     const totalRow = worksheet.addRow({
         no: 'Итого',
-        quantityCase: '',
+        quantityCase: mainData?.length ? mainData.reduce((a, b) => a + (Number(get(b, 'Quantity')) / Number(get(b, 'U_Karobka', 1))), 0) : 0,
         quantity: mainData?.length ? mainData.reduce((a, b) => a + Number(b.Quantity), 0) : 0,
         priceBefDi: '',
         discPrcnt: '',
@@ -115,13 +115,9 @@ const exportTableToExcelWithTotal = async ({ mainData = [] }) => {
     worksheet.mergeCells(`D${revaluationRow.number}:H${revaluationRow.number}`);
     revaluationRow.getCell(1).alignment = { horizontal: 'center' };
 
-    const quantityRow = worksheet.addRow({
-        quantityCase: 'Сумма с учётом переоценки',
-        lineTotal: ''
-    });
 
-    worksheet.mergeCells(`D${quantityRow.number}:H${quantityRow.number}`);
-    quantityRow.getCell(1).alignment = { horizontal: 'center' };
+
+
 
     const finalTotalRow = worksheet.addRow({
         quantityCase: 'Сумма с учётом переоценки',
@@ -131,9 +127,9 @@ const exportTableToExcelWithTotal = async ({ mainData = [] }) => {
     worksheet.mergeCells(`D${finalTotalRow.number}:H${finalTotalRow.number}`);
     finalTotalRow.getCell(1).alignment = { horizontal: 'center' };
 
-    worksheet.mergeCells(`A${totalRow.number}:C${totalRow.number + 3}`);
+    worksheet.mergeCells(`A${totalRow.number}:C${totalRow.number + 2}`);
 
-    [totalRow, revaluationRow, quantityRow, finalTotalRow].forEach((row) => {
+    [totalRow, revaluationRow, finalTotalRow].forEach((row) => {
         row.font = { bold: true };
         row.height = 22;
         row.eachCell((cell) => {
@@ -162,7 +158,7 @@ const exportTableToExcelWithoutTotal = async ({ mainData = [] }) => {
 
     worksheet.addRow([])
     worksheet.addRow([])
-    let header = worksheet.addRow([`Накладная: № от ${moment(get(mainData, '[0].DocDate')).format('DD.MM.YYYY')}`])
+    let header = worksheet.addRow([`Накладная: № ${get(mainData, '[0].DocNum', 0)} от ${moment(get(mainData, '[0].DocDate')).format('DD.MM.YYYY')}`])
     worksheet.mergeCells(`A${header.number}:I${header.number}`);
     header.eachCell({ includeEmpty: true }, cell => {
         cell.font = { size: 11, bold: true };
@@ -173,10 +169,10 @@ const exportTableToExcelWithoutTotal = async ({ mainData = [] }) => {
         { label: `Контрагент: ${get(mainData, '[0].CardName')}`, value: '' },
         { label: `ИНН : ${get(mainData, '[0].LicTradNum', '') || ''}`, value: `ТП: ${get(mainData, '[0].SLP', '') || ''}` },
         { label: `Район: ${get(mainData, '[0].descript', '') || ''}`, value: `Тел. ТП: ${get(mainData, '[0].Mobil', '') || ''}` },
-        { label: `Адрес: ${get(mainData, '[0].Address', '') || ''}`, value: '' },
-        { label: 'Ориентир:', value: '' },
+        { label: `Адрес: ${get(mainData, '[0].Address', '') || ''}`, value: `Примечания: ${get(mainData, '[0].COMMENTS') || ''}` },
         { label: `Телефон: ${get(mainData, '[0].Phone1', '') || ''} , ${get(mainData, '[0].Phone2', '') || ''}`, value: '' }
     ];
+
 
     headerInfo.forEach(info => {
         const row = worksheet.addRow([info.label, '', '', '', '', '', info.value]);
@@ -223,7 +219,7 @@ const exportTableToExcelWithoutTotal = async ({ mainData = [] }) => {
             no: i + 1,
             itemCode: get(item, 'U_model'),
             itemName: get(item, 'ItemName'),
-            quantityCase: (Number(get(item, 'Quantity')) / Number(get(item, 'U_Karobka', 1))).toFixed(1),
+            quantityCase: (Number(get(item, 'Quantity')) / Number(get(item, 'U_Karobka', 1))).toFixed(4),
             quantity: Number(get(item, 'Quantity')),
 
         });
@@ -242,7 +238,7 @@ const exportTableToExcelWithoutTotal = async ({ mainData = [] }) => {
 
     const totalRow = worksheet.addRow({
         no: 'Итого',
-        quantityCase: '',
+        quantityCase: mainData?.length ? mainData.reduce((a, b) => a + (Number(get(b, 'Quantity')) / Number(get(b, 'U_Karobka', 1))), 0) : 0,
         quantity: mainData?.length ? mainData.reduce((a, b) => a + Number(b.Quantity), 0) : 0,
 
     });
@@ -283,7 +279,7 @@ const sandTableToExcelWithoutTotal = async ({ mainData = [] }) => {
 
     worksheet.addRow([])
     worksheet.addRow([])
-    let header = worksheet.addRow([`Накладная: № от ${moment(get(mainData, '[0].DocDate')).format('DD.MM.YYYY')}`])
+    let header = worksheet.addRow([`Накладная: № ${get(mainData, '[0].DocNum', 0)} от ${moment(get(mainData, '[0].DocDate')).format('DD.MM.YYYY')}`])
     worksheet.mergeCells(`A${header.number}:I${header.number}`);
     header.eachCell({ includeEmpty: true }, cell => {
         cell.font = { size: 11, bold: true };
@@ -341,7 +337,7 @@ const sandTableToExcelWithoutTotal = async ({ mainData = [] }) => {
             no: i + 1,
             itemCode: get(item, 'U_model'),
             itemName: get(item, 'ItemName'),
-            quantityCase: (Number(get(item, 'Quantity')) / Number(get(item, 'U_Karobka', 1))).toFixed(1),
+            quantityCase: (Number(get(item, 'Quantity')) / Number(get(item, 'U_Karobka', 1))).toFixed(4),
             quantity: Number(get(item, 'Quantity')),
 
         });
@@ -360,7 +356,7 @@ const sandTableToExcelWithoutTotal = async ({ mainData = [] }) => {
 
     const totalRow = worksheet.addRow({
         no: 'Итого',
-        quantityCase: '',
+        quantityCase: mainData?.length ? mainData.reduce((a, b) => a + (Number(get(b, 'Quantity')) / Number(get(b, 'U_Karobka', 1))), 0) : 0,
         quantity: mainData?.length ? mainData.reduce((a, b) => a + Number(b.Quantity), 0) : 0,
 
     });

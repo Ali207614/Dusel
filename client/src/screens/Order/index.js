@@ -478,6 +478,37 @@ const Order = () => {
     }
   }
 
+  const inputRefs = useRef([]);
+  const inputKarobkaRefs = useRef([]);
+
+  const handleKarobkaKeyDown = (event, index) => {
+    if (event.key === 'ArrowDown') {
+      if (index < inputKarobkaRefs.current.length - 1) {
+        // Keyingi inputga o'tamiz
+        inputKarobkaRefs.current[index + 1].focus();
+      }
+    } else if (event.key === 'ArrowUp') {
+      if (index > 0) {
+        // Oldingi inputga qaytamiz
+        inputKarobkaRefs.current[index - 1].focus();
+      }
+    }
+  };
+
+  const handleKeyDown = (event, index) => {
+    if (event.key === 'ArrowDown') {
+      if (index < inputRefs.current.length - 1) {
+        // Keyingi inputga o'tamiz
+        inputRefs.current[index + 1].focus();
+      }
+    } else if (event.key === 'ArrowUp') {
+      if (index > 0) {
+        // Oldingi inputga qaytamiz
+        inputRefs.current[index - 1].focus();
+      }
+    }
+  };
+
 
 
   return (
@@ -487,8 +518,9 @@ const Order = () => {
 
           <div className='container'>
             <div className="order-head">
+
               <div className="order-main d-flex align justify">
-                <button onClick={() => navigate('/home')} className='btn-back'>Закрить</button>
+                <button onClick={() => navigate('/home')} className='btn-back'>Назад</button>
                 <button onClick={postOrder} className={`btn-head position-relative`}>
                   {orderLoading ? <Spinner /> : (get(docEntry, 'id', 0) ? 'Обновить' : 'Добавить')}
                 </button>
@@ -668,13 +700,13 @@ const Order = () => {
                   <li className='table-head-item w-50'>
                     Код
                   </li>
-                  <li className='table-head-item'>Продукция/Производитель</li>
-                  <li className='table-head-item'>Модел</li>
-                  <li className='table-head-item '>Куб / Brutto</li>
+                  <li className='table-head-item w-100'>Продукция/Производитель</li>
+                  <li className='table-head-item w-70'>Модел</li>
+                  <li className='table-head-item w-50'>Куб / Brutto</li>
                   <li className='table-head-item w-50'>Цена</li>
-                  <li className='table-head-item'>Остаток</li>
-                  <li className='table-head-item'>Количество</li>
-                  <li className='table-head-item'>В кейсе</li>
+                  <li className='table-head-item w-50'>Остаток</li>
+                  <li className='table-head-item w-70'>Количество</li>
+                  <li className='table-head-item w-70'>В кейсе</li>
                   <li className='table-head-item w-47px'>
                     <button onClick={() => {
                       let filterData = mainData.filter(el => {
@@ -711,16 +743,16 @@ const Order = () => {
                                     </p>
                                   </div>
                                   <div className='w-100 p-16' >
-                                    <p className='table-body-text truncated-text' title={get(item, 'ItemName', '')}>
+                                    <p style={{ width: '200px' }} className='table-body-text truncated-text' title={get(item, 'ItemName', '')}>
                                       {get(item, 'ItemName', '') || '-'}
                                     </p>
                                   </div>
-                                  <div className='w-100 p-16' >
+                                  <div className='w-70 p-16' >
                                     <p className='table-body-text truncated-text ' title={get(item, 'U_model', '')}>
                                       {get(item, 'U_model', '-') || '-'}
                                     </p>
                                   </div>
-                                  <div className='w-100 p-16' >
+                                  <div className='w-50 p-16' >
                                     <p className='table-body-text truncated-text' title={`${Number(get(item, 'BVolume', '-')) || '-'} / ${Number(get(item, 'U_U_brutto', '-')) || '-'}`}>
                                       {Number(get(item, 'BVolume', '-')) || '-'} / {Number(get(item, 'U_U_brutto', '-')) || '-'}
                                     </p>
@@ -730,26 +762,37 @@ const Order = () => {
                                       {formatterCurrency(Number(get(item, 'Price', 0)), get(item, 'Currency', "USD") || 'USD')}
                                     </p>
                                   </div>
-                                  <div className='w-100 p-16' >
+                                  <div className='w-50 p-16' >
                                     <p className='table-body-text '>
                                       {Number(get(item, 'OnHand', ''))} / <span className='isCommited'>{Number(get(item, 'OnHand', '')) - Number(get(item, 'IsCommited', ''))}</span>
                                     </p>
                                   </div>
-                                  <div className='w-100 p-16' >
-                                    <p className='table-body-text '>
-                                      <input value={get(item, 'value', '')} onChange={(e) => {
+                                  <div className='w-70 p-16' >
+                                    <input
+                                      ref={(el) => (inputKarobkaRefs.current[i] = el)}
+                                      onKeyDown={(event) => handleKarobkaKeyDown(event, i)}
+                                      value={get(item, 'value', '')}
+                                      onChange={(e) => {
                                         changeValue(e.target.value, get(item, 'ItemCode', ''))
                                         changeKarobka((e.target.value ? (Math.floor(e.target.value / Number(get(item, 'U_Karobka', 1) || 1))).toString() : ''), get(item, 'ItemCode', ''))
-                                      }} type="text" className='table-body-inp' placeholder='-' />
-                                    </p>
+                                      }}
+                                      type="text"
+                                      className='table-body-inp'
+                                      placeholder='-' />
                                   </div>
-                                  <div className='w-100 p-16' >
-                                    <p className='table-body-text '>
-                                      <input value={get(item, 'karobka', '')} onChange={(e) => {
+                                  <div className='w-70 p-16' >
+                                    <input
+                                      ref={(el) => (inputRefs.current[i] = el)}
+                                      onKeyDown={(event) => handleKeyDown(event, i)}
+                                      value={get(item, 'karobka', '')}
+                                      onChange={(e) => {
                                         changeKarobka(e.target.value, get(item, 'ItemCode', ''))
                                         changeValue((e.target.value ? ((e.target.value || 1) * Number(get(item, 'U_Karobka', 1) || 1)).toString() : ''), get(item, 'ItemCode', ''))
-                                      }} type="text" className='table-body-inp' placeholder={`${Number(get(item, 'U_Karobka', 1) || 1)} / кор`} />
-                                    </p>
+                                      }}
+                                      type="text"
+                                      className='table-body-inp'
+                                      placeholder={`${Number(get(item, 'U_Karobka', 1) || 1)} / кор`}
+                                    />
                                   </div>
                                   <div className='w-47px p-16' >
                                     <button

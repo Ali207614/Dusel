@@ -47,7 +47,7 @@ const InvoiceTable = ({ total = false, items, setItems, draft = false }) => {
                         <td>{i + 1}</td>
                         <td>{get(item, 'U_model')}</td>
                         <td>{get(item, 'ItemName')}</td>
-                        <td>{(Number(get(item, 'Quantity')) / Number(get(item, 'U_Karobka', 1))).toFixed(1)}</td>
+                        <td>{parseFloat((Number(get(item, 'Quantity')) / Number(get(item, 'U_Karobka', 1))).toFixed(2))}</td>
                         <td>{Number(get(item, 'Quantity'))}</td>
                         {
                             total ? (
@@ -65,7 +65,7 @@ const InvoiceTable = ({ total = false, items, setItems, draft = false }) => {
             <tfoot>
                 <tr>
                     <td {...(total ? { rowSpan: 4 } : {})} colSpan="3">Итого</td>
-                    <td></td>
+                    <td> {items?.length ? items.reduce((a, b) => a + (Number(get(b, 'Quantity')) / Number(get(b, 'U_Karobka', 1))), 0) : 0}</td>
                     <td>{items?.length ? items.reduce((a, b) => a + Number(b.Quantity), 0) : 0}</td>
                     {
                         total ? (
@@ -85,10 +85,6 @@ const InvoiceTable = ({ total = false, items, setItems, draft = false }) => {
                             <tr>
                                 <td colSpan="5">Сумма переоценки (к заказу)</td>
                                 <td>{(sumWithoutDisCount - Number(get(items, '[0].DocTotal', 0))).toFixed(2)}</td>
-                            </tr>
-                            <tr>
-                                <td colSpan="5">Сумма с учётом переоценки</td>
-                                <td></td>
                             </tr>
                             <tr>
                                 <td colSpan="5">Сумма с учётом переоценки</td>
