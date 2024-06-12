@@ -15,7 +15,7 @@ import { get, isNumber } from 'lodash';
 import formatterCurrency from '../../helpers/currency';
 import { FadeLoader } from "react-spinners";
 import LazyLoad from "react-lazyload";
-import { ErrorModal, ConfirmModal, FilterModal, FilterModalResizable } from '../../components/Modal';
+import { ErrorModal, ConfirmModal, FilterModal, FilterModalResizable, WarningModal } from '../../components/Modal';
 import { Spinner } from '../../components';
 import { useSelector } from 'react-redux';
 import { FixedSizeList as List } from 'react-window';
@@ -90,6 +90,7 @@ const Order = () => {
   const [filterPropertyResize, setFilterPropertyResize] = useState({})
 
   const errorRef = useRef();
+  const warningRef = useRef();
   const confirmRef = useRef();
 
   const filterRef = useRef();
@@ -104,6 +105,11 @@ const Order = () => {
   const getErrorRef = useCallback(ref => {
     errorRef.current = ref;
   }, []);
+
+  const getWarningRef = useCallback(ref => {
+    warningRef.current = ref;
+  }, []);
+
   const confirmModalRef = useCallback(ref => {
     confirmRef.current = ref;
   }, []);
@@ -297,7 +303,20 @@ const Order = () => {
     setActualData([item, ...state])
   }
 
-
+  const checkCustomerBalance = ({ customerCode = '', summa = '' }) => {
+    setOrderLoading(true)
+    return axios
+      .get(
+        url + `/api/checkCustomerBalance?customerCode=${customerCode}&summa=${summa}` ,
+      )
+      .then(({ data }) => {
+        return data
+      })
+      .catch(err => {
+        errorNotify("Customer balance ")
+        return
+      });
+  };
 
   const changeValue = (value, itemCode) => {
     let index = mainData.findIndex(el => get(el, 'ItemCode', '') == itemCode)
@@ -315,7 +334,7 @@ const Order = () => {
     }
   }
 
-  const postOrder = () => {
+  const postOrder = async () => {
     if (!customerCode) {
       warningNotify("Customer tanlanmagan")
       return
@@ -345,6 +364,18 @@ const Order = () => {
     })) {
       warningNotify("Miqdor ko'p")
       return
+    }
+    let summa = (actualData.length ?
+      actualData.reduce((a, b) => a + (Number(get(b, 'Price', 0)) * Number(get(b, 'value', 0))) - (Number(get(b, 'Price', 0)) * Number(get(b, 'value', 0)) * Number(get(b, 'disCount', 0)) / 100), 0)
+      : 0)
+    if (!get(docEntry, 'id', 0)) {
+      let isCheck = await checkCustomerBalance({ customerCode, summa })
+      setOrderLoading(false)
+      if (get(isCheck, 'value[0].TRUE')) {
+        warningRef.current?.open(`Belgilangan limit summadan ko'p`);
+        // warningRef.current?.open(`Вы уверены, что хотите это ${get(docEntry, 'id', 0) ? 'обновить' : 'добавить'} ? `);
+        return
+      }
     }
     setIsEmpty(false)
     confirmRef.current?.open(`Вы уверены, что хотите это ${get(docEntry, 'id', 0) ? 'обновить' : 'добавить'} ? `);
@@ -896,6 +927,10 @@ const Order = () => {
 
         <ErrorModal
           getRef={getErrorRef}
+          title={'Ошибка'}
+        />
+        <WarningModal
+          getRef={getWarningRef}
           title={'Ошибка'}
         />
         <ConfirmModal getRef={confirmModalRef} title={"Oshibka"} fn={get(docEntry, 'id', '') ? Update : Orders} />

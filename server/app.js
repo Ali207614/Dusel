@@ -102,6 +102,16 @@ app.get('/api/customer', async function (req, res) {
         });
     }
 })
+app.get('/api/checkCustomerBalance', async function (req, res) {
+    try {
+        const ret = await checkCustomerBalance(req.query)
+        return res.status(200).send(ret)
+    } catch (e) {
+        return res.status(400).send({
+            message: e
+        });
+    }
+})
 
 app.get('/api/order', async function (req, res) {
     try {
@@ -266,6 +276,34 @@ function getCustomer({ search }) {
         });
     });
 }
+function checkCustomerBalance({ customerCode = '', summa = 0 }) {
+    return new Promise((resolve, reject) => {
+        conn.connect(conn_params, function (err) {
+            if (err) {
+                reject(err);
+                conn.disconnect();
+                return;
+            }
+
+            let sql = `
+            SELECT distinct true FROM ${db}.OCRD T0 WHERE (${+summa} +  T0."OrdersBal"  +  T0."Balance" ) >  T0."CreditLine" and  T0."CardCode"  = '${customerCode}' and  T0."CardType"  = 'C' and T0."CreditLine" > 0
+            `
+            conn.exec(sql, function (err, result) {
+                if (err) {
+                    reject(err);
+                    conn.disconnect();
+                    return;
+                }
+
+                resolve({
+                    value: result
+                });
+
+                conn.disconnect();
+            });
+        });
+    });
+}
 
 function getSalesPerson() {
     return new Promise((resolve, reject) => {
@@ -304,7 +342,7 @@ function getItems({ offset, limit, whsCode, search, items = [], group = '',
                 conn.disconnect();
                 return;
             }
-            let innerSql = `SELECT sum(1) FROM ${db}.OITM  T0 INNER JOIN ${db}.OITW  T1 ON T0."ItemCode" = T1."ItemCode" INNER JOIN ${db}.ITM1 T3 ON T0."ItemCode" = T3."ItemCode" LEFT JOIN ${db}.EDG1  T4 ON T0."ItemCode" = T4."ObjKey" and  T4."ObjType" = '4' WHERE  T0."DfltWH" = '${whsCode}' and  T3."PriceList"  = 1 and T0."Series" in (76,77,91) and T1."WhsCode" = '${whsCode}'`
+            let innerSql = `SELECT sum(1) FROM ${db}.OITM  T0 INNER JOIN ${db}.OITW  T1 ON T0."ItemCode" = T1."ItemCode" INNER JOIN ${db}.ITM1 T3 ON T0."ItemCode" = T3."ItemCode" LEFT JOIN ${db}.EDG1  T4 ON T0."ItemCode" = T4."ObjKey" and  T4."ObjType" = '4' WHERE  T0."DfltWH" = '${whsCode}' and  T3."PriceList"  = 1 and T0."Series" in (72,73) and T1."WhsCode" = '${whsCode}'`
             //  76,77,91
             if (items.length) {
                 innerSql += ` and T0."ItemCode" not in (${items})`
@@ -319,7 +357,7 @@ function getItems({ offset, limit, whsCode, search, items = [], group = '',
             if (search?.length) {
                 innerSql += ` and (LOWER(T0."ItemCode") like '%${search}%' or LOWER(T0."ItemName") like '%${search}%' or LOWER(T0."U_model") like '%${search}%') `
             }
-            let sql = `SELECT  (${innerSql}) as length  ,T4."Discount",T0."ItmsGrpCod",T0."U_Kategoriya", T0."U_Karobka", T0."BVolume", T0."U_U_netto", T0."U_U_brutto", T0."U_model",T0."U_smr",  T1."IsCommited", T1."OnHand", T1."OnOrder", T1."Counted", T0."ItemCode", T0."ItemName", T0."CodeBars", T1."AvgPrice", T3."PriceList", T3."Price" , T3."Currency" FROM ${db}.OITM  T0 INNER JOIN ${db}.OITW  T1 ON T0."ItemCode" = T1."ItemCode" INNER JOIN ${db}.ITM1 T3 ON T0."ItemCode" = T3."ItemCode" LEFT JOIN ${db}.EDG1  T4 ON  T0."ItemCode" = T4."ObjKey" and T4."ObjType" = '4'  WHERE  T0."DfltWH" = '${whsCode}' and T3."PriceList"  = 1 and T0."Series" in (76,77,91) and T1."WhsCode" = '${whsCode}'`
+            let sql = `SELECT  (${innerSql}) as length  ,T4."Discount",T0."ItmsGrpCod",T0."U_Kategoriya", T0."U_Karobka", T0."BVolume", T0."U_U_netto", T0."U_U_brutto", T0."U_model",T0."U_smr",  T1."IsCommited", T1."OnHand", T1."OnOrder", T1."Counted", T0."ItemCode", T0."ItemName", T0."CodeBars", T1."AvgPrice", T3."PriceList", T3."Price" , T3."Currency" FROM ${db}.OITM  T0 INNER JOIN ${db}.OITW  T1 ON T0."ItemCode" = T1."ItemCode" INNER JOIN ${db}.ITM1 T3 ON T0."ItemCode" = T3."ItemCode" LEFT JOIN ${db}.EDG1  T4 ON  T0."ItemCode" = T4."ObjKey" and T4."ObjType" = '4'  WHERE  T0."DfltWH" = '${whsCode}' and T3."PriceList"  = 1 and T0."Series" in (72,73) and T1."WhsCode" = '${whsCode}'`
             //  76,77,91
             if (items.length) {
                 sql += ` and T0."ItemCode" not in (${items})`
@@ -345,7 +383,6 @@ function getItems({ offset, limit, whsCode, search, items = [], group = '',
 
             conn.exec(sql, function (err, result) {
                 if (err) {
-                    console.log(err, ' bu err')
                     reject(err);
                     conn.disconnect();
                     return;

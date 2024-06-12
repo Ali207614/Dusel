@@ -1,8 +1,8 @@
-import React, {memo, useEffect, useState} from 'react';
+import React, { memo, useEffect, useState } from 'react';
 import Styles from './Styles';
 import SuccessImage from '../../../assets/images/warning.png';
 import Modal from 'react-modal';
-import {useTranslation} from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 
 const customStyles = {
   content: {
@@ -14,16 +14,15 @@ const customStyles = {
     transform: 'translate(-50%, -50%)',
     borderRadius: 15,
     border: 'none',
-    width: '40%',
-    minHeight: '50%',
+    width: '30%',
   },
   overlay: {
     background: '#0000008D',
   },
 };
 
-const WarningModal = ({getRef}) => {
-  const {t} = useTranslation();
+const WarningModal = ({ getRef }) => {
+  const { t } = useTranslation();
 
   const [isOpenModal, setIsOpenModal] = useState(false);
   const [titleS, setTitleS] = useState('');
@@ -47,9 +46,8 @@ const WarningModal = ({getRef}) => {
       ariaHideApp={false}>
       <Styles>
         <div className="card">
-          <img src={SuccessImage} alt="warning image" className="img" />
-          <h2> {t('Внимание')}!</h2>
-
+          <img width={150} height={150} src={SuccessImage} alt="warning image" className="img" />
+          <p className="mainTitle">{t('Внимание')}</p>
           <p className="title">{titleS}</p>
           <div className="centerCard">
             <button className="btnY" onClick={() => setIsOpenModal(false)}>
@@ -57,6 +55,7 @@ const WarningModal = ({getRef}) => {
             </button>
           </div>
         </div>
+
       </Styles>
     </Modal>
   );

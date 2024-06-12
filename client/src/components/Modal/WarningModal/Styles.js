@@ -47,5 +47,25 @@ const Styles = styled.div`
   .img {
     width: 150px;
   }
+  .mainTitle {
+      margin: 0;
+      padding: 0;
+      font-size: 35px;
+      color: #171717;
+      font-weight: bold;
+    }
+  .title{
+    color: #000;
+    margin: 24px 0;
+
+text-align: center;
+font-variant-numeric: lining-nums tabular-nums stacked-fractions;
+font-feature-settings: 'clig' off, 'liga' off;
+font-family: "Inter Tight";
+font-size: 16px;
+font-style: normal;
+font-weight: 600;
+line-height: 24px; 
+  }
 `;
 export default Styles;

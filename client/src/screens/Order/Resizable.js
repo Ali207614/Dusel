@@ -116,7 +116,6 @@ const Resizable = ({
     };
 
     useEffect(() => {
-        console.log(actualData, ' bu actual data')
         if (actualData.length === 0) {
             setSearch('');
         }

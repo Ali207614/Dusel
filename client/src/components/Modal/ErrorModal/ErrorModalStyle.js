@@ -5,9 +5,7 @@ const ErrorModalStyle = styled.div`
   .card {
     background-color: #ffffff;
     text-align: center;
-    display: flex;
     flex-wrap: wrap;
-    min-height: 330px;
     .cardTop {
       width: 100%;
     }
@@ -20,14 +18,6 @@ const ErrorModalStyle = styled.div`
     .img {
       width: 130px;
       object-fit: cover;
-    }
-    .title {
-      margin: 0;
-      padding: 0;
-      font-size: 20px;
-      color: #6d6d6d;
-      font-weight: 600;
-      margin-top: 10px;
     }
     .mainTitle {
       margin: 0;
@@ -54,6 +44,19 @@ const ErrorModalStyle = styled.div`
       background-color: red;
       color: white;
     }
+  }
+  .title{
+    color: #000;
+
+text-align: center;
+font-variant-numeric: lining-nums tabular-nums stacked-fractions;
+font-feature-settings: 'clig' off, 'liga' off;
+font-family: "Inter Tight";
+font-size: 16px;
+font-style: normal;
+font-weight: 600;
+line-height: 24px; 
+margin: 24px 0;
   }
 `;
 export default ErrorModalStyle;

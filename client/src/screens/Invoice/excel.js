@@ -157,7 +157,7 @@ const exportTableToExcelWithTotal = async ({ mainData = [] }) => {
 
     const buffer = await workbook.xlsx.writeBuffer();
     const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-    saveAs(blob, `${get(mainData, '[0].CardName')}`);
+    saveAs(blob, `${get(mainData, '[0].CardName')}.xlsx`);
 };
 
 const exportTableToExcelWithoutTotal = async ({ mainData = [] }) => {
@@ -414,7 +414,7 @@ const sandTableToExcelWithoutTotal = async ({ mainData = [] }) => {
 
     const formData = new FormData();
     formData.append('chat_id', groupChatId); // replace with your Telegram chat ID
-    formData.append('document', new File([blob], `${get(mainData, '[0].CardName')}`, { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }));
+    formData.append('document', new File([blob], `${get(mainData, '[0].CardName')}.xlsx`, { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }));
 
     // Send the file to the Telegram bot
     await axios.post(`https://api.telegram.org/bot7059322860:AAF4OCocNRPMwQ86DUUHWpD_igqIUTeDp5Y/sendDocument`, formData, {

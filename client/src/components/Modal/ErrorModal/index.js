@@ -1,8 +1,8 @@
-import React, {memo, useEffect, useState} from 'react';
+import React, { memo, useEffect, useState } from 'react';
 import ErrorModalStyle from './ErrorModalStyle';
 import ErrorImage from '../../../assets/images/error.png';
 import Modal from 'react-modal';
-import {useTranslation} from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 
 const customStyles = {
   content: {
@@ -14,7 +14,7 @@ const customStyles = {
     transform: 'translate(-50%, -50%)',
     borderRadius: 15,
     border: 'none',
-    width: '40%',
+    width: '30%',
     minHeight: '50%',
   },
   overlay: {
@@ -22,8 +22,8 @@ const customStyles = {
   },
 };
 
-const ErrorModal = ({title = '', getRef}) => {
-  const {t} = useTranslation();
+const ErrorModal = ({ title = '', getRef }) => {
+  const { t } = useTranslation();
 
   const [isOpenModal, setIsOpenModal] = useState(false);
   const [titleS, setTitleS] = useState(title);
