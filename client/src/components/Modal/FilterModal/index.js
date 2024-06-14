@@ -97,12 +97,12 @@ const FilterModal = ({ getRef, filterProperty, setFilterProperty, getItems, arg,
                         return (<li key={i} onClick={() => {
                           if (get(item, 'VALUE', '') == '-') {
                             setShowDropdownWarehouse(false)
-                            setFilterProperty({ ...filterProperty, Category: '' })
+                            setFilterProperty({ ...filterProperty, Category: '', CategoryCode: '' })
                             return
                           }
                           if (get(filterProperty, 'Category', '-') != get(item, 'VALUE', '')) {
                             setShowDropdownWarehouse(false)
-                            setFilterProperty({ ...filterProperty, Category: get(item, 'VALUE', '') })
+                            setFilterProperty({ ...filterProperty, Category: get(item, 'VALUE', ''), CategoryCode: get(item, 'CODE', '') })
                             return
                           }
                           return

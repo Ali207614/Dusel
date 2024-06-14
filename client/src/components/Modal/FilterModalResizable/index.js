@@ -56,9 +56,6 @@ const FilterModalResizable = ({ actualData, getRef, filterProperty, setFilterPro
 
 
   const handleChange = () => {
-    console.log(filterProperty)
-    console.log(actualData)
-    console.log(search)
     setState(actualData.filter(item => {
       if (!(get(item, 'ItemCode', '').toLowerCase().includes(search.toLowerCase()) ||
         get(item, 'ItemName', '').toLowerCase().includes(search.toLowerCase()) ||
@@ -66,7 +63,7 @@ const FilterModalResizable = ({ actualData, getRef, filterProperty, setFilterPro
         return false
       }
 
-      if (get(filterProperty, 'Category', '') && get(item, 'U_Kategoriya') != get(filterProperty, 'Category', '')) {
+      if (get(filterProperty, 'CategoryCode', '') && get(item, 'U_Kategoriya') != get(filterProperty, 'CategoryCode', '')) {
         return false
       }
       if (get(filterProperty, 'GroupCode', '') && get(item, 'ItmsGrpCod') != get(filterProperty, 'GroupCode', '')) {
@@ -118,12 +115,12 @@ const FilterModalResizable = ({ actualData, getRef, filterProperty, setFilterPro
                         return (<li key={i} onClick={() => {
                           if (get(item, 'VALUE', '') == '-') {
                             setShowDropdownWarehouse(false)
-                            setFilterProperty({ ...filterProperty, Category: '' })
+                            setFilterProperty({ ...filterProperty, Category: '', CategoryCode: '' })
                             return
                           }
                           if (get(filterProperty, 'Category', '-') != get(item, 'VALUE', '')) {
                             setShowDropdownWarehouse(false)
-                            setFilterProperty({ ...filterProperty, Category: get(item, 'VALUE', '') })
+                            setFilterProperty({ ...filterProperty, Category: get(item, 'VALUE', ''), CategoryCode: get(item, 'CODE', '') })
                             return
                           }
                           return

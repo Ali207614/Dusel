@@ -494,7 +494,7 @@ const Order = () => {
 
   const subQuery = (prop = {}) => {
     let group = get(prop, 'Group', '')
-    let category = get(prop, 'Category', '')
+    let category = get(prop, 'CategoryCode', '')
     let groupCode = get(prop, 'GroupCode', '').toString()
 
     let list = [
