@@ -93,7 +93,7 @@ const FilterModal = ({ getRef, filterProperty, setFilterProperty, getItems, arg,
                   </button>
                   <ul style={{ zIndex: 1 }} className={`dropdown-menu  ${(showDropDownWarehouse) ? "display-b" : "display-n"}`} aria-labelledby="dropdownMenuButton1">
                     {
-                      ['-', ...filterData.filter(el => el.TYPE == 'U_Kategoriya')].map((item, i) => {
+                      ['-', ...filterData.filter(el => el.TYPE == 'U_Kategoriya').sort((a, b) => get(a, 'CODE', 0) - get(b, 'CODE', 1))].map((item, i) => {
                         return (<li key={i} onClick={() => {
                           if (get(item, 'VALUE', '') == '-') {
                             setShowDropdownWarehouse(false)
@@ -106,7 +106,7 @@ const FilterModal = ({ getRef, filterProperty, setFilterProperty, getItems, arg,
                             return
                           }
                           return
-                        }} className={`dropdown-li ${get(filterProperty, 'Category', '-') == get(item, 'VALUE', '') ? 'dropdown-active' : ''}`}><a className="dropdown-item" href="#">{get(item, 'VALUE', '')}</a></li>)
+                        }} className={`dropdown-li ${get(filterProperty, 'Category', '-') == get(item, 'VALUE', '') ? 'dropdown-active' : ''}`}><a className="dropdown-item" href="#">{get(item, 'VALUE', '')} - {get(item, 'CODE', '')}</a></li>)
                       })
                     }
                   </ul>
@@ -121,7 +121,7 @@ const FilterModal = ({ getRef, filterProperty, setFilterProperty, getItems, arg,
                   </button>
                   <ul style={{ zIndex: 1 }} className={`dropdown-menu  ${(groupName) ? "display-b" : "display-n"}`} aria-labelledby="dropdownMenuButton1">
                     {
-                      ['-', ...filterData.filter(el => el.TYPE == 'ItmsGrpNam')].map((item, i) => {
+                      ['-', ...filterData.filter(el => el.TYPE == 'ItmsGrpNam').sort((a, b) => get(a, 'CODE', 0) - get(b, 'CODE', 1))].map((item, i) => {
                         return (<li key={i} onClick={() => {
                           if (get(item, 'CODE', '') == '-') {
                             setGroupName(false)

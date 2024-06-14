@@ -223,9 +223,7 @@ function getFilterItem() {
             SELECT DISTINCT T0."ItmsGrpNam" AS Value, T0."ItmsGrpCod" AS Code ,'ItmsGrpNam' AS Type
             FROM ${db}.OITB T0
             UNION
-            SELECT DISTINCT T0."U_Kategoriya" AS Value ,T0."U_Kategoriya" AS Code, 'U_Kategoriya' AS Type
-            FROM ${db}.OITM T0
-            
+            SELECT T0."Descr" AS Value , T0."FldValue" AS Code ,'U_Kategoriya' AS Type  from ${db}.UFD1  T0 WHERE T0."TableID" ='OITM' and T0."FieldID" = 1 
             `
 
             conn.exec(sql, function (err, result) {
