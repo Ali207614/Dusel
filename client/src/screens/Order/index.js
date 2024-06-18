@@ -233,7 +233,6 @@ const Order = () => {
   const getItems = (pagination) => {
     setLoading(true)
     let { link } = subQuery(get(pagination, 'filterProperty', {}))
-    console.log(link, ' bu link')
     axios
       .get(
         url + `/api/items?offset=${get(pagination, 'page', 1)}&limit=${get(pagination, 'limit', limit)}&whsCode=${get(pagination, 'warehouse', warehouse)}&search=${get(pagination, 'value', '').toLowerCase()}&items=${state.map(item => `'${item.ItemCode}'`)}` + link,
@@ -498,14 +497,12 @@ const Order = () => {
     let category = get(prop, 'CategoryCode', '').toString()
     let groupCode = get(prop, 'GroupCode', '').toString()
 
-    console.log(prop)
     let list = [
       { name: 'group', data: group },
       { name: 'code', data: groupCode },
       { name: 'category', data: category },
     ].filter(item => get(item, 'data', '').length)
 
-    console.log(list, ' bu list')
     return {
       link: list.map(item => {
         return `&${get(item, 'name', '')}=${get(item, 'data', '')}`

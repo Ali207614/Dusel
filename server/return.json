@@ -1,1 +1,135 @@
-[]
+[
+    {
+        "state": [
+            {
+                "LENGTH": 1346,
+                "DfltWH": "B-X",
+                "WHS": "BAZA2",
+                "Discount": "5.000000",
+                "ItmsGrpCod": 101,
+                "U_Kategoriya": "11",
+                "U_Karobka": "100",
+                "BVolume": "0.000380",
+                "U_U_netto": "0.029400",
+                "U_U_brutto": "0.034400",
+                "U_model": "D55-5",
+                "U_smr": "1.000000",
+                "IsCommited": "1200.000000",
+                "OnHand": "19700.000000",
+                "OnOrder": "0.000000",
+                "Counted": "0.000000",
+                "ItemCode": "GPZ0001",
+                "ItemName": "LED 5W 6500K DUSEL",
+                "CodeBars": null,
+                "AvgPrice": "0.248600",
+                "PriceList": 1,
+                "Price": "0.630000",
+                "Currency": "USD",
+                "value": "100",
+                "karobka": "1",
+                "disCount": 5,
+                "CardName": "Torabek Xorazim",
+                "CardCode": "ZM0010",
+                "DocDate": "2024-06-18",
+                "DocDueDate": "2024-06-18",
+                "WhsCode": "B-X",
+                "Quantity": "100",
+                "schema": {
+                    "CardCode": "ZM0010",
+                    "DocDate": "2024-06-18",
+                    "DocDueDate": "2024-06-18",
+                    "SalesPersonCode": -1,
+                    "Comments": "",
+                    "DocumentLines": [
+                        {
+                            "ItemCode": "GPZ0001",
+                            "Quantity": 100,
+                            "WarehouseCode": "B-X"
+                        },
+                        {
+                            "ItemCode": "GPZ0003",
+                            "Quantity": 100,
+                            "WarehouseCode": "B-X"
+                        }
+                    ]
+                },
+                "salesPersonCode": -1,
+                "salesPerson": "Нет",
+                "comment": "",
+                "descript": "Andijon",
+                "Address": null,
+                "ZipCode": null,
+                "Phone1": "985779040",
+                "Phone2": null,
+                "LicTradNum": "3100",
+                "CardType": "C",
+                "CreateDate": "2024-06-18T18:56:52.743Z"
+            },
+            {
+                "LENGTH": 1346,
+                "DfltWH": "B-X",
+                "WHS": "BAZA2",
+                "Discount": "5.000000",
+                "ItmsGrpCod": 101,
+                "U_Kategoriya": "11",
+                "U_Karobka": "100",
+                "BVolume": "0.000490",
+                "U_U_netto": "0.038600",
+                "U_U_brutto": "0.044400",
+                "U_model": "D60-10",
+                "U_smr": "5.000000",
+                "IsCommited": "300.000000",
+                "OnHand": "16800.000000",
+                "OnOrder": "0.000000",
+                "Counted": "0.000000",
+                "ItemCode": "GPZ0003",
+                "ItemName": "LED 10W 6500K DUSEL",
+                "CodeBars": null,
+                "AvgPrice": "0.305400",
+                "PriceList": 1,
+                "Price": "0.770000",
+                "Currency": "USD",
+                "value": "100",
+                "karobka": "1",
+                "disCount": 5,
+                "CardName": "Torabek Xorazim",
+                "CardCode": "ZM0010",
+                "DocDate": "2024-06-18",
+                "DocDueDate": "2024-06-18",
+                "WhsCode": "B-X",
+                "Quantity": "100",
+                "schema": {
+                    "CardCode": "ZM0010",
+                    "DocDate": "2024-06-18",
+                    "DocDueDate": "2024-06-18",
+                    "SalesPersonCode": -1,
+                    "Comments": "",
+                    "DocumentLines": [
+                        {
+                            "ItemCode": "GPZ0001",
+                            "Quantity": 100,
+                            "WarehouseCode": "B-X"
+                        },
+                        {
+                            "ItemCode": "GPZ0003",
+                            "Quantity": 100,
+                            "WarehouseCode": "B-X"
+                        }
+                    ]
+                },
+                "salesPersonCode": -1,
+                "salesPerson": "Нет",
+                "comment": "",
+                "descript": "Andijon",
+                "Address": null,
+                "ZipCode": null,
+                "Phone1": "985779040",
+                "Phone2": null,
+                "LicTradNum": "3100",
+                "CardType": "C",
+                "CreateDate": "2024-06-18T18:56:52.743Z"
+            }
+        ],
+        "ID": 43
+    }
+]

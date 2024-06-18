@@ -79,7 +79,7 @@ const Style = styled.div`
     font-style: normal;
     font-weight: 500;
     line-height: normal;
-    opacity: 0.7;
+    opacity: 0.5;
   }
   .navbar{
     margin-left: 40px;

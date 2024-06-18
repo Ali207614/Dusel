@@ -13,7 +13,6 @@ const languageDetector = {
   },
   init: () => {},
   cacheUserLanguage: (data) => {
-    // console.log(data);
   },
 };
 

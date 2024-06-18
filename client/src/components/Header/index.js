@@ -3,28 +3,12 @@ import Style from './Style';
 import TopImage from '../../assets/images/Dusel_logo.svg';
 import { useTranslation } from 'react-i18next';
 import { get } from 'lodash';
-import { Link, NavLink } from 'react-router-dom';
+import { Link, NavLink, useLocation } from 'react-router-dom';
 
 const Header = () => {
   const { t } = useTranslation();
-  const menuData = [
-    {
-      title: t('Menu'),
-      path: '/menu',
-    },
-    {
-      title: t('Menu2'),
-      path: '/menu',
-    },
-    {
-      title: t('Menu3'),
-      path: '/menu',
-    },
-    {
-      title: t('Menu4'),
-      path: '/menu',
-    },
-  ];
+  const location = useLocation();
+
 
   return (
     <Style>
@@ -40,7 +24,10 @@ const Header = () => {
                   <li className='list-item'>
                     <NavLink
                       to="/home"
-                      className={({ isActive }) => (`list-item-link ${isActive && 'opacity-1'} `)}
+                      className={() => {
+                        const isActive = location.pathname === '/home' || location.pathname.startsWith('/order');
+                        return `list-item-link ${isActive ? 'opacity-1' : ''}`;
+                      }}
                     >
                       Заказ
                     </NavLink>
@@ -48,7 +35,10 @@ const Header = () => {
                   <li className='list-item'>
                     <NavLink
                       to="/return"
-                      className={({ isActive }) => (` list-item-link ${isActive && 'opacity-1'} `)}
+                      className={() => {
+                        const isActive = location.pathname === '/return' || location.pathname.startsWith('/return-manage');
+                        return `list-item-link ${isActive ? 'opacity-1' : ''}`;
+                      }}
                     >
                       Возврат
                     </NavLink>

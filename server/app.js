@@ -7,7 +7,7 @@ var bodyParser = require("body-parser");
 let https = require('https')
 let moment = require('moment')
 const { get } = require('lodash')
-const { writeData, infoData, updateData, deleteData, infoReturn } = require('./helper')
+const { writeData, infoData, updateData, deleteData, infoReturn, writeReturn } = require('./helper')
 require("dotenv").config();
 const conn_params = {
     serverNode: process.env.server_node,
@@ -97,7 +97,7 @@ app.get('/api/orders', async function (req, res) {
 app.get('/api/returns', async function (req, res) {
     try {
         const ret = await getReturns(req.query)
-        return res.status(200).send(ret)
+        return res.status(200).send({ value: ret })
     } catch (e) {
         return res.status(400).send({
             message: e
@@ -173,6 +173,20 @@ app.get('/api/items-return', async function (req, res) {
 app.post('/api/draft', async function (req, res) {
     try {
         let status = await writeData(req.body)
+        if (!status) {
+            return res.status(404).send()
+        }
+        return res.status(201).send()
+    } catch (e) {
+        return res.status(400).send({
+            message: e
+        });
+    }
+})
+
+app.post('/api/draft/return', async function (req, res) {
+    try {
+        let status = await writeReturn(req.body)
         if (!status) {
             return res.status(404).send()
         }
@@ -450,7 +464,7 @@ function getItemsReturn({ offset, limit, search, items = [], group = '',
             if (search?.length) {
                 innerSql += ` and (LOWER(T0."ItemCode") like '%${search}%' or LOWER(T0."ItemName") like '%${search}%' or LOWER(T0."U_model") like '%${search}%') `
             }
-            let sql = `SELECT  (${innerSql}) as length , T0."DfltWH" ,T4."Discount",T0."ItmsGrpCod",T0."U_Kategoriya", T0."U_Karobka", T0."BVolume", T0."U_U_netto", T0."U_U_brutto", T0."U_model",T0."U_smr",  T1."IsCommited", T1."OnHand", T1."OnOrder", T1."Counted", T0."ItemCode", T0."ItemName", T0."CodeBars", T1."AvgPrice", T3."PriceList", T3."Price" , T3."Currency" FROM ${db}.OITM  T0 INNER JOIN ${db}.OITW  T1 ON T0."ItemCode" = T1."ItemCode" and T1."WhsCode" = T0."DfltWH"  INNER JOIN ${db}.ITM1 T3 ON T0."ItemCode" = T3."ItemCode" LEFT JOIN ${db}.EDG1  T4 ON  T0."ItemCode" = T4."ObjKey" and T4."ObjType" = '4'  WHERE  T3."PriceList"  = 1 and T0."Series" in (${series}) `
+            let sql = `SELECT  (${innerSql}) as length , T0."DfltWH" ,T0."DfltWH" as whs,T4."Discount",T0."ItmsGrpCod",T0."U_Kategoriya", T0."U_Karobka", T0."BVolume", T0."U_U_netto", T0."U_U_brutto", T0."U_model",T0."U_smr",  T1."IsCommited", T1."OnHand", T1."OnOrder", T1."Counted", T0."ItemCode", T0."ItemName", T0."CodeBars", T1."AvgPrice", T3."PriceList", T3."Price" , T3."Currency" FROM ${db}.OITM  T0 INNER JOIN ${db}.OITW  T1 ON T0."ItemCode" = T1."ItemCode" and T1."WhsCode" = T0."DfltWH"  INNER JOIN ${db}.ITM1 T3 ON T0."ItemCode" = T3."ItemCode" LEFT JOIN ${db}.EDG1  T4 ON  T0."ItemCode" = T4."ObjKey" and T4."ObjType" = '4'  WHERE  T3."PriceList"  = 1 and T0."Series" in (${series}) `
             //  76,77,91
             if (items.length) {
                 sql += ` and T0."ItemCode" not in (${items})`

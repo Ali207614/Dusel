@@ -33,7 +33,7 @@ const override = {
   left: "50%",
   top: "50%",
 };
-let returnStatusList = ['Brak', 'Vozvrat']
+let returnStatusList = ['Брак', 'Возврат']
 
 const Order = () => {
   const { getMe } = useSelector(state => state.main);
@@ -213,8 +213,6 @@ const Order = () => {
       .catch(err => {
         errorNotify("SalesPerson not found")
       });
-
-    return;
   };
 
   const getFilterItemData = () => {
@@ -247,22 +245,18 @@ const Order = () => {
             setLoading(false)
             setCustomer(get(orderData, '[0].CardName', ''))
             setCustomerCode(get(orderData, '[0].CardCode', ''))
-
             setSalesPerson(get(orderData, '[0].SLP'))
             setSalesPersonCode(get(orderData, '[0].SLPCODE'))
             setComment(get(orderData, '[0].COMMENTS'))
-
             setDate({
               DocDate: moment(get(orderData, '[0].DocDate', '')).format("YYYY-MM-DD"),
               DocDueDate: moment(get(orderData, '[0].DocDueDate', '')).format("YYYY-MM-DD")
             })
             setAllPageLengthSelect(orderData.length)
             setAllPageLength(get(data, 'value[0].LENGTH', 0) - orderData.length)
-
             setMainData(get(data, 'value', []).map(item => {
               return { ...item, value: '', karobka: '', disCount: get(item, 'DisCount', 5) }
             }).filter(el => !orderData.map(item => item.ItemCode).includes(get(el, 'ItemCode'))))
-
             setState(orderData.map(item => {
               return { ...item, value: Number(item.Quantity).toString(), karobka: Math.floor(item.Quantity / Number(get(item, 'U_Karobka', 1) || 1)), Price: item.PriceBefDi, disCount: get(item, 'DisCount', 5) }
             }))
@@ -272,7 +266,6 @@ const Order = () => {
             if (salesPersonList.length == 1) {
               getSalesPerson()
             }
-
           })
         }
         else {
@@ -285,7 +278,6 @@ const Order = () => {
           }))
           setAllPageLength(get(data, 'value[0].LENGTH', 0))
         }
-
       })
       .catch(err => {
         setLoading(false)
@@ -358,8 +350,7 @@ const Order = () => {
   }
 
   const Orders = () => {
-
-    let link = '/api/draft'
+    let link = '/api/draft/return'
     setOrderLoading(true)
     let schema = {
       "CardCode": customerCode,
@@ -371,12 +362,12 @@ const Order = () => {
         return {
           "ItemCode": get(item, 'ItemCode', ''),
           "Quantity": Number(get(item, 'value', 0)),
-          // "WarehouseCode": warehouse
+          "WarehouseCode": get(item, 'DfltWH', '')
         }
       })
     }
     let body = state.map(item => {
-      // return { ...item, CardName: customer, CardCode: customerCode, ...date, WhsCode: warehouse, Quantity: item.value, schema, salesPersonCode, salesPerson, comment, ...customerDataInvoice }
+      return { ...item, CardName: customer, CardCode: customerCode, ...date, WhsCode: get(item, 'DfltWH', ''), Quantity: item.value, schema, salesPersonCode, salesPerson, comment, ...customerDataInvoice }
     })
     axios
       .post(
@@ -473,14 +464,12 @@ const Order = () => {
     let category = get(prop, 'CategoryCode', '').toString()
     let groupCode = get(prop, 'GroupCode', '').toString()
 
-    console.log(prop)
     let list = [
       { name: 'group', data: group },
       { name: 'code', data: groupCode },
       { name: 'category', data: category },
     ].filter(item => get(item, 'data', '').length)
 
-    console.log(list, ' bu list')
     return {
       link: list.map(item => {
         return `&${get(item, 'name', '')}=${get(item, 'data', '')}`
@@ -640,6 +629,9 @@ const Order = () => {
                             if (statusName != item) {
                               setStatusName(item);
                               setShowDropdownWarehouse(false)
+                              setMainData([...mainData.map(el => {
+                                return { ...el, DfltWH: (item == returnStatusList[0] ? 'B-X' : get(el, 'WHS', '')) }
+                              })])
                             }
                             return
                           }} className={`dropdown-li ${statusName == item ? 'dropdown-active' : ''}`}><a className="dropdown-item" href="#">{item}</a></li>)

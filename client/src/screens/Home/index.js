@@ -634,7 +634,10 @@ const Home = () => {
                                 </button>
                                 {/* invoice */}
                                 <div className="dropdown-container" >
-                                  <button onClick={() => setInvoiceDropDown(!invoiceDropDown)} style={{ width: '110px' }} className='table-item-btn d-flex align table-item-text position-relative'>
+                                  <button onClick={() => {
+                                    setInvoiceDropDown(!invoiceDropDown)
+                                    setDropdownOpen(false)
+                                  }} style={{ width: '110px' }} className='table-item-btn d-flex align table-item-text position-relative'>
                                     <Link className='table-item-text d-flex align' to={(get(item, 'draft') ? `/invoice/${item.DocEntry}/draft` : `/invoice/${item.DocEntry}`)}>
                                     </Link>
                                     Накладный <img src={editIcon} alt="arrow-right" />
@@ -653,7 +656,10 @@ const Home = () => {
                                   )}
                                 </div>
                                 <div className="dropdown-container">
-                                  <button style={{ width: '110px' }} disabled={updateLoading} className="table-item-btn d-flex align table-item-text position-relative" onClick={() => setDropdownOpen(!dropdownOpen)}>
+                                  <button style={{ width: '110px' }} disabled={updateLoading} className="table-item-btn d-flex align table-item-text position-relative" onClick={() => {
+                                    setDropdownOpen(!dropdownOpen)
+                                    setInvoiceDropDown(false)
+                                  }}>
                                     Состояние  {updateLoading ?
                                       <div className="spinner-border" role="status">
                                         <span className="sr-only">Loading...</span>

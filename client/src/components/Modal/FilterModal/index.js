@@ -40,7 +40,6 @@ const FilterModal = ({ getRef, filterProperty, setFilterProperty, getItems, arg,
       open: (data) => {
         setIsOpenModal(true);
         setFilterData(data)
-        console.log(filterProperty)
       },
       close: () => setIsOpenModal(false),
     };
