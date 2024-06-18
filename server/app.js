@@ -7,7 +7,7 @@ var bodyParser = require("body-parser");
 let https = require('https')
 let moment = require('moment')
 const { get } = require('lodash')
-const { writeData, infoData, updateData, deleteData } = require('./helper')
+const { writeData, infoData, updateData, deleteData, infoReturn } = require('./helper')
 require("dotenv").config();
 const conn_params = {
     serverNode: process.env.server_node,
@@ -15,10 +15,12 @@ const conn_params = {
     pwd: process.env.password,
 };
 const db = process.env.db
+let series = '72,73'
+// let series = '76,77,91'
+
 
 const app = express()
 const port = 5000;
-
 
 
 app.use(cors())
@@ -92,6 +94,17 @@ app.get('/api/orders', async function (req, res) {
     }
 })
 
+app.get('/api/returns', async function (req, res) {
+    try {
+        const ret = await getReturns(req.query)
+        return res.status(200).send(ret)
+    } catch (e) {
+        return res.status(400).send({
+            message: e
+        });
+    }
+})
+
 app.get('/api/customer', async function (req, res) {
     try {
         const ret = await getCustomer(req.query)
@@ -147,6 +160,16 @@ app.get('/api/items', async function (req, res) {
     }
 })
 
+app.get('/api/items-return', async function (req, res) {
+    try {
+        const ret = await getItemsReturn(req.query)
+        return res.status(200).send(ret)
+    } catch (e) {
+        return res.status(400).send({
+            message: e
+        });
+    }
+})
 app.post('/api/draft', async function (req, res) {
     try {
         let status = await writeData(req.body)
@@ -274,6 +297,7 @@ function getCustomer({ search }) {
         });
     });
 }
+
 function checkCustomerBalance({ customerCode = '', summa = 0 }) {
     return new Promise((resolve, reject) => {
         conn.connect(conn_params, function (err) {
@@ -331,17 +355,20 @@ function getSalesPerson() {
 }
 
 
-function getItems({ offset, limit, whsCode, search, items = [], group = '',
+function getItems({ offset, limit, whsCode = '', search, items = [], group = '',
     category = '', code = '' }) {
     return new Promise((resolve, reject) => {
+
         conn.connect(conn_params, function (err) {
             if (err) {
                 reject(err);
                 conn.disconnect();
                 return;
             }
-            let innerSql = `SELECT sum(1) FROM ${db}.OITM  T0 INNER JOIN ${db}.OITW  T1 ON T0."ItemCode" = T1."ItemCode" INNER JOIN ${db}.ITM1 T3 ON T0."ItemCode" = T3."ItemCode" LEFT JOIN ${db}.EDG1  T4 ON T0."ItemCode" = T4."ObjKey" and  T4."ObjType" = '4' WHERE  T0."DfltWH" = '${whsCode}' and  T3."PriceList"  = 1 and T0."Series" in (76,77,91) and T1."WhsCode" = '${whsCode}'`
+            // let series = '76,77,91'
+            let innerSql = `SELECT DISTINCT sum(1) FROM ${db}.OITM  T0 INNER JOIN ${db}.OITW  T1 ON T0."ItemCode" = T1."ItemCode" INNER JOIN ${db}.ITM1 T3 ON T0."ItemCode" = T3."ItemCode" LEFT JOIN ${db}.EDG1  T4 ON T0."ItemCode" = T4."ObjKey" and  T4."ObjType" = '4' WHERE  T0."DfltWH" = '${whsCode}' and  T3."PriceList"  = 1 and T0."Series" in (${series}) and T1."WhsCode" = '${whsCode}'`
             //  76,77,91
+
             if (items.length) {
                 innerSql += ` and T0."ItemCode" not in (${items})`
             }
@@ -355,7 +382,8 @@ function getItems({ offset, limit, whsCode, search, items = [], group = '',
             if (search?.length) {
                 innerSql += ` and (LOWER(T0."ItemCode") like '%${search}%' or LOWER(T0."ItemName") like '%${search}%' or LOWER(T0."U_model") like '%${search}%') `
             }
-            let sql = `SELECT  (${innerSql}) as length  ,T4."Discount",T0."ItmsGrpCod",T0."U_Kategoriya", T0."U_Karobka", T0."BVolume", T0."U_U_netto", T0."U_U_brutto", T0."U_model",T0."U_smr",  T1."IsCommited", T1."OnHand", T1."OnOrder", T1."Counted", T0."ItemCode", T0."ItemName", T0."CodeBars", T1."AvgPrice", T3."PriceList", T3."Price" , T3."Currency" FROM ${db}.OITM  T0 INNER JOIN ${db}.OITW  T1 ON T0."ItemCode" = T1."ItemCode" INNER JOIN ${db}.ITM1 T3 ON T0."ItemCode" = T3."ItemCode" LEFT JOIN ${db}.EDG1  T4 ON  T0."ItemCode" = T4."ObjKey" and T4."ObjType" = '4'  WHERE  T0."DfltWH" = '${whsCode}' and T3."PriceList"  = 1 and T0."Series" in (76,77,91) and T1."WhsCode" = '${whsCode}'`
+            let sql = `SELECT  (${innerSql}) as length  ,T4."Discount",T0."ItmsGrpCod",T0."U_Kategoriya", T0."U_Karobka", T0."BVolume", T0."U_U_netto", T0."U_U_brutto", T0."U_model",T0."U_smr",  T1."IsCommited", T1."OnHand", T1."OnOrder", T1."Counted", T0."ItemCode", T0."ItemName", T0."CodeBars", T1."AvgPrice", T3."PriceList", T3."Price" , T3."Currency" FROM ${db}.OITM  T0 INNER JOIN ${db}.OITW  T1 ON T0."ItemCode" = T1."ItemCode" INNER JOIN ${db}.ITM1 T3 ON T0."ItemCode" = T3."ItemCode" LEFT JOIN ${db}.EDG1  T4 ON  T0."ItemCode" = T4."ObjKey" and T4."ObjType" = '4'  WHERE  T0."DfltWH" = '${whsCode}' and T3."PriceList"  = 1 and T0."Series" in (${series})  and T1."WhsCode" = '${whsCode}'`
+
             //  76,77,91
             if (items.length) {
                 sql += ` and T0."ItemCode" not in (${items})`
@@ -395,6 +423,72 @@ function getItems({ offset, limit, whsCode, search, items = [], group = '',
     });
 }
 
+function getItemsReturn({ offset, limit, search, items = [], group = '',
+    category = '', code = '' }) {
+    return new Promise((resolve, reject) => {
+
+        conn.connect(conn_params, function (err) {
+            if (err) {
+                reject(err);
+                conn.disconnect();
+                return;
+            }
+            // let series = '76,77,91'
+            let innerSql = `SELECT sum(1) FROM ${db}.OITM  T0 INNER JOIN ${db}.OITW  T1 ON T0."ItemCode" = T1."ItemCode" and T1."WhsCode" = T0."DfltWH" INNER JOIN ${db}.ITM1 T3 ON T0."ItemCode" = T3."ItemCode" LEFT JOIN ${db}.EDG1  T4 ON T0."ItemCode" = T4."ObjKey" and  T4."ObjType" = '4' WHERE   T3."PriceList"  = 1 and T0."Series" in (${series}) and T1."WhsCode" = T0."DfltWH" `
+            //  76,77,91
+
+            if (items.length) {
+                innerSql += ` and T0."ItemCode" not in (${items})`
+            }
+
+            if (code.length) {
+                innerSql += ` and T0."ItmsGrpCod" = '${code}'`
+            }
+            if (category.length) {
+                innerSql += ` and T0."U_Kategoriya" = '${category}'`
+            }
+            if (search?.length) {
+                innerSql += ` and (LOWER(T0."ItemCode") like '%${search}%' or LOWER(T0."ItemName") like '%${search}%' or LOWER(T0."U_model") like '%${search}%') `
+            }
+            let sql = `SELECT  (${innerSql}) as length , T0."DfltWH" ,T4."Discount",T0."ItmsGrpCod",T0."U_Kategoriya", T0."U_Karobka", T0."BVolume", T0."U_U_netto", T0."U_U_brutto", T0."U_model",T0."U_smr",  T1."IsCommited", T1."OnHand", T1."OnOrder", T1."Counted", T0."ItemCode", T0."ItemName", T0."CodeBars", T1."AvgPrice", T3."PriceList", T3."Price" , T3."Currency" FROM ${db}.OITM  T0 INNER JOIN ${db}.OITW  T1 ON T0."ItemCode" = T1."ItemCode" and T1."WhsCode" = T0."DfltWH"  INNER JOIN ${db}.ITM1 T3 ON T0."ItemCode" = T3."ItemCode" LEFT JOIN ${db}.EDG1  T4 ON  T0."ItemCode" = T4."ObjKey" and T4."ObjType" = '4'  WHERE  T3."PriceList"  = 1 and T0."Series" in (${series}) `
+            //  76,77,91
+            if (items.length) {
+                sql += ` and T0."ItemCode" not in (${items})`
+            }
+            if (search?.length) {
+                sql += `and (LOWER(T0."ItemCode") like '%${search}%' or LOWER(T0."ItemName") like '%${search}%' or LOWER(T0."U_model") like '%${search}%')  `
+            }
+
+            if (code.length) {
+                sql += ` and T0."ItmsGrpCod" = '${code}'`
+            }
+            if (category.length) {
+                sql += ` and T0."U_Kategoriya" = '${category}'`
+            }
+            sql += `
+            ORDER BY
+            CASE
+                WHEN T0."U_prn" IS NULL OR T0."U_prn" = 0 THEN 9999
+                ELSE T0."U_prn"
+            END 
+            limit ${limit} offset ${offset - 1} `
+
+
+            conn.exec(sql, function (err, result) {
+                if (err) {
+                    reject(err);
+                    conn.disconnect();
+                    return;
+                }
+                resolve({
+                    value: result
+                });
+
+                conn.disconnect();
+            });
+        });
+    });
+}
 
 
 function getOrders({
@@ -511,6 +605,86 @@ function getOrders({
             });
         });
     });
+}
+function getReturns({
+    offset, limit, search, creationDateStart, creationDateEnd, docDateStart, docDateEnd, salesPerson, status, warehouseCode
+}) {
+
+    let jsonData = infoReturn()
+    const jsonDataSlice = jsonData.sort((a, b) => b.ID - a.ID).map((item, i, arr) => {
+        let KUB = 0;
+        let BRUTTO = 0;
+        let DocTotal = 0;
+        for (let i = 0; i < item.state.length; i++) {
+            KUB += (Number(item.state[i].BVolume) * Number(item.state[i].value))
+            BRUTTO += (Number(item.state[i].U_U_brutto) * Number(item.state[i].value))
+            let price = (Number(item.state[i].Price) * Number(item.state[i].value)) - (Number(item.state[i].Price) * Number(item.state[i].value) * Number(item.state[i].disCount) / 100)
+            DocTotal += price
+        }
+        let obj = {
+            KUB,
+            BRUTTO,
+            U_status: 2,
+            SlpCode: get(item, 'state[0].salesPersonCode'),
+            SlpName: get(item, 'state[0].salesPerson'),
+            DocDate: item.state[0].DocDate,
+            CreateDate: item.state[0].CreateDate,
+            CardCode: item.state[0].CardCode,
+            CardName: item.state[0].CardName,
+            DocEntry: item.ID,
+            DocCur: item.state[0].Currency,
+            DocTotal,
+            LENGTH: arr.length,
+            draft: true,
+            schema: item.state[0].schema,
+            SLP: item.state[0].salesPerson,
+            SLPCODE: item.state[0].salesPersonCode,
+            COMMENTS: item.state[0].comment,
+            WhsCode: item.state[0].WhsCode
+        }
+        return obj
+    });
+
+    let list = jsonDataSlice
+
+    let uniqueArrSlp = list.filter((obj, index, self) =>
+        index === self.findIndex((t) => (
+            t.SlpCode === obj.SlpCode && t.SlpName === obj.SlpName
+        ))
+    ).map(item => {
+        return { SlpCode: item.SlpCode, SlpName: item.SlpName }
+    });
+
+    let uniqueArrManager = list.filter((obj, index, self) =>
+        index === self.findIndex((t) => (
+            t.U_status === obj.U_status
+        ))
+    ).map(item => {
+        return { U_status: item.U_status }
+    }).sort((a, b) => Number(a.U_status) - Number(b.U_status));
+
+    let filterData = {
+        filter: true,
+        SalesPerson: uniqueArrSlp,
+        Status: uniqueArrManager
+    }
+
+    return [...filterHelper({ list, search, creationDateStart, creationDateEnd, docDateStart, docDateEnd, salesPerson, status, warehouseCode })
+        .map((item, i, arr) => {
+            let ALLKUB = 0;
+            let ALLBRUTTO = 0;
+            let ALLDOCTOTAL = 0;
+            for (let i = 0; i < arr.length; i++) {
+                ALLKUB += +get(arr, `${[i]}.KUB`, 0)
+                ALLBRUTTO += +get(arr, `${[i]}.BRUTTO`, 0)
+                ALLDOCTOTAL += +get(arr, `${[i]}.DocTotal`, 0)
+            }
+            return { ...item, ALLBRUTTO, ALLKUB, ALLDOCTOTAL }
+        }).map((item, i, self) => {
+            return { ...item, LENGTH: self.length }
+        }).slice(offset - 1, +offset - 1 + +limit),
+        filterData
+    ]
 }
 
 let filterHelper = ({

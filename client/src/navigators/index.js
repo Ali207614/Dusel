@@ -1,6 +1,6 @@
 import React from 'react';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
-import { Launch, Login, Home, Order, Invoice } from '../screens';
+import { Launch, Login, Home, Order, Invoice, Return, ReturnAdd } from '../screens';
 
 function App() {
   return (
@@ -19,6 +19,10 @@ function App() {
 
         <Route path="/order/:id" element={<Order />} />
         <Route path="/order/:id/draft" element={<Order />} />
+
+        <Route path="/return" element={<Return />} />
+        <Route path="/return-manage" element={<ReturnAdd />} />
+        <Route path="/return-manage/:id" element={<ReturnAdd />} />
       </Routes>
     </BrowserRouter>
   );

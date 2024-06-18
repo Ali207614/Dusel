@@ -16,7 +16,7 @@ const Style = styled.div`
   .display-block {
     display: block;
   }
-  .left-side: {
+  .left-side {
     display: flex;
     align-items: center;
   }
@@ -59,8 +59,37 @@ const Style = styled.div`
     border-bottom: 1px solid #e9e9e9;
   }
   .topLogo {
-    width: 98px;
-    height: 28px;
+    width: 114px;
+    height: 32px;
+  }
+
+  .d-flex{
+    display: flex;
+  }
+  .align-items{
+    align-items: center;
+  }
+  .justify{
+    justify-content: space-between;
+  }
+  .list-item-link{
+    color:  #000;
+    font-family: "Inter Tight";
+    font-size: 14px;
+    font-style: normal;
+    font-weight: 500;
+    line-height: normal;
+    opacity: 0.7;
+  }
+  .navbar{
+    margin-left: 40px;
+  }
+  .list-item{
+    margin-right: 23px;
+
+  }
+  .opacity-1{
+    opacity: 1;
   }
 `;
 export default Style;
