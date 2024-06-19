@@ -33,7 +33,7 @@ const override = {
   left: "50%",
   top: "50%",
 };
-let returnStatusList = ['Брак', 'Возврат']
+let returnStatusList = ['Возврат', 'Брак']
 
 const Order = () => {
   const { getMe } = useSelector(state => state.main);
@@ -255,7 +255,7 @@ const Order = () => {
             setAllPageLengthSelect(orderData.length)
             setAllPageLength(get(data, 'value[0].LENGTH', 0) - orderData.length)
             setMainData(get(data, 'value', []).map(item => {
-              return { ...item, value: '', karobka: '', disCount: get(item, 'DisCount', 5) }
+              return { ...item, value: '', karobka: '', disCount: get(item, 'DisCount', 5), }
             }).filter(el => !orderData.map(item => item.ItemCode).includes(get(el, 'ItemCode'))))
             setState(orderData.map(item => {
               return { ...item, value: Number(item.Quantity).toString(), karobka: Math.floor(item.Quantity / Number(get(item, 'U_Karobka', 1) || 1)), Price: item.PriceBefDi, disCount: get(item, 'DisCount', 5) }
@@ -388,7 +388,7 @@ const Order = () => {
         setOrderLoading(false)
         successNotify()
         setMainData([...state, ...mainData].map(item => {
-          return { ...item, value: '', karobka: '' }
+          return { ...item, value: '', karobka: '', }
         }))
         setState([])
         setActualData([])
@@ -630,7 +630,7 @@ const Order = () => {
                               setStatusName(item);
                               setShowDropdownWarehouse(false)
                               setMainData([...mainData.map(el => {
-                                return { ...el, DfltWH: (item == returnStatusList[0] ? 'B-X' : get(el, 'WHS', '')) }
+                                return { ...el, DfltWH: (item == returnStatusList[0] ? get(el, 'WHS', '') : 'B-X') }
                               })])
                             }
                             return

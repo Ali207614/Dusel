@@ -7,7 +7,7 @@ var bodyParser = require("body-parser");
 let https = require('https')
 let moment = require('moment')
 const { get } = require('lodash')
-const { writeData, infoData, updateData, deleteData, infoReturn, writeReturn, updateReturn } = require('./helper')
+const { writeData, infoData, updateData, deleteData, infoReturn, writeReturn, updateReturn, deleteReturn } = require('./helper')
 require("dotenv").config();
 const conn_params = {
     serverNode: process.env.server_node,
@@ -184,19 +184,7 @@ app.post('/api/draft', async function (req, res) {
     }
 })
 
-app.post('/api/draft/return', async function (req, res) {
-    try {
-        let status = await writeReturn(req.body)
-        if (!status) {
-            return res.status(404).send()
-        }
-        return res.status(201).send()
-    } catch (e) {
-        return res.status(400).send({
-            message: e
-        });
-    }
-})
+
 
 app.get('/api/draft/:id', async function (req, res) {
     try {
@@ -214,6 +202,7 @@ app.get('/api/draft/:id', async function (req, res) {
     }
 })
 
+
 app.get('/api/draft/return/:id', async function (req, res) {
     try {
         let { id } = req.params
@@ -229,11 +218,34 @@ app.get('/api/draft/return/:id', async function (req, res) {
         });
     }
 })
-
+app.post('/api/draft/return', async function (req, res) {
+    try {
+        let status = await writeReturn(req.body)
+        if (!status) {
+            return res.status(404).send()
+        }
+        return res.status(201).send()
+    } catch (e) {
+        return res.status(400).send({
+            message: e
+        });
+    }
+})
 app.patch('/api/draft/return/:id', async function (req, res) {
     try {
         let { id } = req.params
         await updateReturn(id, req.body)
+        return res.status(200).json()
+    } catch (e) {
+        return res.status(400).send({
+            message: e
+        });
+    }
+})
+app.delete('/api/draft/return/:id', async function (req, res) {
+    try {
+        let { id } = req.params
+        await deleteReturn(id)
         return res.status(200).json()
     } catch (e) {
         return res.status(400).send({
@@ -319,7 +331,8 @@ function getCustomer({ search }) {
                 return;
             }
 
-            let sql = `SELECT  T1."descript", T0."Address", T0."ZipCode", T0."Phone1", T0."Phone2", T0."LicTradNum", T0."CardCode", T0."CardName", T0."CardType" FROM ${db}.OCRD T0 INNER JOIN ${db}.OTER T1 ON T0."Territory" = T1."territryID" WHERE T0."CardType" ='C'`
+            let sql = `SELECT  T1."descript", T0."Address", T0."ZipCode", T0."Phone1", T0."Phone2", T0."LicTradNum", T0."CardCode", T0."CardName", T0."CardType" FROM ${db}.OCRD T0 LEFT JOIN ${db}.OTER T1 ON T0."Territory" = T1."territryID" WHERE T0."CardType" ='C'`
+            console.log(sql)
             if (search?.length) {
                 sql += `and (LOWER(T0."CardCode") like '%${search}%' or LOWER(T0."CardName") like '%${search}%')`
             }

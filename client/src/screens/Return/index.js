@@ -19,7 +19,7 @@ import { FadeLoader } from "react-spinners";
 import { ConfirmModal, ErrorModal, ConfirmModalOrder, FilterOrderModal } from '../../components/Modal';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { errorNotify, successNotify, warningNotify, limitList, override, statuses } from '../../components/Helper';
+import { errorNotify, successNotify, warningNotify, limitList, override } from '../../components/Helper';
 import { main } from '../../store/slices';
 import { sandTableToExcelWithoutTotal } from '../Invoice/excel';
 
@@ -77,7 +77,25 @@ const Return = () => {
     errorRef.current = ref;
   }, []);
 
-
+  let statuses = {
+    2: {
+      color: '#FFFFFF',
+      backgroundColor: '#6C757D',
+      name: 'Черновик',
+      access: [2, 8, 7],
+      actualName: 'Черновик'
+    },
+    7: {
+      color: '#FFFFFF',
+      backgroundColor: '#00A2C7',
+      name: 'Удалить'
+    },
+    8: {
+      color: '#FFFFFF',
+      backgroundColor: '#00A2C7',
+      name: 'Архивировать'
+    }
+  }
 
   const handleChange = e => {
     const newSearchTerm = e.target.value;
@@ -168,7 +186,7 @@ const Return = () => {
     setUpdateLoading(true)
     axios
       .delete(
-        url + `/api/draft/${doc}`,
+        url + `/api/draft/return/${doc}`,
       )
       .then(({ data }) => {
         setMainData(mainData.filter(item => item.DocEntry != doc))
@@ -187,9 +205,15 @@ const Return = () => {
   const invoice = (doc) => {
     setDropdownOpen(false);
     setUpdateLoading(true)
+    let body = mainData.find(item => item.DocEntry === doc)
+    if (!body) {
+      errorNotify('Body mavjud emas')
+      return
+    }
     axios
-      .get(
-        url + `/b1s/v1/Orders(${doc})`,
+      .post(
+        url + `/b1s/v1/CreditNotes`,
+        { body: get(body, 'schema', {}) },
         {
           headers: {
             info: JSON.stringify({
@@ -200,24 +224,19 @@ const Return = () => {
         }
       )
       .then(({ data }) => {
-        let schema = {
-          "CardCode": get(data, 'CardCode', ''),
-          "DocDate": get(data, 'DocDate'),
-          "DocDueDate": get(data, 'DocDueDate'),
-          "Comments": get(data, 'Comments'),
-          "DocumentLines": data.DocumentLines.map((item, i) => {
-            return {
-              "ItemCode": get(item, 'ItemCode', ''),
-              "Quantity": get(item, 'Quantity', 0),
-              "Price": get(item, 'Price', 0),
-              "WarehouseCode": get(item, 'WarehouseCode', ''),
-              "BaseType": 17,
-              "BaseEntry": get(data, 'DocEntry'),
-              "BaseLine": i,
-              "UnitPrice": get(item, 'UnitPrice'),
-            }
+        axios
+          .delete(
+            url + `/api/draft/return/${doc}`,
+          )
+          .then(({ data }) => {
+            setUpdateLoading(false)
+            successNotify('Muvaffaqiyatli amalaga oshirildi')
+            return
           })
-        }
+          .catch(err => {
+            errorNotify("O'chirishda Xatolik yuz berdi  'A/R Credit Memo' ")
+            setUpdateLoading(false)
+          });
       })
       .catch(err => {
         if (get(err, 'response.status') == 401) {
