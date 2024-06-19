@@ -22,7 +22,7 @@ function App() {
 
         <Route path="/return" element={<Return />} />
         <Route path="/return-manage" element={<ReturnAdd />} />
-        <Route path="/return-manage/:id" element={<ReturnAdd />} />
+        <Route path="/return-manage/:id/draft" element={<ReturnAdd />} />
       </Routes>
     </BrowserRouter>
   );

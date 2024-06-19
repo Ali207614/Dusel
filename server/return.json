@@ -8,7 +8,7 @@
                 "Discount": "5.000000",
                 "ItmsGrpCod": 101,
                 "U_Kategoriya": "11",
-                "U_Karobka": "100",
+                "U_Karobka": 100,
                 "BVolume": "0.000380",
                 "U_U_netto": "0.029400",
                 "U_U_brutto": "0.034400",
@@ -26,7 +26,7 @@
                 "Price": "0.630000",
                 "Currency": "USD",
                 "value": "100",
-                "karobka": "1",
+                "karobka": 1,
                 "disCount": 5,
                 "CardName": "Torabek Xorazim",
                 "CardCode": "ZM0010",
@@ -38,8 +38,8 @@
                     "CardCode": "ZM0010",
                     "DocDate": "2024-06-18",
                     "DocDueDate": "2024-06-18",
-                    "SalesPersonCode": -1,
-                    "Comments": "",
+                    "SalesPersonCode": 1,
+                    "Comments": "Assalomu Aleykum",
                     "DocumentLines": [
                         {
                             "ItemCode": "GPZ0001",
@@ -53,9 +53,9 @@
                         }
                     ]
                 },
-                "salesPersonCode": -1,
-                "salesPerson": "Нет",
-                "comment": "",
+                "salesPersonCode": 1,
+                "salesPerson": "bilol",
+                "comment": "Assalomu Aleykum",
                 "descript": "Andijon",
                 "Address": null,
                 "ZipCode": null,
@@ -63,7 +63,11 @@
                 "Phone2": null,
                 "LicTradNum": "3100",
                 "CardType": "C",
-                "CreateDate": "2024-06-18T18:56:52.743Z"
+                "CreateDate": "2024-06-18T18:56:52.743Z",
+                "SLP": "Нет",
+                "SLPCODE": -1,
+                "COMMENTS": "Assalomu Aleykum",
+                "PriceBefDi": "0.630000"
             },
             {
                 "LENGTH": 1346,
@@ -72,7 +76,7 @@
                 "Discount": "5.000000",
                 "ItmsGrpCod": 101,
                 "U_Kategoriya": "11",
-                "U_Karobka": "100",
+                "U_Karobka": 100,
                 "BVolume": "0.000490",
                 "U_U_netto": "0.038600",
                 "U_U_brutto": "0.044400",
@@ -90,7 +94,7 @@
                 "Price": "0.770000",
                 "Currency": "USD",
                 "value": "100",
-                "karobka": "1",
+                "karobka": 1,
                 "disCount": 5,
                 "CardName": "Torabek Xorazim",
                 "CardCode": "ZM0010",
@@ -102,8 +106,8 @@
                     "CardCode": "ZM0010",
                     "DocDate": "2024-06-18",
                     "DocDueDate": "2024-06-18",
-                    "SalesPersonCode": -1,
-                    "Comments": "",
+                    "SalesPersonCode": 1,
+                    "Comments": "Assalomu Aleykum",
                     "DocumentLines": [
                         {
                             "ItemCode": "GPZ0001",
@@ -117,9 +121,9 @@
                         }
                     ]
                 },
-                "salesPersonCode": -1,
-                "salesPerson": "Нет",
-                "comment": "",
+                "salesPersonCode": 1,
+                "salesPerson": "bilol",
+                "comment": "Assalomu Aleykum",
                 "descript": "Andijon",
                 "Address": null,
                 "ZipCode": null,
@@ -127,9 +131,13 @@
                 "Phone2": null,
                 "LicTradNum": "3100",
                 "CardType": "C",
-                "CreateDate": "2024-06-18T18:56:52.743Z"
+                "CreateDate": "2024-06-18T18:56:52.743Z",
+                "SLP": "Нет",
+                "SLPCODE": -1,
+                "COMMENTS": "Assalomu Aleykum",
+                "PriceBefDi": "0.770000"
             }
         ],
-        "ID": 43
+        "ID": "43"
     }
 ]

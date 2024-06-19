@@ -450,7 +450,7 @@ const Return = () => {
                               </div>
                               <div className='table-item-foot d-flex align'>
                                 <button className='table-item-btn d-flex align'>
-                                  <Link className='table-item-text d-flex align' to={(get(item, 'draft') ? `/order/${item.DocEntry}/draft` : `/order/${item.DocEntry}`)}>Просмотреть и изменить заказ  <img src={editIcon} alt="arrow right" /></Link>
+                                  <Link className='table-item-text d-flex align' to={`/return-manage/${item.DocEntry}/draft`}>Просмотреть и изменить заказ  <img src={editIcon} alt="arrow right" /></Link>
                                 </button>
                                 {/* invoice */}
                                 <div className="dropdown-container" >

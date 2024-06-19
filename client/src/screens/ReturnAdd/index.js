@@ -184,7 +184,7 @@ const Order = () => {
   };
 
   const getOrderByDocEntry = (doc) => {
-    let link = get(docEntry, 'draft') ? `/api/draft/${doc}` : `/api/order?docEntry=${doc}`
+    let link = `/api/draft/return/${doc}`
     return axios
       .get(
         url + link ,
@@ -412,7 +412,7 @@ const Order = () => {
   };
 
   const Update = () => {
-    let link = `/api/draft/${get(docEntry, 'id', 0)}`
+    let link = `/api/draft/return/${get(docEntry, 'id', 0)}`
     let schema = {
       "CardCode": customerCode,
       "DocDate": get(date, 'DocDate'),
@@ -423,12 +423,12 @@ const Order = () => {
         return {
           "ItemCode": get(item, 'ItemCode', ''),
           "Quantity": Number(get(item, 'value', 0)),
-          // "WarehouseCode": warehouse
+          "WarehouseCode": get(item, 'DfltWH', '')
         }
       })
     }
     let body = state.map(item => {
-      // return { ...item, CardName: customer, CardCode: customerCode, ...date, WhsCode: warehouse, Quantity: item.value, schema, salesPersonCode, salesPerson, comment, ...customerDataInvoice }
+      return { ...item, CardName: customer, CardCode: customerCode, ...date, WhsCode: get(item, 'DfltWH', ''), Quantity: item.value, schema, salesPersonCode, salesPerson, comment, ...customerDataInvoice }
     })
     setOrderLoading(true)
     axios

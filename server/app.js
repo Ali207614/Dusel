@@ -7,7 +7,7 @@ var bodyParser = require("body-parser");
 let https = require('https')
 let moment = require('moment')
 const { get } = require('lodash')
-const { writeData, infoData, updateData, deleteData, infoReturn, writeReturn } = require('./helper')
+const { writeData, infoData, updateData, deleteData, infoReturn, writeReturn, updateReturn } = require('./helper')
 require("dotenv").config();
 const conn_params = {
     serverNode: process.env.server_node,
@@ -213,6 +213,35 @@ app.get('/api/draft/:id', async function (req, res) {
         });
     }
 })
+
+app.get('/api/draft/return/:id', async function (req, res) {
+    try {
+        let { id } = req.params
+        let data = infoReturn().find(item => item.ID == id)
+        return res.status(200).send({
+            value: get(data, 'state', []).map(item => {
+                return { ...item, SLP: get(item, 'salesPerson', ''), SLPCODE: get(item, 'salesPersonCode', ''), COMMENTS: get(item, 'comment', ''), PriceBefDi: item.Price, U_Karobka: Number(get(item, 'U_Karobka', '0')) }
+            })
+        })
+    } catch (e) {
+        return res.status(400).send({
+            message: e
+        });
+    }
+})
+
+app.patch('/api/draft/return/:id', async function (req, res) {
+    try {
+        let { id } = req.params
+        await updateReturn(id, req.body)
+        return res.status(200).json()
+    } catch (e) {
+        return res.status(400).send({
+            message: e
+        });
+    }
+})
+
 app.patch('/api/draft/:id', async function (req, res) {
     try {
         let { id } = req.params

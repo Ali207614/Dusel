@@ -10,6 +10,9 @@
 a{
   text-decoration: none;
 }
+li{
+  list-style: none;
+}
 
 body{
   min-height: 1000px;
