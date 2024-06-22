@@ -1,6 +1,6 @@
 import React from 'react';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
-import { Launch, Login, Home, Order, Invoice, Return, ReturnAdd } from '../screens';
+import { Launch, Login, Home, Order, Invoice, Return, ReturnAdd, ReturnInvoice } from '../screens';
 
 function App() {
   return (
@@ -23,6 +23,9 @@ function App() {
         <Route path="/return" element={<Return />} />
         <Route path="/return-manage" element={<ReturnAdd />} />
         <Route path="/return-manage/:id/draft" element={<ReturnAdd />} />
+
+        <Route path="/return-invoice/:id/draft" element={<ReturnInvoice />} />
+        <Route path="/return-invoice/:id/draft/total" element={<ReturnInvoice />} />
       </Routes>
     </BrowserRouter>
   );

@@ -25,7 +25,7 @@ const Header = () => {
                     <NavLink
                       to="/home"
                       className={() => {
-                        const isActive = location.pathname === '/home' || location.pathname.startsWith('/order');
+                        const isActive = location.pathname === '/home' || location.pathname.startsWith('/order') || location.pathname.startsWith('/invoice');
                         return `list-item-link ${isActive ? 'opacity-1' : ''}`;
                       }}
                     >
@@ -36,7 +36,7 @@ const Header = () => {
                     <NavLink
                       to="/return"
                       className={() => {
-                        const isActive = location.pathname === '/return' || location.pathname.startsWith('/return-manage');
+                        const isActive = location.pathname === '/return' || location.pathname.startsWith('/return-manage') || location.pathname.startsWith('/return-invoice');
                         return `list-item-link ${isActive ? 'opacity-1' : ''}`;
                       }}
                     >

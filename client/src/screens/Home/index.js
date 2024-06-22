@@ -638,8 +638,6 @@ const Home = () => {
                                     setInvoiceDropDown(!invoiceDropDown)
                                     setDropdownOpen(false)
                                   }} style={{ width: '110px' }} className='table-item-btn d-flex align table-item-text position-relative'>
-                                    <Link className='table-item-text d-flex align' to={(get(item, 'draft') ? `/invoice/${item.DocEntry}/draft` : `/invoice/${item.DocEntry}`)}>
-                                    </Link>
                                     Накладный <img src={editIcon} alt="arrow-right" />
                                   </button>
                                   {(invoiceDropDown) && (

@@ -15,7 +15,6 @@ const customStyles = {
     borderRadius: 15,
     border: 'none',
     width: '30%',
-    minHeight: '50%',
   },
   overlay: {
     background: '#0000008D',

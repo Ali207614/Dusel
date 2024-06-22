@@ -213,7 +213,7 @@ const Return = () => {
     axios
       .post(
         url + `/b1s/v1/CreditNotes`,
-        { body: get(body, 'schema', {}) },
+        { ...get(body, 'schema', {}), "DocType": "dDocument_Items", "DocObjectCode": "oCreditNotes", },
         {
           headers: {
             info: JSON.stringify({
@@ -231,6 +231,8 @@ const Return = () => {
           .then(({ data }) => {
             setUpdateLoading(false)
             successNotify('Muvaffaqiyatli amalaga oshirildi')
+            setMainData(mainData.filter(item => item.DocEntry !== doc))
+            setActiveData(0)
             return
           })
           .catch(err => {
@@ -477,15 +479,13 @@ const Return = () => {
                                     setInvoiceDropDown(!invoiceDropDown)
                                     setDropdownOpen(false)
                                   }} style={{ width: '110px' }} className='table-item-btn d-flex align table-item-text position-relative'>
-                                    <Link className='table-item-text d-flex align' to={(get(item, 'draft') ? `/invoice/${item.DocEntry}/draft` : `/invoice/${item.DocEntry}`)}>
-                                    </Link>
                                     Накладный <img src={editIcon} alt="arrow-right" />
                                   </button>
                                   {(invoiceDropDown) && (
                                     <ul className="dropdown-menu">
                                       {['N1 Накладная', 'N2 Накладная'].map((status, i) => (
                                         <li key={i} className={`dropdown-li`}>
-                                          <Link to={(get(item, 'draft') ? `/invoice/${item.DocEntry}/draft/${i === 0 ? 'total' : ''}` : `/invoice/${item.DocEntry}/${i === 0 ? 'total' : ''}`)} className="dropdown-item display-b" href="#">
+                                          <Link to={(`/return-invoice/${item.DocEntry}/draft/${i === 0 ? 'total' : ''}`)} className="dropdown-item display-b" href="#">
                                             {status}
                                           </Link>
                                         </li>

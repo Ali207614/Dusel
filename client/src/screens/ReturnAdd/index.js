@@ -630,7 +630,7 @@ const Order = () => {
                               setStatusName(item);
                               setShowDropdownWarehouse(false)
                               setMainData([...mainData.map(el => {
-                                return { ...el, DfltWH: (item == returnStatusList[0] ? get(el, 'WHS', '') : 'B-X') }
+                                return { ...el, DfltWH: (item == returnStatusList[0] ? get(el, 'WHS', '') : 'B_X') }
                               })])
                             }
                             return
