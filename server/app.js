@@ -15,8 +15,8 @@ const conn_params = {
     pwd: process.env.password,
 };
 const db = process.env.db
-let series = '72,73'
-// let series = '76,77,91'
+// let series = '72,73'
+let series = '76,77,91'
 
 
 const app = express()

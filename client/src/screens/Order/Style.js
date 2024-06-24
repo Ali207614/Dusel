@@ -16,6 +16,12 @@ li{
   align-items: center;
   z-index: 1000; /* Overlay boshqa kontentdan ustun turishi uchun */
 }
+.title-menu{
+  color:  #000;
+    font-style: normal;
+    line-height: normal;
+    margin-left: 35px;
+}
 .truncated-text {
   white-space: nowrap;
   overflow: hidden;

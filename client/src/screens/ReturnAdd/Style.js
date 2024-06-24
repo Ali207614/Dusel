@@ -4,6 +4,12 @@ const Style = styled.div`
 li{
   list-style: none;
 } 
+.title-menu{
+  color:  #000;
+    font-style: normal;
+    line-height: normal;
+    margin-left: 35px;
+}
 .overlay {
   position: fixed; /* Overlayni butun ekran bo'ylab ko'rsatish uchun */
   top: 0;

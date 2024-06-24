@@ -590,7 +590,10 @@ const Order = () => {
             <div className="order-head">
 
               <div className="order-main d-flex align justify">
-                <button onClick={() => navigate('/home')} className='btn-back'>Назад</button>
+                <div className='d-flex align'>
+                  <button onClick={() => navigate('/home')} className='btn-back'>Назад</button>
+                  <h3 className='title-menu'>Заказ</h3>
+                </div>
                 <button onClick={postOrder} className={`btn-head position-relative`}>
                   {orderLoading ? <Spinner /> : (get(docEntry, 'id', 0) ? 'Обновить' : 'Добавить')}
                 </button>
