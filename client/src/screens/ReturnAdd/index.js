@@ -242,6 +242,7 @@ const Order = () => {
           getOrderByDocEntry(get(docEntry, 'id', 0)).then(orderData => {
             setDocEntry({ ...docEntry, status: true })
             orderData = get(orderData, 'value', [])
+            setStatusName(get(orderData, '[0].WhsCode', '') == 'B_X' ? returnStatusList[1] : returnStatusList[0])
             setLoading(false)
             setCustomer(get(orderData, '[0].CardName', ''))
             setCustomerCode(get(orderData, '[0].CardCode', ''))

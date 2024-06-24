@@ -38,7 +38,7 @@ const FilterOrderModal = ({ getRef, filterProperty, setFilterProperty, getOrders
       open: (data) => {
         setIsOpenModal(true);
         setFilterData(data)
-
+        console.log(data, ' bu filter data')
       },
       close: () => setIsOpenModal(false),
     };
@@ -147,12 +147,12 @@ const FilterOrderModal = ({ getRef, filterProperty, setFilterProperty, getOrders
                 <h3 className='filter-title'>Склад</h3>
                 <div className='right-limit' style={{ width: "110px" }}>
                   <button style={{ width: "110px" }} onClick={() => setShowDropdownWarehouse(!showDropDownWarehouse)} className={`right-dropdown`}>
-                    <p className='right-limit-text'>{warehouse}</p>
+                    <p className='right-limit-text'>{get(filterProperty, 'WarehouseCode', '-') || '-'}</p>
                     <img src={arrowDown} className={showDropDownWarehouse ? "up-arrow" : ""} alt="arrow-down-img" />
                   </button>
                   <ul style={{ zIndex: 1 }} className={`dropdown-menu  ${(showDropDownWarehouse) ? "display-b" : "display-n"}`} aria-labelledby="dropdownMenuButton1">
                     {
-                      ['-', ...warehouseList].map((item, i) => {
+                      ['-', ...warehouseList, 'B_X'].map((item, i) => {
                         return (<li key={i} onClick={() => {
                           if (item == '-') {
                             setWarehouse(item);
