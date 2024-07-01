@@ -332,7 +332,7 @@ const Order = () => {
       warningNotify("Ma'lumot mavjud emas")
       return
     }
-    if (actualData.find(item => item.value.length == 0)) {
+    if (actualData.find(item => item.value.length == 0) || actualData.find(item => Number(item.value) < 0)) {
       warningNotify("Miqdor yozilmagan")
       setIsEmpty(true)
       return
@@ -601,7 +601,7 @@ const Order = () => {
 
               <div className='d-flex align justify'>
                 <div className='d-flex align'>
-                  <div className='right-limit' style={{ width: "120px" }}>
+                  <div className='right-limit' style={{ width: "190px" }}>
                     <button onClick={() => setShowDropdownSalesPerson(!showDropDownSalesPerson)} className={`right-dropdown w-100`}>
                       <p className='right-limit-text'>{salesPerson}</p>
                       <img src={arrowDown} className={showDropDownSalesPerson ? "up-arrow" : ""} alt="arrow-down-img" />
@@ -754,7 +754,7 @@ const Order = () => {
                     <button onClick={() => {
                       let filterData = mainData.filter(el => {
                         let free = Number(get(el, 'OnHand', '')) - Number(get(el, 'IsCommited', ''))
-                        return el.value.trim().length > 0 && (free >= Number(el.value.trim()))
+                        return Number(el.value) > 0 && (free >= Number(el.value.trim()))
                       })
                       if (filterData.length) {
                         setAllPageLengthSelect(allPageLengthSelect + filterData.length)
@@ -841,11 +841,14 @@ const Order = () => {
                                   <div className='w-47px p-16' >
                                     <button
                                       disabled={
-                                        Number(get(item, 'OnHand', '')) <= 0 ? true : (Number(get(item, 'OnHand', '')) - Number(get(item, 'IsCommited', ''))) < Number(get(item, 'value', 0))
+                                        (Number(get(item, 'value')) < 0) ? true : (
+                                          Number(get(item, 'OnHand', '')) <= 0
+                                            ? true :
+                                            (Number(get(item, 'OnHand', '')) - Number(get(item, 'IsCommited', ''))) < Number(get(item, 'value', 0)))
                                       }
                                       onClick={() => addState(item)}
                                       className={`table-body-text table-head-check-btn ${Number(get(item, 'OnHand', '')) <= 0 ? 'opacity-5' : (
-                                        (Number(get(item, 'OnHand', '')) - Number(get(item, 'IsCommited', ''))) < Number(get(item, 'value', 0)) ? 'opacity-5' : '2')}`}>
+                                        (Number(get(item, 'OnHand', '')) - Number(get(item, 'IsCommited', ''))) < Number(get(item, 'value', 0)) ? 'opacity-5' : '')} ${Number(get(item, 'value')) < 0 ? 'opacity-5' : ''}`}>
                                       <img src={add} alt="add button" />
                                     </button>
                                   </div>

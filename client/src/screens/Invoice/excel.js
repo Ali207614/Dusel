@@ -13,7 +13,6 @@ const exportTableToExcelWithTotal = async ({ mainData = [] }) => {
     const worksheet = workbook.addWorksheet('Invoice');
 
     worksheet.addRow([])
-    worksheet.addRow([])
     let header = worksheet.addRow([`Накладная: № ${get(mainData, '[0].DocNum', 0)} от ${moment(get(mainData, '[0].DocDate')).format('DD.MM.YYYY')}`])
     worksheet.mergeCells(`A${header.number}:I${header.number}`);
     header.eachCell({ includeEmpty: true }, cell => {
@@ -86,7 +85,7 @@ const exportTableToExcelWithTotal = async ({ mainData = [] }) => {
             price: parseFloat(Number(get(item, 'Price')).toFixed(3)),
             lineTotal: parseFloat(Number(get(item, 'LineTotal')).toFixed(2))
         });
-        row.height = 30;
+        row.height = 23;
         row.eachCell((cell, colNumber) => {
             if (colNumber === 3) { // Assuming 'itemName' is the third column
                 cell.alignment = { vertical: 'middle', horizontal: 'left', wrapText: true };
@@ -165,7 +164,6 @@ const exportTableToExcelWithoutTotal = async ({ mainData = [] }) => {
     const worksheet = workbook.addWorksheet('Invoice');
 
     worksheet.addRow([])
-    worksheet.addRow([])
     let header = worksheet.addRow([`Накладная: № ${get(mainData, '[0].DocNum', 0)} от ${moment(get(mainData, '[0].DocDate')).format('DD.MM.YYYY')}`])
     worksheet.mergeCells(`A${header.number}:I${header.number}`);
     header.eachCell({ includeEmpty: true }, cell => {
@@ -237,7 +235,7 @@ const exportTableToExcelWithoutTotal = async ({ mainData = [] }) => {
             quantity: Number(get(item, 'Quantity')),
 
         });
-        row.height = 30;
+        row.height = 23;
         row.eachCell((cell, colNumber) => {
             if (colNumber === 3) { // Assuming 'itemName' is the third column
                 cell.alignment = { vertical: 'middle', horizontal: 'left', wrapText: true };
@@ -293,7 +291,6 @@ const sandTableToExcelWithoutTotal = async ({ mainData = [] }) => {
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Invoice');
 
-    worksheet.addRow([])
     worksheet.addRow([])
     let header = worksheet.addRow([`Накладная: № ${get(mainData, '[0].DocNum', 0)} от ${moment(get(mainData, '[0].DocDate')).format('DD.MM.YYYY')}`])
     worksheet.mergeCells(`A${header.number}:I${header.number}`);
@@ -361,7 +358,7 @@ const sandTableToExcelWithoutTotal = async ({ mainData = [] }) => {
             quantity: Number(get(item, 'Quantity')),
 
         });
-        row.height = 30;
+        row.height = 23;
         row.eachCell((cell, colNumber) => {
             if (colNumber === 3) { // Assuming 'itemName' is the third column
                 cell.alignment = { vertical: 'middle', horizontal: 'left', wrapText: true };

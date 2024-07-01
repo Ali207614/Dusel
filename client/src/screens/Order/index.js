@@ -351,12 +351,13 @@ const Order = () => {
       warningNotify("Ma'lumot mavjud emas")
       return
     }
-    if (actualData.find(item => item.value.length == 0)) {
+    if (actualData.find(item => item.value.length == 0) || actualData.find(item => Number(item.value) < 0)) {
       warningNotify("Miqdor yozilmagan")
       setIsEmpty(true)
       return
     }
     if (actualData.find(item => {
+
       let free = Number(get(item, 'OnHand', '')) - Number(get(item, 'IsCommited', ''))
       if (free < Number(item.value.trim())) {
         return true
@@ -373,7 +374,6 @@ const Order = () => {
       setOrderLoading(false)
       if (get(isCheck, 'value[0].TRUE')) {
         warningRef.current?.open(`Belgilangan limit summadan ko'p`);
-        // warningRef.current?.open(`Вы уверены, что хотите это ${get(docEntry, 'id', 0) ? 'обновить' : 'добавить'} ? `);
         return
       }
     }
@@ -381,8 +381,7 @@ const Order = () => {
     confirmRef.current?.open(`Вы уверены, что хотите это ${get(docEntry, 'id', 0) ? 'обновить' : 'добавить'} ? `);
   }
 
-  const Orders = () => {
-
+  const Orders = async () => {
     let link = orderStatus == 2 ? '/api/draft' : `/b1s/v1/Orders`
     setOrderLoading(true)
     let schema = {
@@ -398,6 +397,31 @@ const Order = () => {
           "WarehouseCode": warehouse
         }
       })
+    }
+
+    let checkItem = axios
+      .get(
+        url + `/api/items-check?items=${state.map(item => `'${item.ItemCode}'`)}&whsCode=${get(pagination, 'warehouse', warehouse)}`,
+      ).then(({ data }) => {
+        // 
+        let itemsList = get(data, 'value', [])
+        let isEnough = itemsList.find(el => {
+          let currentItem = state.find(e => get(e, 'ItemCode') == get(el, 'ItemCode'))
+          return Number(get(el, 'OnHand', '')) - Number(get(el, 'IsCommited', '')) < Number(get(currentItem, 'value'))
+        })
+        if (isEnough) {
+          return { status: true, data: isEnough }
+        }
+      }).catch(e => {
+        errorNotify("Tovarlar tekshirishda muommo yuzaga keldi")
+        setOrderLoading(false)
+        return { status: false }
+      })
+    let inData = await checkItem
+    if (get(inData, 'status')) {
+      setOrderLoading(false)
+      errorNotify(`${get(inData, 'data.ItemName')} tovaridan yetarli miqdorda mavjud emas`)
+      return
     }
     let body = orderStatus == 1 ? schema : state.map(item => {
       return { ...item, CardName: customer, CardCode: customerCode, ...date, WhsCode: warehouse, Quantity: item.value, schema, salesPersonCode, salesPerson, comment, ...customerDataInvoice }
@@ -581,6 +605,10 @@ const Order = () => {
     }
   };
 
+  const handleScroll = (event) => {
+    event.preventDefault();
+  };
+
   return (
     <>
       <Style>
@@ -633,7 +661,7 @@ const Order = () => {
 
               <div className='d-flex align justify'>
                 <div className='d-flex align'>
-                  <div className='right-limit' style={{ width: "120px" }}>
+                  <div className='right-limit' style={{ width: "190px" }}>
                     <button onClick={() => setShowDropdownSalesPerson(!showDropDownSalesPerson)} className={`right-dropdown w-100`}>
                       <p className='right-limit-text'>{salesPerson}</p>
                       <img src={arrowDown} className={showDropDownSalesPerson ? "up-arrow" : ""} alt="arrow-down-img" />
@@ -784,7 +812,7 @@ const Order = () => {
                     <button onClick={() => {
                       let filterData = mainData.filter(el => {
                         let free = Number(get(el, 'OnHand', '')) - Number(get(el, 'IsCommited', ''))
-                        return el.value.trim().length > 0 && (free >= Number(el.value.trim()))
+                        return Number(el.value) > 0 && (free >= Number(el.value.trim()))
                       })
                       if (filterData.length) {
                         setAllPageLengthSelect(allPageLengthSelect + filterData.length)
@@ -845,6 +873,7 @@ const Order = () => {
                                       ref={(el) => (inputRefs.current[i] = el)}
                                       onKeyDown={(event) => handleKeyDown(event, i)}
                                       value={get(item, 'value', '')}
+                                      onWheel={handleScroll}
                                       onChange={(e) => {
                                         changeValue(e.target.value, get(item, 'ItemCode', ''))
                                         changeKarobka((e.target.value ? (Math.floor(e.target.value / Number(get(item, 'U_Karobka', 1) || 1))).toString() : ''), get(item, 'ItemCode', ''))
@@ -871,11 +900,16 @@ const Order = () => {
                                   <div className='w-47px p-16' >
                                     <button
                                       disabled={
-                                        Number(get(item, 'OnHand', '')) <= 0 ? true : (Number(get(item, 'OnHand', '')) - Number(get(item, 'IsCommited', ''))) < Number(get(item, 'value', 0))
+                                        (Number(get(item, 'value')) < 0) ? true : (
+                                          Number(get(item, 'OnHand', '')) <= 0
+                                            ? true :
+                                            (Number(get(item, 'OnHand', '')) - Number(get(item, 'IsCommited', ''))) <= 0 ||
+                                            (Number(get(item, 'OnHand', '')) - Number(get(item, 'IsCommited', ''))) < Number(get(item, 'value', 0)))
                                       }
                                       onClick={() => addState(item)}
                                       className={`table-body-text table-head-check-btn ${Number(get(item, 'OnHand', '')) <= 0 ? 'opacity-5' : (
-                                        (Number(get(item, 'OnHand', '')) - Number(get(item, 'IsCommited', ''))) < Number(get(item, 'value', 0)) ? 'opacity-5' : '2')}`}>
+                                        (Number(get(item, 'OnHand', '')) - Number(get(item, 'IsCommited', ''))) <= 0 ||
+                                          (Number(get(item, 'OnHand', '')) - Number(get(item, 'IsCommited', ''))) < Number(get(item, 'value', 0)) ? 'opacity-5' : '')} ${Number(get(item, 'value')) < 0 ? 'opacity-5' : ''}`}>
                                       <img src={add} alt="add button" />
                                     </button>
                                   </div>

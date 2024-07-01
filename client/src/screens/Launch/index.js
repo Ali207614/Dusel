@@ -10,7 +10,7 @@ const Launch = () => {
   const { getMe } = useSelector(state => state.main);
   useEffect(() => {
     setTimeout(() => {
-      get(getMe, 'SessionId', '') ? navigate('/home') : navigate('/login');
+      navigate('/login');
     }, 2000);
   }, []);
 

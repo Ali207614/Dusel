@@ -101,7 +101,7 @@ const Home = () => {
       }, delay);
     }
     else {
-      getOrders({ page: 1, limit, filterProperty })
+      getOrders({ page: 1, limit, filterProperty, value: search })
       setTs(limit)
       setPage(1);
     }
@@ -113,7 +113,6 @@ const Home = () => {
 
   useEffect(() => {
     getOrderApi()
-    getOrders({ page, limit, value: search, filterProperty })
   }, []);
 
   const subQuery = (prop = {}) => {
@@ -184,10 +183,41 @@ const Home = () => {
       });
   }
 
-  const addDraft = (body) => {
+  const addDraft = async (body) => {
+
+
+
     if (get(body, 'schema.CardCode')) {
       setDropdownOpen(false);
       setUpdateLoading(true)
+
+
+      let checkItem = axios
+        .get(
+          url + `/api/items-check?items=${get(body, 'schema.DocumentLines', []).map(item => `'${item.ItemCode}'`)}&whsCode=${get(body, 'schema.DocumentLines[0].WarehouseCode', '')}`,
+        ).then(({ data }) => {
+          // 
+          let itemsList = get(data, 'value', [])
+          let isEnough = itemsList.find(el => {
+            let currentItem = get(body, 'schema.DocumentLines', []).find(e => get(e, 'ItemCode') == get(el, 'ItemCode'))
+            return Number(get(el, 'OnHand', '')) - Number(get(el, 'IsCommited', '')) < Number(get(currentItem, 'Quantity'))
+          })
+          if (isEnough) {
+            return { status: true, data: isEnough }
+          }
+        }).catch(e => {
+          errorNotify("Tovarlar tekshirishda muommo yuzaga keldi")
+          setUpdateLoading(false)
+          return { status: false }
+        })
+      let inData = await checkItem
+      if (get(inData, 'status')) {
+        setUpdateLoading(false)
+        errorNotify(`${get(inData, 'data.ItemName')} tovaridan yetarli miqdorda mavjud emas`)
+        return
+      }
+
+
       let link = `/b1s/v1/Orders`
       axios
         .post(
@@ -267,7 +297,7 @@ const Home = () => {
       });
   }
 
-  const addInvoice = (body) => {
+  const addInvoice = (body, doc) => {
     axios
       .post(
         url + `/b1s/v1/Invoices`,
@@ -284,7 +314,7 @@ const Home = () => {
       .then(({ data }) => {
         setUpdateLoading(false)
         setActiveData(0)
-        setMainData([...mainData.filter(item => item.DocEntry != get(body, 'DocEntry'))])
+        setMainData([...mainData.filter(item => item.DocEntry != doc)])
         setAllPageLength(allPageLength - 1)
         successNotify("Malumot muvaffaqiyatli qo'shildi")
       })
@@ -328,7 +358,7 @@ const Home = () => {
             }
           })
         }
-        addInvoice(schema)
+        addInvoice(schema, doc)
       })
       .catch(err => {
         if (get(err, 'response.status') == 401) {
@@ -394,6 +424,10 @@ const Home = () => {
           getOrderByDocEntry(docEntry).then(data => {
             sandTableToExcelWithoutTotal({ mainData: get(data, 'value', []) })
             setUpdateLoading(false)
+          }).catch(e => {
+            console.log(e, ' bu e')
+            errorNotify(`Get order by DocEntry ${e} 
+            400 qator`)
           })
         }
         successNotify(`Status muvaffaqiyatli o'zgartirildi`)

@@ -41,7 +41,12 @@ const Invoice = () => {
       )
       .then(({ data }) => {
         setLoading(false)
-        setMainData(get(data, 'value', []))
+        setMainData(get(data, 'value', []).sort((a, b) => {
+          const aValue = a.U_prn === null || a.U_prn === 0 || a.U_prn === undefined ? 9999 : a.U_prn;
+          const bValue = b.U_prn === null || b.U_prn === 0 || b.U_prn === undefined ? 9999 : b.U_prn;
+
+          return aValue - bValue;
+        }))
         return data
       })
       .catch(err => {
