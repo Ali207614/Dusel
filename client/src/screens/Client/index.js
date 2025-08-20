@@ -11,13 +11,11 @@ import rightArrow from '../../assets/images/right-arrow.png';
 import filterImg from '../../assets/images/filter-search.svg';
 import arrowDown from '../../assets/images/arrow-down.svg';
 import pagination from '../../assets/images/pagination.svg';
-import editIcon from '../../assets/images/edit-icon.svg';
 import close from '../../assets/images/Close-filter.svg';
 import { get } from 'lodash';
 import formatterCurrency from '../../helpers/currency';
-import moment from 'moment';
 import { FadeLoader } from "react-spinners";
-import { ConfirmModal, ErrorModal, ConfirmModalOrder, FilterOrderModal } from '../../components/Modal';
+import { ConfirmModal, ErrorModal, ConfirmModalOrder, FilterOrderModal, BusinessPartner } from '../../components/Modal';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { errorNotify, successNotify, warningNotify, limitList, override } from '../../components/Helper';
@@ -51,9 +49,6 @@ const Client = () => {
 
   const [filterProperty, setFilterProperty] = useState(get(getFilter, 'filterProperty', {}))
 
-  const [updateLoading, setUpdateLoading] = useState(false)
-
-  const [dropdownOpen, setDropdownOpen] = useState(false);
 
   let [color, setColor] = useState("#3C3F47");
 
@@ -66,6 +61,11 @@ const Client = () => {
 
   const filterModalRef = useCallback(ref => {
     filterRef.current = ref;
+  }, []);
+  const businessRef = useRef();
+
+  const businessModalRef = useCallback(ref => {
+    businessRef.current = ref;
   }, []);
 
   const confirmModalRef = useCallback(ref => {
@@ -167,7 +167,7 @@ const Client = () => {
   const getOrderApi = () => {
     axios
       .get(
-        url + `/b1s/v1/Orders`,
+        url + `/b1s/v1/BusinessPartners`,
         {
           headers: {
             info: JSON.stringify({
@@ -277,7 +277,7 @@ const Client = () => {
                 </div>
 
 
-                <button onClick={() => navigate('/return-manage')} className='btn-head'>
+                <button onClick={() => businessRef.current?.open({}, 'add')} className='btn-head'>
                   Добавить
                 </button>
               </div>
@@ -305,7 +305,9 @@ const Client = () => {
                               <div className='table-item-head d-flex align  justify'>
                                 <div className='d-flex align  w-50 p-16'>
                                   <p className='table-body-text truncated-text d-flex align' title={get(item, 'CardName', '')} onClick={() => setActiveData(activeData === i + 1 ? 0 : (i + 1))}>
-                                    <button className='clientBtn'>
+                                    <button onClick={() => {
+                                      businessRef.current?.open(item, 'view');
+                                    }} className='clientBtn'>
                                       <img src={rightArrow} className='clientImg' alt="open create modal" />
                                     </button> {get(item, 'CardName', '')}
                                   </p>
@@ -371,6 +373,9 @@ const Client = () => {
           arg={{ page: 1, limit, value: search }}
           setPage={setPage}
           setTs={setTs}
+        />
+        <BusinessPartner
+          getRef={businessModalRef}
         />
         <ErrorModal
           getRef={getErrorRef}

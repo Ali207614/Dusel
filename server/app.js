@@ -320,19 +320,12 @@ app.get('/api/sales', async function (req, res) {
 })
 
 async function getFilterItem() {
-    const sql = `
-      SELECT DISTINCT T0."ItmsGrpNam" AS "Value",
-                      T0."ItmsGrpCod" AS "Code",
-                      'ItmsGrpNam'     AS "Type"
-      FROM ${db}.OITB T0
-      UNION
-      SELECT T0."Descr"    AS "Value",
-             T0."FldValue" AS "Code",
-             'U_Kategoriya' AS "Type"
-      FROM ${db}.UFD1 T0
-      WHERE T0."TableID" = 'OITM' AND T0."FieldID" = 1
-      ORDER BY "Type","Value"
-    `;
+    let sql = `
+    SELECT DISTINCT T0."ItmsGrpNam" AS Value, T0."ItmsGrpCod" AS Code ,'ItmsGrpNam' AS Type
+    FROM ${db}.OITB T0
+    UNION
+    SELECT T0."Descr" AS Value , T0."FldValue" AS Code ,'U_Kategoriya' AS Type  from ${db}.UFD1  T0 WHERE T0."TableID" ='OITM' and T0."FieldID" = 1 
+    `
 
     return withConn(async (conn) => {
         const rows = await execAsync(conn, sql, []);
@@ -349,9 +342,7 @@ async function getUserType(userCode) {
     `;
     return withConn(async (conn) => {
         const rows = await execAsync(conn, sql, [userCode]);
-        // { value: rows } yoki faqat qiymat qaytarish — loyihangizga mosini tanlang:
-        // return rows?.[0]?.U_type ?? null;
-        return { value: rows };
+        return rows
     });
 }
 
@@ -366,21 +357,33 @@ async function getCustomer({ search, type, limit = 30, offset = 1 }) {
 
     if (search && String(search).trim().length) {
         const like = `%${String(search).trim().toLowerCase()}%`;
-        where.push('(LOWER(T0."CardCode") LIKE ? OR LOWER(T0."CardName") LIKE ?)');
-        params.push(like, like);
+        where.push(`
+            (
+                LOWER(T0."CardCode") LIKE ? 
+                OR LOWER(T0."CardName") LIKE ? 
+                OR LOWER(T0."Phone1") LIKE ? 
+                OR LOWER(T0."Phone2") LIKE ?
+            )
+        `);
+        params.push(like, like, like, like);
     }
-
     if (type === 'Tools') {
-        // GroupCode bo‘yicha filtrlash (parametrizatsiya)
         where.push('T0."GroupCode" = ?');
         params.push(toolsGroupCode);
     }
+    else {
+        where.push('T0."GroupCode" != ?');
+        params.push(toolsGroupCode);
+    }
+    where.push(`T0."frozenFor" = ?`)
+    params.push('N');
 
     const whereSql = where.length ? `WHERE ${where.join(' AND ')}` : '';
 
     const sql = `
       WITH filtered AS (
         SELECT 
+          T0."GroupCode",
           T0."U_discount",
           T0."CreditLine",
           T0."Balance",
@@ -407,7 +410,7 @@ async function getCustomer({ search, type, limit = 30, offset = 1 }) {
         FROM filtered f
       )
       SELECT
-        "U_discount","CreditLine","Balance","descript","Address","ZipCode","Phone1","Phone2",
+      "GroupCode" ,"U_discount","CreditLine","Balance","descript","Address","ZipCode","Phone1","Phone2",
         "LicTradNum","CardCode","CardName","CardType","GroupName","LENGTH"
       FROM ranked
       WHERE rn > ? AND rn <= ?;
@@ -499,6 +502,10 @@ async function checkCustomerBalance_legacy({ customerCode = '', summa = 0 }) {
   });
 }
 */
+function inPlaceholders(arr) {
+    if (!arr || !arr.length) return '';
+    return arr.map(() => '?').join(', ');
+}
 
 // 2) Sotyuvchilar ro‘yxati
 async function getSalesPerson() {
@@ -518,64 +525,64 @@ async function getItems({
     whsCode = '', search,
     items = [], group = '',
     category = '', code = '',
-    series,          // masalan: ['76','77','91'] yoki '76,77,91'
-    seriesTools,     // masalan: ['91'] yoki '91'
 }) {
-    const size = Math.max(1, Number(limit) || 30);
-    const start = Math.max(0, (Number(offset) || 1) - 1);
-    const end = start + size;
+    try {
+        const size = Math.max(1, Number(limit) || 30);
+        const start = Math.max(0, (Number(offset) || 1) - 1);
+        const end = start + size;
 
-    const seriesArr = toArrayMaybe(type === 'Tools' ? seriesTools : series);
-    const itemsArr = toArrayMaybe(items);
-    const hasSeries = seriesArr.length > 0;
-    const isTools = type === 'Tools';
+        const seriesArr = toArrayMaybe(type === 'Tools' ? seriesTools : series);
 
-    // WHERE shartlar
-    const where = [
-        `T0."DfltWH" = ?`,
-        `T3."PriceList" = 1`,
-        `T1."WhsCode" = ?`,
-    ];
-    const params = [whsCode, whsCode];
+        const itemsArr = toArrayMaybe(items);
+        const hasSeries = seriesArr.length > 0;
+        const isTools = type === 'Tools';
 
-    // (Series IN (...) [OR ItemCode LIKE 'GPO%'] )
-    if (isTools) {
-        if (hasSeries) {
-            where.push(`(T0."Series" IN (${inPlaceholders(seriesArr)}) OR T0."ItemCode" LIKE 'GPO%')`);
+        // WHERE shartlar
+        const where = [
+            `T0."DfltWH" = ?`,
+            `T3."PriceList" = 1`,
+            `T1."WhsCode" = ?`,
+        ];
+        const params = [whsCode, whsCode];
+
+        // (Series IN (...) [OR ItemCode LIKE 'GPO%'] )
+        if (isTools) {
+            if (hasSeries) {
+                where.push(`(T0."Series" IN (${inPlaceholders(seriesArr)}) OR T0."ItemCode" LIKE 'GPO%')`);
+                params.push(...seriesArr);
+            } else {
+                where.push(`T0."ItemCode" LIKE 'GPO%'`);
+            }
+        } else if (hasSeries) {
+            where.push(`T0."Series" IN (${inPlaceholders(seriesArr)})`);
             params.push(...seriesArr);
-        } else {
-            where.push(`T0."ItemCode" LIKE 'GPO%'`);
         }
-    } else if (hasSeries) {
-        where.push(`T0."Series" IN (${inPlaceholders(seriesArr)})`);
-        params.push(...seriesArr);
-    }
 
-    // NOT IN items
-    if (itemsArr.length) {
-        where.push(`T0."ItemCode" NOT IN (${inPlaceholders(itemsArr)})`);
-        params.push(...itemsArr);
-    }
+        // NOT IN items
+        if (itemsArr.length) {
+            where.push(`T0."ItemCode" NOT IN (${inPlaceholders(itemsArr)})`);
+            params.push(...itemsArr);
+        }
 
-    if (code && String(code).length) {
-        where.push(`T0."ItmsGrpCod" = ?`);
-        params.push(code);
-    }
-    if (category && String(category).length) {
-        where.push(`T0."U_Kategoriya" = ?`);
-        params.push(category);
-    }
+        if (code && String(code).length) {
+            where.push(`T0."ItmsGrpCod" = ?`);
+            params.push(code);
+        }
+        if (category && String(category).length) {
+            where.push(`T0."U_Kategoriya" = ?`);
+            params.push(category);
+        }
 
-    if (search && String(search).trim().length) {
-        const like = `%${String(search).trim().toLowerCase()}%`;
-        where.push(`(LOWER(T0."ItemCode") LIKE ? OR LOWER(T0."ItemName") LIKE ? OR LOWER(T0."U_model") LIKE ?)`);
-        params.push(like, like, like);
-    }
+        if (search && String(search).trim().length) {
+            const like = `%${String(search).trim().toLowerCase()}%`;
+            where.push(`(LOWER(T0."ItemCode") LIKE ? OR LOWER(T0."ItemName") LIKE ? OR LOWER(T0."U_model") LIKE ?)`);
+            params.push(like, like, like);
+        }
 
-    const whereSql = `WHERE ${where.join(' AND ')}`;
+        const whereSql = `WHERE ${where.join(' AND ')}`;
 
-    // CTE + ROW_NUMBER + COUNT(*) OVER() — LENGTH har qatorda
-    const sql = `
+        // CTE + ROW_NUMBER + COUNT(*) OVER() — LENGTH har qatorda
+        const sql = `
       WITH filtered AS (
         SELECT
           T5."U_item_count", T5."U_quant_add", T5."U_end_date", T5."U_start_date",
@@ -629,13 +636,19 @@ async function getItems({
       WHERE rn > ? AND rn <= ?;
     `;
 
-    const rnParams = [start, end];
+        const rnParams = [start, end];
 
-    return withConn(async (conn) => {
-        const rows = await execAsync(conn, sql, [...params, ...rnParams]);
-        return { value: rows }; // FE: get(data,'value[0].LENGTH',0)
-    });
+        return withConn(async (conn) => {
+            const rows = await execAsync(conn, sql, [...params, ...rnParams]);
+            return { value: rows };
+        });
+    }
+    catch (e) {
+        console.log(e, ' bu e')
+    }
 }
+
+
 async function getItemsCheck({ items = [], whsCode = '' }) {
     // Bo'sh ro'yxat bo'lsa, DBga bormaymiz
     if (!Array.isArray(items) || items.length === 0) {
@@ -694,10 +707,6 @@ function toArrayMaybe(value) {
     return [];
 }
 
-/**
- * getItemsReturn (pool + parametrizatsiya + RN paginatsiya)
- * offset: 1-based sahifa raqami
- */
 async function getItemsReturn({
     offset,
     limit,
@@ -707,127 +716,128 @@ async function getItemsReturn({
     group = '',
     category = '',
     code = '',
-    // ixtiyoriy: agar tashqarida global string bo'lsa, shu yerga ham kelishi mumkin
-    series,          // masalan: ['76','77','91'] yoki '76,77,91'
 }) {
-    // page/limitni tayyorlab oling
-    const size = Math.max(1, Number(limit) || 30);
-    const start = Math.max(0, (Number(offset) || 1) - 1);
-    const end = start + size;
+    try {
+        // page/limitni tayyorlab oling
+        const size = Math.max(1, Number(limit) || 30);
+        const start = Math.max(0, (Number(offset) || 1) - 1);
+        const end = start + size;
 
-    // IN ro'yxatlarni tayyorlash
-    const seriesArr = toArrayMaybe(series);     // bo'sh bo'lsa, keyin shart qo'shmaymiz
-    const itemsArr = Array.isArray(items) ? items : toArrayMaybe(items);
+        // IN ro'yxatlarni tayyorlash
+        const seriesArr = toArrayMaybe(type === 'Tools' ? seriesTools : series);     // bo'sh bo'lsa, 
+        const itemsArr = Array.isArray(items) ? items : toArrayMaybe(items);
 
-    // WHERE bo‘lib boradigan shartlar va params
-    const where = [];
-    const params = [];
+        // WHERE bo‘lib boradigan shartlar va params
+        const where = [];
+        const params = [];
 
-    // Asosiy shartlar
-    where.push(`T3."PriceList" = 1`);
-    where.push(`T1."WhsCode" = T0."DfltWH"`);
+        // Asosiy shartlar
+        where.push(`T3."PriceList" = 1`);
+        where.push(`T1."WhsCode" = T0."DfltWH"`);
 
-    // Series / Tools OR sharti
-    if (type === 'Tools') {
-        // (Series IN (...) OR ItemCode LIKE 'GPO%')
-        if (seriesArr.length) {
-            where.push(`(T0."Series" IN (${inPlaceholders(seriesArr)}) OR T0."ItemCode" LIKE 'GPO%')`);
-            params.push(...seriesArr);
+        // Series / Tools OR sharti
+        if (type === 'Tools') {
+            // (Series IN (...) OR ItemCode LIKE 'GPO%')
+            if (seriesArr.length) {
+                where.push(`(T0."Series" IN (${inPlaceholders(seriesArr)}) OR T0."ItemCode" LIKE 'GPO%')`);
+                params.push(...seriesArr);
+            } else {
+                // Series yo'q bo'lsa faqat GPO%
+                where.push(`T0."ItemCode" LIKE 'GPO%'`);
+            }
         } else {
-            // Series yo'q bo'lsa faqat GPO%
-            where.push(`T0."ItemCode" LIKE 'GPO%'`);
+            // Oddiy holat: faqat Series IN (...)
+            if (seriesArr.length) {
+                where.push(`T0."Series" IN (${inPlaceholders(seriesArr)})`);
+                params.push(...seriesArr);
+            }
         }
-    } else {
-        // Oddiy holat: faqat Series IN (...)
-        if (seriesArr.length) {
-            where.push(`T0."Series" IN (${inPlaceholders(seriesArr)})`);
-            params.push(...seriesArr);
+
+        // NOT IN items
+        if (itemsArr.length) {
+            where.push(`T0."ItemCode" NOT IN (${inPlaceholders(itemsArr)})`);
+            params.push(...itemsArr);
         }
+
+        // code / category
+        if (code && String(code).length) {
+            where.push(`T0."ItmsGrpCod" = ?`);
+            params.push(code);
+        }
+        if (category && String(category).length) {
+            where.push(`T0."U_Kategoriya" = ?`);
+            params.push(category);
+        }
+
+        // qidiruv
+        if (search && String(search).trim().length) {
+            const like = `%${String(search).trim().toLowerCase()}%`;
+            where.push(`(LOWER(T0."ItemCode") LIKE ? OR LOWER(T0."ItemName") LIKE ? OR LOWER(T0."U_model") LIKE ?)`);
+            params.push(like, like, like);
+        }
+
+        const whereSql = where.length ? `WHERE ${where.join(' AND ')}` : '';
+
+        // CTE + RN + COUNT OVER
+        const sql = `
+       WITH filtered AS (
+         SELECT
+           T0."DfltWH",
+           T4."Discount",
+           T0."ItmsGrpCod",
+           T0."U_Kategoriya",
+           T0."U_Karobka",
+           T0."BVolume",
+           T0."U_U_netto",
+           T0."U_U_brutto",
+           T0."U_model",
+           T0."U_smr",
+           T1."IsCommited",
+           T1."OnHand",
+           T1."OnOrder",
+           T1."Counted",
+           T0."ItemCode",
+           T0."ItemName",
+           T0."CodeBars",
+           T1."AvgPrice",
+           T3."PriceList",
+           T3."Price",
+           T3."Currency",
+           CASE WHEN T0."U_prn" IS NULL OR T0."U_prn" = 0 THEN 9999 ELSE T0."U_prn" END AS __ord_prn
+         FROM ${db}.OITM T0
+         INNER JOIN ${db}.OITW T1 ON T0."ItemCode" = T1."ItemCode" AND T1."WhsCode" = T0."DfltWH"
+         INNER JOIN ${db}.ITM1 T3 ON T0."ItemCode" = T3."ItemCode"
+         LEFT  JOIN ${db}.EDG1 T4 ON T0."ItemCode" = T4."ObjKey" AND T4."ObjType" = '4'
+         ${whereSql}
+       ),
+       ranked AS (
+         SELECT
+           f.*,
+           ROW_NUMBER() OVER (
+             ORDER BY f.__ord_prn, f."ItemCode"
+           ) AS rn,
+           COUNT(*) OVER () AS "LENGTH"
+         FROM filtered f
+       )
+       SELECT
+         "DfltWH","Discount","ItmsGrpCod","U_Kategoriya","U_Karobka","BVolume",
+         "U_U_netto","U_U_brutto","U_model","U_smr","IsCommited","OnHand","OnOrder","Counted",
+         "ItemCode","ItemName","CodeBars","AvgPrice","PriceList","Price","Currency","LENGTH"
+       FROM ranked
+       WHERE rn > ? AND rn <= ?;
+     `;
+
+        // RN kesish paramlari
+        const rnParams = [start, end];
+
+        return withConn(async (conn) => {
+            const rows = await execAsync(conn, sql, [...params, ...rnParams]);
+            return { value: rows }; // FE: get(data,'value[0].LENGTH',0)
+        });
     }
-
-    // NOT IN items
-    if (itemsArr.length) {
-        where.push(`T0."ItemCode" NOT IN (${inPlaceholders(itemsArr)})`);
-        params.push(...itemsArr);
+    catch (e) {
+        console.log(e)
     }
-
-    // code / category
-    if (code && String(code).length) {
-        where.push(`T0."ItmsGrpCod" = ?`);
-        params.push(code);
-    }
-    if (category && String(category).length) {
-        where.push(`T0."U_Kategoriya" = ?`);
-        params.push(category);
-    }
-
-    // qidiruv
-    if (search && String(search).trim().length) {
-        const like = `%${String(search).trim().toLowerCase()}%`;
-        where.push(`(LOWER(T0."ItemCode") LIKE ? OR LOWER(T0."ItemName") LIKE ? OR LOWER(T0."U_model") LIKE ?)`);
-        params.push(like, like, like);
-    }
-
-    const whereSql = where.length ? `WHERE ${where.join(' AND ')}` : '';
-
-    // CTE + RN + COUNT OVER
-    const sql = `
-      WITH filtered AS (
-        SELECT
-          T0."DfltWH",
-          T0."DfltWH" AS whs,
-          T4."Discount",
-          T0."ItmsGrpCod",
-          T0."U_Kategoriya",
-          T0."U_Karobka",
-          T0."BVolume",
-          T0."U_U_netto",
-          T0."U_U_brutto",
-          T0."U_model",
-          T0."U_smr",
-          T1."IsCommited",
-          T1."OnHand",
-          T1."OnOrder",
-          T1."Counted",
-          T0."ItemCode",
-          T0."ItemName",
-          T0."CodeBars",
-          T1."AvgPrice",
-          T3."PriceList",
-          T3."Price",
-          T3."Currency",
-          -- RN tartibi: U_prn bo'sh/null/0 bo'lsa oxirida (9999), so'ng ItemCode
-          CASE WHEN T0."U_prn" IS NULL OR T0."U_prn" = 0 THEN 9999 ELSE T0."U_prn" END AS __ord_prn
-        FROM ${db}.OITM T0
-        INNER JOIN ${db}.OITW T1 ON T0."ItemCode" = T1."ItemCode" AND T1."WhsCode" = T0."DfltWH"
-        INNER JOIN ${db}.ITM1 T3 ON T0."ItemCode" = T3."ItemCode"
-        LEFT  JOIN ${db}.EDG1 T4 ON T0."ItemCode" = T4."ObjKey" AND T4."ObjType" = '4'
-        ${whereSql}
-      ),
-      ranked AS (
-        SELECT
-          f.*,
-          ROW_NUMBER() OVER (
-            ORDER BY f.__ord_prn, f."ItemCode"
-          ) AS rn,
-          COUNT(*) OVER () AS "LENGTH"
-        FROM filtered f
-      )
-      SELECT
-        "DfltWH","whs","Discount","ItmsGrpCod","U_Kategoriya","U_Karobka","BVolume",
-        "U_U_netto","U_U_brutto","U_model","U_smr","IsCommited","OnHand","OnOrder","Counted",
-        "ItemCode","ItemName","CodeBars","AvgPrice","PriceList","Price","Currency","LENGTH"
-      FROM ranked
-      WHERE rn > ? AND rn <= ?;
-    `;
-
-    // RN kesish paramlari
-    const rnParams = [start, end];
-
-    return withConn(async (conn) => {
-        const rows = await execAsync(conn, sql, [...params, ...rnParams]);
-        return { value: rows }; // FE: get(data,'value[0].LENGTH',0)
-    });
 }
 
 
@@ -910,6 +920,10 @@ async function getOrders({
             sql += ` AND T6."GroupCode" = ?`;
             params.push(toolsGroupCode);
         }
+        else {
+            sql += ` AND T6."GroupCode" != ?`;
+            params.push(toolsGroupCode);
+        }
 
         const hanaRows = await execAsync(conn, sql, params);
 
@@ -977,7 +991,6 @@ function getReturns({
 
     if (type === 'Tools') {
         jsonData = infoReturn().filter(item => item?.state[0]?.type === 'Tools')
-        console.log(jsonData.length, ' bu length')
     }
     else {
         jsonData = infoReturn()

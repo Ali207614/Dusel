@@ -37,7 +37,7 @@ let returnStatusList = ['Возврат', 'Брак']
 
 const Order = () => {
   const { getMe, userType } = useSelector(state => state.main);
-
+  console.log(userType)
   let { id } = useParams();
   let location = useLocation();
   const navigate = useNavigate();

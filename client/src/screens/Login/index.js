@@ -69,6 +69,7 @@ const Login = () => {
           'Cookie': get(data, 'set-cookie', ''),
           'SessionId': get(data, 'SessionId', '')
         }));
+        console.log(data)
         dispatch(setUserType(data?.userType));
         setLoading(false)
         navigate('/home');
