@@ -62,7 +62,7 @@ async function proxyFunc(req, res) {
     if (req.originalUrl.includes('/Login') && req.body?.UserName) {
         try {
             const userTypeResult = await getUserType(req.body.UserName);
-            userTypeData = { userType: userTypeResult[0]?.U_type || null };
+            userTypeData = { userType: userTypeResult[0]?.U_type1 || null };
         } catch (err) {
             console.error('UserType olishda xato:', err);
         }

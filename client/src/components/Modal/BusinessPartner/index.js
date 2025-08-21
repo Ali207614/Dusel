@@ -8,6 +8,7 @@ import axios from 'axios';
 import formatterCurrency from '../../../helpers/currency';
 import { errorNotify, successNotify } from '../../Helper';
 import { useSelector, useDispatch } from 'react-redux';
+import { ClipLoader } from 'react-spinners';
 
 let url = process.env.REACT_APP_API_URL
 const customStyles = {
@@ -30,10 +31,21 @@ const customStyles = {
   },
 };
 
+const override = {
+  // position: "absolute",
+  // left: "50%",
+  // top: "0",
+  // bottom: 0,
+  // margin: 'auto'
+};
+
 const BusinessPartnerModal = ({ getRef }) => {
   const { t } = useTranslation();
   const { getMe, getFilter, userType } = useSelector(state => state.main);
   const [isOpenModal, setIsOpenModal] = useState(false);
+  let [loading, setLoading] = useState(false);
+  let [color, setColor] = useState("#ffffff");
+
   const [mode, setMode] = useState('add'); // add | edit | view
   const [partner, setPartner] = useState({
     CardCode: '',
@@ -74,12 +86,13 @@ const BusinessPartnerModal = ({ getRef }) => {
   // ADD
   const handleAdd = async () => {
     try {
+      setLoading(true)
       const body = {
         CardName: partner.CardName,
         Phone1: partner.Phone1,
         Phone2: partner.Phone2,
         CardType: "C",
-        GroupCode: 111,
+        GroupCode: userType === 'Tools' ? 111 : 100,
         Series: 72
       };
 
@@ -96,9 +109,12 @@ const BusinessPartnerModal = ({ getRef }) => {
         }
       );
 
+      setLoading(false)
       successNotify && successNotify('Клиент успешно добавлен');
       setIsOpenModal(false);
+
     } catch (err) {
+      setLoading(false)
       if (get(err, 'response.status') === 401) {
         window.location.href = '/login';
         return;
@@ -233,7 +249,8 @@ const BusinessPartnerModal = ({ getRef }) => {
             <div className='card-buttons'>
               {(mode === 'add' || mode === 'edit') && (
                 <button className='card-btn-filter' onClick={savePartner}>
-                  {mode === 'add' ? 'Добавить' : 'Сохранить'}
+
+                  {loading ? <ClipLoader color={color} loading={loading} cssOverride={override} size={25} /> : (mode === 'add' ? 'Добавить' : 'Сохранить')}
                 </button>
               )}
             </div>
