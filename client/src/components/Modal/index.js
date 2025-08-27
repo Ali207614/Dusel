@@ -12,7 +12,9 @@ import FilterOrderModal from './FilterOrderModal'
 import FilterModal from './FilterModal'
 import FilterModalResizable from './FilterModalResizable';
 import BusinessPartner from './BusinessPartner';
+import FilterIncomingPayment from './FilterIncomingPayment';
 export {
+  FilterIncomingPayment,
   BusinessPartner,
   SuccessModal,
   ErrorModal,

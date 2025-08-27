@@ -113,6 +113,17 @@ app.get('/api/orders', async function (req, res) {
         });
     }
 })
+app.get('/api/payments', async function (req, res) {
+    try {
+        const ret = await getIncomingPayment(req.query)
+        return res.status(200).send(ret)
+    } catch (e) {
+        console.log(e, "  bu e")
+        return res.status(400).send({
+            message: e
+        });
+    }
+})
 
 app.get('/api/returns', async function (req, res) {
     try {
@@ -336,7 +347,7 @@ async function getFilterItem() {
 // 2) Foydalanuvchi turi (parametrizatsiya bilan)
 async function getUserType(userCode) {
     const sql = `
-      SELECT "U_type"
+      SELECT "U_type", "U_cardAcct", "U_acctMainCashbox", "U_ePaymentAcct", "U_bankTransferAcct"
       FROM ${db}."OUSR"
       WHERE "USER_CODE" = ?
     `;
@@ -483,6 +494,86 @@ async function checkCustomerBalance({ customerCode = '', summa = 0 }) {
         return { value: over };        // { value: true/false }
     });
 }
+async function getIncomingPayment({ accounts = [], limit = 30, offset = 1, search, type }) {
+    const size = Math.max(1, Number(limit) || 30);
+    const start = Math.max(0, (Number(offset) || 1) - 1);
+    const end = start + size;
+
+    const where = [
+        `T1."Credit" > 0`,
+        `T0."TransType" = 30`,
+        `T0."StornoToTr" IS NULL`,
+        `T1."TransId" NOT IN (
+          SELECT A0."StornoToTr" 
+          FROM ${db}.OJDT A0 
+          WHERE A0."StornoToTr" IS NOT NULL
+       )`
+    ];
+    const params = [];
+
+    // accountlar filter
+    if (accounts.length) {
+        const inParams = accounts.map((_, i) => `?`).join(',');
+        where.push(`T1."ContraAct" IN (${inParams})`);
+        params.push(...accounts);
+    } else {
+        where.push(`T1."ContraAct" IN ('5014','5720','4011')`);
+    }
+
+    // search filter (OrgName yoki LineMemo)
+    if (search && search.trim()?.length) {
+        const like = `%${search.trim().toLowerCase()}%`;
+        where.push(`
+        (
+          LOWER(COALESCE(NULLIF(T1."OrgBPName", ''), T1."OrgAccName")) LIKE ?
+          OR LOWER(T1."LineMemo") LIKE ?
+        )
+      `);
+        params.push(like, like);
+    }
+
+    // type filter (agar berilgan bo‘lsa)
+    if (type === 'Tools') {
+        where.push(`T1."ContraAct" = ?`);
+        params.push(type);
+    }
+
+    const whereSql = where.length ? `WHERE ${where.join(' AND ')}` : '';
+
+    const sql = `
+      WITH filtered AS (
+        SELECT
+          T1."TransId", 
+          T0."RefDate", 
+          COALESCE(NULLIF(T1."OrgBPName", ''), T1."OrgAccName") AS "OrgName", 
+          T1."Credit", 
+          T1."ContraAct", 
+          T1."LineMemo"
+        FROM ${db}."JDT1" T1
+        INNER JOIN ${db}.OJDT T0 ON T0."TransId" = T1."TransId"
+        ${whereSql}
+      ),
+      ranked AS (
+        SELECT
+          f.*,
+          ROW_NUMBER() OVER (ORDER BY f."RefDate" DESC, f."TransId" DESC) AS rn,
+          COUNT(*) OVER () AS "LENGTH"
+        FROM filtered f
+      )
+      SELECT 
+        "TransId","RefDate","OrgName","Credit","ContraAct","LineMemo","LENGTH"
+      FROM ranked
+      WHERE rn > ? AND rn <= ?;
+    `;
+
+    const rnParams = [start, end];
+
+    return withConn(async (conn) => {
+        const rows = await execAsync(conn, sql, [...params, ...rnParams]);
+        return { value: rows };
+    });
+}
+
 
 /*  Agar “eski” formatni xohlasangiz (DISTINCT TRUE / bo‘sh massiv):
 async function checkCustomerBalance_legacy({ customerCode = '', summa = 0 }) {
@@ -855,7 +946,7 @@ async function getOrders({
         const rawJson = infoData();
         const jsonData = (type === 'Tools')
             ? rawJson.filter(item => item?.state?.[0]?.type === 'Tools')
-            : rawJson;
+            : rawJson.filter(item => item?.state?.[0]?.type !== 'Tools');
 
         const jsonRows = jsonData
             .sort((a, b) => b.ID - a.ID)
@@ -906,7 +997,7 @@ async function getOrders({
           T0."U_status", T0."CreateDate", T0."DocNum", T0."DocEntry",
           T0."SlpCode", T1."SlpName", T0."DocDate", T0."DocDueDate",
           T0."CardCode", T0."CardName", T0."CANCELED", T0."DocStatus",
-          T0."DocCur", T0."DocRate", T0."DocTotal", T0."DocTotalFC"
+          T0."DocCur", T0."DocRate", T0."DocTotal", T0."DocTotalFC",T6."GroupCode"
         FROM ${db}.ORDR T0
         INNER JOIN ${db}.OSLP T1 ON T0."SlpCode" = T1."SlpCode"
         INNER JOIN ${db}.OCRD T6 ON T6."CardCode" = T0."CardCode"
@@ -946,6 +1037,7 @@ async function getOrders({
                 draft: false,
                 U_logsum: r.U_logsum,
                 WhsCode: r.WhsCode,
+                GroupCode: r?.GroupCode || null
             }));
 
         // 3) Birlashtirish, filter, summa, LENGTH, paginatsiya
@@ -993,7 +1085,7 @@ function getReturns({
         jsonData = infoReturn().filter(item => item?.state[0]?.type === 'Tools')
     }
     else {
-        jsonData = infoReturn()
+        jsonData = infoReturn().filter(item => item?.state[0]?.type !== 'Tools')
     }
     const jsonDataSlice = jsonData.sort((a, b) => b.ID - a.ID).map((item, i, arr) => {
         let KUB = 0;

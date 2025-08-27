@@ -4,28 +4,30 @@ import Style from './Style';
 import Layout from '../../components/Layout';
 import { useTranslation } from 'react-i18next';
 
+import rightArrow from '../../assets/images/right-arrow.png';
 import axios from 'axios';
 import { useSelector, useDispatch } from 'react-redux';
 import searchImg from '../../assets/images/search-normal.svg';
-import rightArrow from '../../assets/images/right-arrow.png';
 import filterImg from '../../assets/images/filter-search.svg';
 import arrowDown from '../../assets/images/arrow-down.svg';
 import pagination from '../../assets/images/pagination.svg';
+import editIcon from '../../assets/images/edit-icon.svg';
 import close from '../../assets/images/Close-filter.svg';
 import { get } from 'lodash';
 import formatterCurrency from '../../helpers/currency';
+import moment from 'moment';
 import { FadeLoader } from "react-spinners";
-import { ConfirmModal, ErrorModal, ConfirmModalOrder, FilterOrderModal, BusinessPartner } from '../../components/Modal';
+import { ConfirmModal, ErrorModal, ConfirmModalOrder, FilterOrderModal, FilterIncomingPayment, BusinessPartner } from '../../components/Modal';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { errorNotify, successNotify, warningNotify, limitList, override } from '../../components/Helper';
+import { errorNotify, successNotify, warningNotify, limitList, override, statuses } from '../../components/Helper';
 import { main } from '../../store/slices';
 
 let url = process.env.REACT_APP_API_URL
 
 
 
-const Client = () => {
+const IncomingPayment = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -49,6 +51,10 @@ const Client = () => {
 
   const [filterProperty, setFilterProperty] = useState(get(getFilter, 'filterProperty', {}))
 
+  const [updateLoading, setUpdateLoading] = useState(false)
+
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [invoiceDropDown, setInvoiceDropDown] = useState(false);
 
   let [color, setColor] = useState("#3C3F47");
 
@@ -62,11 +68,6 @@ const Client = () => {
   const filterModalRef = useCallback(ref => {
     filterRef.current = ref;
   }, []);
-  const businessRef = useRef();
-
-  const businessModalRef = useCallback(ref => {
-    businessRef.current = ref;
-  }, []);
 
   const confirmModalRef = useCallback(ref => {
     confirmRef.current = ref;
@@ -76,7 +77,8 @@ const Client = () => {
     errorRef.current = ref;
   }, []);
 
-
+  const sleepNow = (delay) =>
+    new Promise((resolve) => setTimeout(resolve, delay));
 
   const handleChange = e => {
     const newSearchTerm = e.target.value;
@@ -100,7 +102,7 @@ const Client = () => {
       }, delay);
     }
     else {
-      getOrders({ page: 1, limit, filterProperty })
+      getOrders({ page: 1, limit, filterProperty, value: search })
       setTs(limit)
       setPage(1);
     }
@@ -112,7 +114,6 @@ const Client = () => {
 
   useEffect(() => {
     getOrderApi()
-    getOrders({ page, limit, value: search, filterProperty })
   }, []);
 
   const subQuery = (prop = {}) => {
@@ -146,13 +147,14 @@ const Client = () => {
     let { link } = subQuery(get(pagination, 'filterProperty', {}))
     axios
       .get(
-        url + `/api/customer?offset=${get(pagination, 'page', 1)}&type=${userType}&limit=${get(pagination, 'limit', limit)}&search=${get(pagination, 'value', '').toLowerCase()}` + link,
+        url + `/api/payments?offset=${get(pagination, 'page', 1)}&type=${userType}&limit=${get(pagination, 'limit', limit)}&search=${get(pagination, 'value', '').toLowerCase()}` + link,
       )
       .then(({ data }) => {
         setLoading(false)
         setMainData(get(data, 'value', []).filter(item => !get(item, 'filter')))
         setFilterData(get(data, 'value', []).find(item => get(item, 'filter')))
         setAllPageLength(get(data, 'value[0].LENGTH', 0))
+        setSelect([])
       })
       .catch(err => {
         setLoading(false)
@@ -162,12 +164,88 @@ const Client = () => {
     return;
   };
 
+  const cancelOrder = (doc) => {
+    setDropdownOpen(false);
+    setUpdateLoading(true)
+    axios
+      .post(
+        url + `/b1s/v1/Orders(${doc})/Cancel`,
+        {},
+        {
+          headers: {
+            info: JSON.stringify({
+              'Cookie': get(getMe, 'Cookie[0]', '') + get(getMe, 'Cookie[1]', ''),
+              'SessionId': get(getMe, 'SessionId', ''),
+            })
+          },
+        }
+      )
+      .then(({ data }) => {
+        setUpdateLoading(false)
+        setActiveData(0)
+        setMainData([...mainData.filter(item => item.DocEntry != doc)])
+        setAllPageLength(allPageLength - 1)
+        successNotify("Malumot muvaffaqiyatli bekor qilindi")
+      })
+      .catch(err => {
+        if (get(err, 'response.status') == 401) {
+          navigate('/login')
+          return
+        }
+        errorRef.current?.open(get(err, 'response.data.error.message.value', 'Ошибка'));
+        setUpdateLoading(false)
+      });
+  }
+
+  const handleSelect = (status, docEntry, isDraft = false) => {
+    let handleFn = {
+      6: {
+        name: 'отменить',
+        fn: () => cancelOrder
+      },
+    };
+    if (handleFn[status]) {
+      confirmRef.current?.open(`Вы уверены, что хотите это ${handleFn[status].name} ? `, handleFn[status].fn, docEntry);
+      return
+    }
+    setDropdownOpen(false);
+    setUpdateLoading(true)
+    axios
+      .patch(
+        url + `/b1s/v1/Orders(${docEntry})`,
+        {
+          U_status: status
+        },
+        {
+          headers: {
+            info: JSON.stringify({
+              'Cookie': get(getMe, 'Cookie[0]', '') + get(getMe, 'Cookie[1]', ''),
+              'SessionId': get(getMe, 'SessionId', ''),
+            })
+          },
+        }
+      )
+      .then(({ data }) => {
+        setUpdateLoading(false)
+
+        successNotify(`Status muvaffaqiyatli o'zgartirildi`)
+      })
+      .catch(err => {
+        setUpdateLoading(false)
+        if (get(err, 'response.status') == 401) {
+          navigate('/login')
+          return
+        }
+        errorNotify(`Status o'zgartirishda xatolik yuz berdi`)
+      });
+  };
+
   const statusChange = () => setFnState(true)
 
   const getOrderApi = () => {
     axios
       .get(
-        url + `/b1s/v1/BusinessPartners`,
+        url + `/b1s/v1/Orders`,
         {
           headers: {
             info: JSON.stringify({
@@ -187,6 +265,12 @@ const Client = () => {
       });
   }
 
+  const businessRef = useRef();
+
+  const businessModalRef = useCallback(ref => {
+    businessRef.current = ref;
+  }, []);
+
   const filterOrders = () => {
     filterRef.current?.open(filterData);
   }
@@ -194,12 +278,13 @@ const Client = () => {
 
   return (
     <>
+
       <Style>
         <Layout>
           <div className='container'>
             <div className='head'>
-              <div className='left-head'>
-                <h3 className='left-title'>Клеинты</h3>
+              <div className='left-head d-flex align'>
+                <h3 className='left-title'>Оплата</h3>
               </div>
               <div className='right-head'>
 
@@ -210,7 +295,6 @@ const Client = () => {
                       getOrders({ page: page - limit, limit, value: search, filterProperty })
                       setPage(page - limit);
                       setTs(ts - limit)
-                      setSelect([])
                     }
                   }} disabled={page == 1} className={`pagination-button left-pagination ${page == 1 ? 'opcity-5' : ''}`}>
                     <img src={pagination} alt="arrow-button-pagination" />
@@ -221,7 +305,6 @@ const Client = () => {
                       getOrders({ page: page + limit, limit, value: search, filterProperty })
                       setPage(page + limit)
                       setTs(limit + ts)
-                      setSelect([])
                     }
                   }} disabled={ts >= allPageLength} className={`pagination-button margin-right ${ts >= allPageLength ? 'opcity-5' : ''}`}>
                     <img src={pagination} alt="arrow-button-pagination" />
@@ -266,7 +349,6 @@ const Client = () => {
                             setShowDropdown(false);
                             setTs(item)
                             getOrders({ page: 1, limit: item, value: search, filterProperty })
-                            setSelect([])
                             setMainCheck(false)
                           }
                           return
@@ -277,7 +359,7 @@ const Client = () => {
                 </div>
 
 
-                <button onClick={() => businessRef.current?.open({}, 'add')} className='btn-head'>
+                <button onClick={() => navigate('/order')} className='btn-head'>
                   Добавить
                 </button>
               </div>
@@ -285,13 +367,12 @@ const Client = () => {
             <div className='table'>
               <div className='table-head'>
                 <ul className='table-head-list d-flex align  justify'>
-                  <li className='table-head-item d-flex align w-50'>
+                  <li className='table-head-item d-flex align '>
                     Контрагент
                   </li>
-                  <li className='table-head-item w-50'>Телефон 1</li>
-                  <li className='table-head-item w-50'>Телефон 2</li>
-                  <li className='table-head-item w-50'>Баланcе</li>
-                  <li className='table-head-item w-50'>Группа</li>
+                  <li className='table-head-item w-50'>Дата регистрации</li>
+                  <li className='table-head-item w-70'>Сумма по кредиту</li>
+                  <li className='table-head-item w-50'>Описание по строке</li>
                 </ul>
               </div>
               <div className='table-body'>
@@ -301,37 +382,63 @@ const Client = () => {
                       {
                         mainData.map((item, i) => {
                           return (
-                            <li key={i} className={`table-body-item ${activeData === i + 1 ? 'active-table' : ''}`}>
+                            <li key={i} className={`table-body-item ${activeData === (i + 1) ? 'active-table' : ''}`}>
                               <div className='table-item-head d-flex align  justify'>
-                                <div className='d-flex align  w-50 p-16'>
-                                  <p className='table-body-text truncated-text d-flex align' title={get(item, 'CardName', '')} onClick={() => setActiveData(activeData === i + 1 ? 0 : (i + 1))}>
+                                <div className='d-flex align  w-100 p-16'>
+                                  <p className='table-body-text truncated-text d-flex align ' style={{ width: '200px' }} title={get(item, 'OrgName', '')}>
                                     <button onClick={() => {
                                       businessRef.current?.open(item, 'edit');
                                     }} className='clientBtn'>
                                       <img src={rightArrow} className='clientImg' alt="open create modal" />
-                                    </button> {get(item, 'CardName', '')}
+                                    </button> {get(item, 'OrgName', '')}
                                   </p>
                                 </div>
-                                <div className='w-50 p-16' onClick={() => setActiveData(activeData === i + 1 ? 0 : (i + 1))}>
-                                  <p className='table-body-text'>
-                                    {get(item, 'Phone1', '') || '-'}
+                                <div className='w-50 p-16' >
+                                  <p className='table-body-text '>
+                                    {moment(get(item, 'RefDate', '')).format("DD-MM-YYYY")}
                                   </p>
                                 </div>
-                                <div className='w-50 p-16' onClick={() => setActiveData(activeData === i + 1 ? 0 : (i + 1))}>
-                                  <p className='table-body-text'>
-                                    {get(item, 'Phone2', '') || '-'}
+                                <div className='w-70 p-16' >
+                                  <p className='table-body-text w-70'>
+                                    {formatterCurrency(Number(get(item, 'Credit', 0)), (get(item, 'DocCur', 'USD') || 'USD'))}
                                   </p>
                                 </div>
-                                <div className='w-50 p-16' onClick={() => setActiveData(activeData === i + 1 ? 0 : (i + 1))}>
-                                  <p className='table-body-text'>
-                                    {formatterCurrency(Number(get(item, 'Balance', 0)), 'USD')}
+                                <div className='w-50 p-16' >
+                                  <p className='table-body-text '>
+                                    {get(item, 'LineMemo', '')}
                                   </p>
                                 </div>
-                                <div className='w-50 p-16' onClick={() => setActiveData(activeData === i + 1 ? 0 : (i + 1))}>
-                                  <p className='table-body-text'>
-                                    {get(item, 'GroupName', '-') || '-'}
-                                  </p>
+                              </div>
+                              <div className='table-item-foot d-flex align'>
+                                <button className='table-item-btn d-flex align'>
+                                  <Link className='table-item-text d-flex align' to={(get(item, 'draft') ? `/order/${item.DocEntry}/draft` : `/order/${item.DocEntry}`)}>Просмотреть и изменить заказ  <img src={editIcon} alt="arrow right" /></Link>
+                                </button>
+                                {/* invoice */}
+                                <div className="dropdown-container" >
+                                  <button onClick={() => {
+                                    setInvoiceDropDown(!invoiceDropDown)
+                                    setDropdownOpen(false)
+                                  }} style={{ width: '110px' }} className='table-item-btn d-flex align table-item-text position-relative'>
+                                    Накладный <img src={editIcon} alt="arrow-right" />
+                                  </button>
+                                  {(invoiceDropDown) && (
+                                    <ul className="dropdown-menu">
+                                      {['N1 Накладная', 'N2 Накладная'].map((status, i) => (
+                                        <li key={i} className={`dropdown-li`}>
+                                          <Link to={(get(item, 'draft') ? `/invoice/${item.DocEntry}/draft/${i === 0 ? 'total' : ''}` : `/invoice/${item.DocEntry}/${i === 0 ? 'total' : ''}`)} className="dropdown-item display-b" href="#">
+                                            {status}
+                                          </Link>
+                                        </li>
+                                      ))}
+
+                                    </ul>
+                                  )}
                                 </div>
+                                <button onClick={() => {
+
+                                }} className='table-item-btn d-flex align table-item-text position-relative'>
+                                  Добавить оплату <img src={editIcon} alt="arrow-right" />
+                                </button>
                               </div>
                             </li>
                           )
@@ -365,7 +472,7 @@ const Client = () => {
       <>
         <ToastContainer />
         <ConfirmModalOrder getRef={confirmModalRef} title={"Oshibka"} fn={statusChange} />
-        <FilterOrderModal
+        <FilterIncomingPayment
           getRef={filterModalRef}
           filterProperty={filterProperty}
           setFilterProperty={setFilterProperty}
@@ -386,4 +493,4 @@ const Client = () => {
   );
 };
 
-export default Client;
+export default IncomingPayment;

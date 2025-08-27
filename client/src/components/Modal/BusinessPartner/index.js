@@ -126,12 +126,12 @@ const BusinessPartnerModal = ({ getRef }) => {
   // UPDATE
   const handleUpdate = async () => {
     try {
+      setLoading(true)
+
       const body = {
         CardName: partner.CardName,
         Phone1: partner.Phone1,
         Phone2: partner.Phone2,
-        Currency: partner.Currency || 'UZS',
-        GroupCode: 111
       };
 
       await axios.patch(
@@ -146,14 +146,18 @@ const BusinessPartnerModal = ({ getRef }) => {
           },
         }
       );
-
+      setLoading(false)
       successNotify && successNotify('Клиент успешно обновлен');
       setIsOpenModal(false);
     } catch (err) {
       if (get(err, 'response.status') === 401) {
         window.location.href = '/login';
+        setLoading(true)
+
         return;
       }
+      setLoading(true)
+
       errorNotify && errorNotify(get(err, 'response.data.error.message.value', 'Ошибка'));
     }
   };

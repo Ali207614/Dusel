@@ -1,0 +1,132 @@
+import React, { memo, useEffect, useState } from 'react';
+import Styles from './Styles';
+import Modal from 'react-modal';
+import { useTranslation } from 'react-i18next';
+import { statuses, warehouseList, warehouseListTools } from '../../Helper';
+import arrowDown from '../../../assets/images/arrow-down.svg';
+import CloseFilter from '../../../assets/images/close.svg'
+import { useSelector } from 'react-redux';
+import { get } from 'lodash';
+const customStyles = {
+  content: {
+    top: '50%',
+    left: '50%',
+    right: 'auto',
+    bottom: 'auto',
+    marginRight: '-50%',
+    transform: 'translate(-50%, -50%)',
+    border: 'none',
+    width: "927px",
+    padding: 0,
+    overflow: 'none',
+    borderRadius: 0
+  },
+  overlay: {
+    background: '#0000008D',
+    zIndex: '1000'
+  },
+};
+
+const FilterIncomingPayment = ({ getRef, filterProperty, setFilterProperty, getOrders, arg, setPage,
+  setTs }) => {
+  const { t } = useTranslation();
+  const { userType } = useSelector(state => state.main);
+  const [warehouse, setWarehouse] = useState('-')
+  const [isOpenModal, setIsOpenModal] = useState(false);
+  const [filterData, setFilterData] = useState({});
+  useEffect(() => {
+    const ref = {
+      open: (data) => {
+        setIsOpenModal(true);
+        setFilterData(data)
+      },
+      close: () => setIsOpenModal(false),
+    };
+    getRef(ref);
+  }, []);
+
+
+  const handleCheckboxChangeStatus = (event, statusCode) => {
+    if (event.target.checked) {
+      setFilterProperty({ ...filterProperty, Status: [...get(filterProperty, 'Status', []), statusCode] });
+    } else {
+      setFilterProperty({ ...filterProperty, Status: get(filterProperty, 'Status', []).filter(code => code != statusCode) });
+    }
+  };
+
+  const filterOrder = () => {
+    setFilterProperty({ ...filterProperty, click: true })
+    getOrders({ ...arg, filterProperty })
+    setPage(1)
+    setTs(get(arg, 'limit', 10))
+    setIsOpenModal(false)
+  }
+
+  return (
+    <Modal
+      isOpen={isOpenModal}
+      onRequestClose={() => {
+        setIsOpenModal(false)
+        if (!get(filterProperty, 'click')) {
+          setFilterProperty({})
+        }
+      }}
+      style={customStyles}
+      contentLabel="Example Modal"
+      ariaHideApp={false}>
+      <Styles>
+        <div className="card df">
+          <div className='card-left'>
+            <h2 className='card-left-title'>Фильтр</h2>
+          </div>
+          <div className='card-right' style={{ position: 'relative' }}>
+            <button onClick={() => {
+              setIsOpenModal(false)
+              if (!get(filterProperty, 'click')) {
+                setFilterProperty({})
+              }
+            }} className='close-filter'>
+              <img src={CloseFilter} alt="close" />
+            </button>
+            <div className='card-filter'>
+              <div className='filter-manager'>
+                <h3 className='filter-title'>Дата</h3>
+                <div className='df align justify'>
+                  <input value={get(filterProperty, 'DocDate.start')} onChange={(e) => setFilterProperty({ ...filterProperty, DocDate: { ...get(filterProperty, 'DocDate'), start: e.target.value } })} style={{ width: '48%' }} className='filter-inp' type="date" id='manager' />
+                  <input value={get(filterProperty, 'DocDate.end')} onChange={(e) => setFilterProperty({ ...filterProperty, DocDate: { ...get(filterProperty, 'DocDate'), end: e.target.value } })} style={{ width: '48%' }} className='filter-inp' type="date" id='manager' />
+                </div>
+              </div>
+              <div className='filter-manager'>
+                <h3 className='filter-title'>Состояние</h3>
+                <div className='filter-wrapper df align'>
+                  {
+                    get(filterData, 'Status', []).map(item => {
+                      return (
+                        <div className='df align mr-24 filter-wrapper-inner'>
+                          <input checked={get(filterProperty, 'Status', []).includes(get(item, 'U_status', ''))} onChange={(e) => handleCheckboxChangeStatus(e, get(item, 'U_status', ''))} className='checkbox-filter' type="checkbox" id={statuses[get(item, 'U_status', '')]?.name} />
+                          <label className='checkbox-label' for={statuses[get(item, 'U_status', '')]?.name}>{statuses[get(item, 'U_status', '')]?.name}</label>
+                        </div>
+                      )
+                    })
+                  }
+                </div>
+              </div>
+            </div>
+            <div className='card-buttons'>
+              <button className='card-btn-filter card-btn-clear' onClick={() => {
+                setFilterProperty({})
+                getOrders({ ...arg })
+                setPage(1)
+                setTs(get(arg, 'limit', 10))
+                setWarehouse('-')
+              }}>Очистить фильтр</button>
+              <button className='card-btn-filter' onClick={filterOrder} >Фильтр</button>
+            </div>
+          </div>
+        </div>
+      </Styles>
+    </Modal>
+  );
+};
+
+export default memo(FilterIncomingPayment);

@@ -54,6 +54,17 @@ const Header = () => {
                       Клеинты
                     </NavLink>
                   </li>
+                  <li className='list-item'>
+                    <NavLink
+                      to="/payment"
+                      className={() => {
+                        const isActive = location.pathname === '/payment';
+                        return `list-item-link ${isActive ? 'opacity-1' : ''}`;
+                      }}
+                    >
+                      Оплата
+                    </NavLink>
+                  </li>
                 </ul>
               </nav>
             </div>

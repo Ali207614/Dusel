@@ -4,7 +4,7 @@ import { saveAs } from 'file-saver';
 import moment from 'moment';
 const { get } = require("lodash");
 
-
+const token = 'AAGoXbMMPipKsxmGybPfb75MORti0erzW6w'
 
 
 const exportTableToExcelWithTotal = async ({ mainData = [] }) => {
@@ -417,7 +417,7 @@ const sandTableToExcelWithoutTotal = async ({ mainData = [] }) => {
     formData.append('document', new File([blob], `${get(mainData, '[0].CardName','')} № ${get(mainData, '[0].DocNum', 0)}.xlsx`, { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }));
 
     // Send the file to the Telegram bot
-    await axios.post(`https://api.telegram.org/bot7772567096:AAGoXbMMPipKsxmGybPfb75MORti0erzW6w/sendDocument`, formData, {
+    await axios.post(`https://api.telegram.org/bot7772567096:${token}/sendDocument`, formData, {
         headers: {
             'Content-Type': 'multipart/form-data'
         }
