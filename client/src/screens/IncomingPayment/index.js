@@ -77,8 +77,6 @@ const IncomingPayment = () => {
     errorRef.current = ref;
   }, []);
 
-  const sleepNow = (delay) =>
-    new Promise((resolve) => setTimeout(resolve, delay));
 
   const handleChange = e => {
     const newSearchTerm = e.target.value;
@@ -111,10 +109,6 @@ const IncomingPayment = () => {
       clearTimeout(timeoutId);
     };
   }, [search]);
-
-  useEffect(() => {
-    getOrderApi()
-  }, []);
 
   const subQuery = (prop = {}) => {
     let creationDateStart = get(prop, 'CreationDate.start', {})
@@ -169,7 +163,7 @@ const IncomingPayment = () => {
     setUpdateLoading(true)
     axios
       .post(
-        url + `/b1s/v1/Orders(${doc})/Cancel`,
+        url + `/b1s/v1/JournalEntries(${doc})/Cancel`,
         {},
         {
           headers: {
@@ -183,7 +177,7 @@ const IncomingPayment = () => {
       .then(({ data }) => {
         setUpdateLoading(false)
         setActiveData(0)
-        setMainData([...mainData.filter(item => item.DocEntry != doc)])
+        setMainData([...mainData.filter(item => item.TransId != doc)])
         setAllPageLength(allPageLength - 1)
         successNotify("Malumot muvaffaqiyatli bekor qilindi")
       })
@@ -197,7 +191,7 @@ const IncomingPayment = () => {
       });
   }
 
-  const handleSelect = (status, docEntry, isDraft = false) => {
+  const handleSelect = (status, docEntry) => {
     let handleFn = {
       6: {
         name: 'отменить',
@@ -208,62 +202,9 @@ const IncomingPayment = () => {
       confirmRef.current?.open(`Вы уверены, что хотите это ${handleFn[status].name} ? `, handleFn[status].fn, docEntry);
       return
     }
-    setDropdownOpen(false);
-    setUpdateLoading(true)
-    axios
-      .patch(
-        url + `/b1s/v1/Orders(${docEntry})`,
-        {
-          U_status: status
-        },
-        {
-          headers: {
-            info: JSON.stringify({
-              'Cookie': get(getMe, 'Cookie[0]', '') + get(getMe, 'Cookie[1]', ''),
-              'SessionId': get(getMe, 'SessionId', ''),
-            })
-          },
-        }
-      )
-      .then(({ data }) => {
-        setUpdateLoading(false)
-
-        successNotify(`Status muvaffaqiyatli o'zgartirildi`)
-      })
-      .catch(err => {
-        setUpdateLoading(false)
-        if (get(err, 'response.status') == 401) {
-          navigate('/login')
-          return
-        }
-        errorNotify(`Status o'zgartirishda xatolik yuz berdi`)
-      });
   };
 
   const statusChange = () => setFnState(true)
-
-  const getOrderApi = () => {
-    axios
-      .get(
-        url + `/b1s/v1/Orders`,
-        {
-          headers: {
-            info: JSON.stringify({
-              'Cookie': get(getMe, 'Cookie[0]', '') + get(getMe, 'Cookie[1]', ''),
-              'SessionId': get(getMe, 'SessionId', ''),
-            })
-          },
-        }
-      )
-      .then(({ data }) => {
-      })
-      .catch(err => {
-        if (get(err, 'response.status') == 401) {
-          navigate('/login')
-          return
-        }
-      });
-  }
 
   const businessRef = useRef();
 
@@ -359,7 +300,7 @@ const IncomingPayment = () => {
                 </div>
 
 
-                <button onClick={() => navigate('/order')} className='btn-head'>
+                <button onClick={() => navigate('/payment-add')} className='btn-head'>
                   Добавить
                 </button>
               </div>
@@ -367,12 +308,13 @@ const IncomingPayment = () => {
             <div className='table'>
               <div className='table-head'>
                 <ul className='table-head-list d-flex align  justify'>
-                  <li className='table-head-item d-flex align '>
-                    Контрагент
+                  <li className='table-head-item w-70'>
+                    Код контрагента
                   </li>
-                  <li className='table-head-item w-50'>Дата регистрации</li>
+                  <li className='table-head-item '>Название контрагента</li>
+                  <li className='table-head-item w-70'>Дата регистрации</li>
                   <li className='table-head-item w-70'>Сумма по кредиту</li>
-                  <li className='table-head-item w-50'>Описание по строке</li>
+                  <li className='table-head-item w-70'>Описание по строке</li>
                 </ul>
               </div>
               <div className='table-body'>
@@ -384,60 +326,41 @@ const IncomingPayment = () => {
                           return (
                             <li key={i} className={`table-body-item ${activeData === (i + 1) ? 'active-table' : ''}`}>
                               <div className='table-item-head d-flex align  justify'>
-                                <div className='d-flex align  w-100 p-16'>
-                                  <p className='table-body-text truncated-text d-flex align ' style={{ width: '200px' }} title={get(item, 'OrgName', '')}>
-                                    <button onClick={() => {
-                                      businessRef.current?.open(item, 'edit');
-                                    }} className='clientBtn'>
-                                      <img src={rightArrow} className='clientImg' alt="open create modal" />
-                                    </button> {get(item, 'OrgName', '')}
+                                <div className='d-flex align  w-70 p-16'>
+                                  <p className='table-body-text truncated-text d-flex align '>
+                                    {get(item, 'CardCode', '')}
                                   </p>
                                 </div>
-                                <div className='w-50 p-16' >
+                                <div className='d-flex align  w-100 p-16'>
+                                  <p className='table-body-text truncated-text d-flex align ' style={{ width: '200px' }} title={get(item, 'CardName', '')}>
+                                    {get(item, 'CardName', '')}
+                                  </p>
+                                </div>
+                                <div className='w-70 p-16' onClick={() => setActiveData(activeData === i + 1 ? 0 : (i + 1))} >
                                   <p className='table-body-text '>
                                     {moment(get(item, 'RefDate', '')).format("DD-MM-YYYY")}
                                   </p>
                                 </div>
-                                <div className='w-70 p-16' >
+                                <div className='w-70 p-16' onClick={() => setActiveData(activeData === i + 1 ? 0 : (i + 1))}>
                                   <p className='table-body-text w-70'>
                                     {formatterCurrency(Number(get(item, 'Credit', 0)), (get(item, 'DocCur', 'USD') || 'USD'))}
                                   </p>
                                 </div>
-                                <div className='w-50 p-16' >
+                                <div className='w-70 p-16' onClick={() => setActiveData(activeData === i + 1 ? 0 : (i + 1))}>
                                   <p className='table-body-text '>
                                     {get(item, 'LineMemo', '')}
                                   </p>
                                 </div>
                               </div>
                               <div className='table-item-foot d-flex align'>
-                                <button className='table-item-btn d-flex align'>
-                                  <Link className='table-item-text d-flex align' to={(get(item, 'draft') ? `/order/${item.DocEntry}/draft` : `/order/${item.DocEntry}`)}>Просмотреть и изменить заказ  <img src={editIcon} alt="arrow right" /></Link>
-                                </button>
-                                {/* invoice */}
-                                <div className="dropdown-container" >
-                                  <button onClick={() => {
-                                    setInvoiceDropDown(!invoiceDropDown)
-                                    setDropdownOpen(false)
-                                  }} style={{ width: '110px' }} className='table-item-btn d-flex align table-item-text position-relative'>
-                                    Накладный <img src={editIcon} alt="arrow-right" />
-                                  </button>
-                                  {(invoiceDropDown) && (
-                                    <ul className="dropdown-menu">
-                                      {['N1 Накладная', 'N2 Накладная'].map((status, i) => (
-                                        <li key={i} className={`dropdown-li`}>
-                                          <Link to={(get(item, 'draft') ? `/invoice/${item.DocEntry}/draft/${i === 0 ? 'total' : ''}` : `/invoice/${item.DocEntry}/${i === 0 ? 'total' : ''}`)} className="dropdown-item display-b" href="#">
-                                            {status}
-                                          </Link>
-                                        </li>
-                                      ))}
-
-                                    </ul>
-                                  )}
-                                </div>
-                                <button onClick={() => {
-
+                                <button disabled={updateLoading} onClick={() => {
+                                  handleSelect(6, get(item, 'TransId', 0))
                                 }} className='table-item-btn d-flex align table-item-text position-relative'>
-                                  Добавить оплату <img src={editIcon} alt="arrow-right" />
+                                  Отменить {updateLoading ?
+                                    <div className="spinner-border" role="status">
+                                      <span className="sr-only">Loading...</span>
+                                    </div>
+                                    : <img style={{ marginLeft: '6px' }} src={editIcon} alt="arrow-right" />}
                                 </button>
                               </div>
                             </li>

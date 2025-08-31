@@ -12,6 +12,7 @@ import arrowDown from '../../assets/images/arrow-down.svg';
 import pagination from '../../assets/images/pagination.svg';
 import editIcon from '../../assets/images/edit-icon.svg';
 import close from '../../assets/images/Close-filter.svg';
+import notFound from '../../assets/images/not_found.png';
 import { get } from 'lodash';
 import formatterCurrency from '../../helpers/currency';
 import moment from 'moment';

@@ -7,11 +7,15 @@ export const main = createSlice({
     language: 'uz',
     login: false,
     getFilter: {},
-    userType:''
+    userType: '',
+    accounts: {}
   },
   reducers: {
     setMe: (state, action) => {
       state.getMe = action.payload;
+    },
+    setAccounts: (state, action) => {
+      state.accounts = action.payload;
     },
     setUserType: (state, action) => {
       state.userType = action.payload;

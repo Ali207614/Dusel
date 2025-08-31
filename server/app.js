@@ -62,7 +62,14 @@ async function proxyFunc(req, res) {
     if (req.originalUrl.includes('/Login') && req.body?.UserName) {
         try {
             const userTypeResult = await getUserType(req.body.UserName);
-            userTypeData = { userType: userTypeResult[0]?.U_type1 || null };
+            "U_type", "U_cardAcct", "U_acctMainCashbox", "U_ePaymentAcct", "U_bankTransferAcct"
+            userTypeData = {
+                userType: userTypeResult[0]?.U_type1 || null,
+                cardAcct: userTypeResult[0]?.U_cardAcct || null,
+                acctMainCashbox: userTypeResult[0]?.U_acctMainCashbox || null,
+                ePaymentAcct: userTypeResult[0]?.U_ePaymentAcct || null,
+                bankTransferAcct: userTypeResult[0]?.U_bankTransferAcct || null,
+            };
         } catch (err) {
             console.error('UserType olishda xato:', err);
         }
@@ -541,29 +548,32 @@ async function getIncomingPayment({ accounts = [], limit = 30, offset = 1, searc
     const whereSql = where.length ? `WHERE ${where.join(' AND ')}` : '';
 
     const sql = `
-      WITH filtered AS (
+    WITH filtered AS (
         SELECT
-          T1."TransId", 
-          T0."RefDate", 
-          COALESCE(NULLIF(T1."OrgBPName", ''), T1."OrgAccName") AS "OrgName", 
-          T1."Credit", 
-          T1."ContraAct", 
-          T1."LineMemo"
+            T1."TransId",
+            T0."RefDate",
+            T1."Credit",
+            T1."ContraAct",
+            T1."LineMemo",
+            BP."CardCode",
+            BP."CardName"
         FROM ${db}."JDT1" T1
-        INNER JOIN ${db}.OJDT T0 ON T0."TransId" = T1."TransId"
+        INNER JOIN ${db}."OJDT" T0 ON T0."TransId" = T1."TransId"
+        LEFT JOIN ${db}."OCRD" BP ON BP."CardCode" = T1."ShortName"
         ${whereSql}
-      ),
-      ranked AS (
+    ),
+    ranked AS (
         SELECT
-          f.*,
-          ROW_NUMBER() OVER (ORDER BY f."RefDate" DESC, f."TransId" DESC) AS rn,
-          COUNT(*) OVER () AS "LENGTH"
+            f.*,
+            ROW_NUMBER() OVER (ORDER BY f."RefDate" DESC, f."TransId" DESC) AS rn,
+            COUNT(*) OVER () AS "LENGTH"
         FROM filtered f
-      )
-      SELECT 
-        "TransId","RefDate","OrgName","Credit","ContraAct","LineMemo","LENGTH"
-      FROM ranked
-      WHERE rn > ? AND rn <= ?;
+    )
+    SELECT
+        "TransId","RefDate","CardCode","CardName","Credit","ContraAct","LineMemo","LENGTH"
+    FROM ranked
+    WHERE rn > ? AND rn <= ?;
+    
     `;
 
     const rnParams = [start, end];

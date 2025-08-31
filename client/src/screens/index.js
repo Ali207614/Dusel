@@ -8,4 +8,5 @@ import ReturnAdd from './ReturnAdd'
 import ReturnInvoice from './ReturnInvoice'
 import Client from './Client'
 import IncomingPayment from './IncomingPayment'
-export { Order, Login, Launch, Home, Invoice, Return, ReturnAdd, ReturnInvoice, Client, IncomingPayment };
+import IncomingPaymentAdd from './IncomingPaymentAdd'
+export { IncomingPaymentAdd, Order, Login, Launch, Home, Invoice, Return, ReturnAdd, ReturnInvoice, Client, IncomingPayment };

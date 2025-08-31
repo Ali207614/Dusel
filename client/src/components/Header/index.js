@@ -58,7 +58,7 @@ const Header = () => {
                     <NavLink
                       to="/payment"
                       className={() => {
-                        const isActive = location.pathname === '/payment';
+                        const isActive = location.pathname.includes('payment');
                         return `list-item-link ${isActive ? 'opacity-1' : ''}`;
                       }}
                     >

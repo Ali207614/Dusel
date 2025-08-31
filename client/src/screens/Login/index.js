@@ -26,7 +26,7 @@ const override = {
 const Login = () => {
 
   const { t } = useTranslation();
-  const { setMe, setUserType } = main.actions;
+  const { setMe, setUserType, setAccounts } = main.actions;
 
   const { info } = useSelector(state => state.main);
 
@@ -69,8 +69,13 @@ const Login = () => {
           'Cookie': get(data, 'set-cookie', ''),
           'SessionId': get(data, 'SessionId', '')
         }));
-        console.log(data)
         dispatch(setUserType(data?.userType));
+        dispatch(setAccounts([
+          { cardAcct: data?.cardAcct && data.cardAcct.trim().toString() },
+          { acctMainCashbox: data?.acctMainCashbox && data.acctMainCashbox.trim().toString() },
+          { ePaymentAcct: data?.ePaymentAcct && data.ePaymentAcct.trim().toString() },
+          { bankTransferAcct: data?.bankTransferAcct && data.bankTransferAcct.trim().toString() }
+        ]));
         setLoading(false)
         navigate('/home');
       })
