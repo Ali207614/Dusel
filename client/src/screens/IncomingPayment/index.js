@@ -32,7 +32,7 @@ const IncomingPayment = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { setFilter } = main.actions;
-  const { getMe, getFilter, userType } = useSelector(state => state.main);
+  const { getMe, getFilter, userType, accounts } = useSelector(state => state.main);
 
   const [showDropdown, setShowDropdown] = useState(false);
   const [limit, setLimit] = useState(get(getFilter, 'limit', 10));
@@ -91,7 +91,6 @@ const IncomingPayment = () => {
   useEffect(() => {
     const delay = 1000;
     let timeoutId;
-
     if (search) {
       timeoutId = setTimeout(() => {
         getOrders({ page: 1, limit, value: search, filterProperty })
@@ -141,7 +140,7 @@ const IncomingPayment = () => {
     let { link } = subQuery(get(pagination, 'filterProperty', {}))
     axios
       .get(
-        url + `/api/payments?offset=${get(pagination, 'page', 1)}&type=${userType}&limit=${get(pagination, 'limit', limit)}&search=${get(pagination, 'value', '').toLowerCase()}` + link,
+        url + `/api/payments?offset=${get(pagination, 'page', 1)}&accounts=${accounts.map(el => Object.values(el)[0])}&type=${userType}&limit=${get(pagination, 'limit', limit)}&search=${get(pagination, 'value', '').toLowerCase()}` + link,
       )
       .then(({ data }) => {
         setLoading(false)

@@ -70,11 +70,12 @@ const Login = () => {
           'SessionId': get(data, 'SessionId', '')
         }));
         dispatch(setUserType(data?.userType));
+        console.log(data)
         dispatch(setAccounts([
-          { cardAcct: data?.cardAcct && data.cardAcct.trim().toString() },
-          { acctMainCashbox: data?.acctMainCashbox && data.acctMainCashbox.trim().toString() },
-          { ePaymentAcct: data?.ePaymentAcct && data.ePaymentAcct.trim().toString() },
-          { bankTransferAcct: data?.bankTransferAcct && data.bankTransferAcct.trim().toString() }
+          { cardAcct: data?.cardAcct && data.cardAcct.trim().toString(), name: "Terminal", currency: "UZS" },
+          { acctMainCashbox: data?.acctMainCashbox && data.acctMainCashbox.trim().toString(), name: "Naqd", currency: "USD" },
+          //{ ePaymentAcct: data?.ePaymentAcct && data.ePaymentAcct.trim().toString() },
+          { bankTransferAcct: data?.bankTransferAcct && data.bankTransferAcct.trim().toString(), name: "Perichisleniya", currency: 'UZS' }
         ]));
         setLoading(false)
         navigate('/home');

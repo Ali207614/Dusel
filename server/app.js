@@ -520,9 +520,10 @@ async function getIncomingPayment({ accounts = [], limit = 30, offset = 1, searc
 
     // accountlar filter
     if (accounts.length) {
-        const inParams = accounts.map((_, i) => `?`).join(',');
+        const inParams = accounts.split(',').map((_, i) => `?`).join(',');
         where.push(`T1."ContraAct" IN (${inParams})`);
-        params.push(...accounts);
+        console.log(`T1."ContraAct" IN (${inParams})`)
+        params.push(...accounts.split(','));
     } else {
         where.push(`T1."ContraAct" IN ('5014','5720','4011')`);
     }
