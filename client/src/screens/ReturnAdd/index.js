@@ -37,11 +37,11 @@ let returnStatusList = ['Возврат', 'Брак']
 
 const Order = () => {
   const { getMe, userType } = useSelector(state => state.main);
-  console.log(userType)
   let { id } = useParams();
   let location = useLocation();
   const navigate = useNavigate();
-
+  const [stockFilter, setStockFilter] = useState("Все");
+  const [showDropDownStock, setShowDropDownStock] = useState(false)
   let [color, setColor] = useState("#3C3F47");
   const [showDropdown, setShowDropdown] = useState(false);
   const [limit, setLimit] = useState(10);
@@ -130,13 +130,13 @@ const Order = () => {
     let timeoutId;
     if (search) {
       timeoutId = setTimeout(() => {
-        getItems({ page: 1, limit, value: search, filterProperty })
+        getItems({ page: 1, limit, value: search, filterProperty, customerDataInvoice, stockFilter })
         setTs(limit)
         setPage(1);
       }, delay);
     }
     else {
-      getItems({ page: 1, limit, filterProperty })
+      getItems({ page: 1, limit, filterProperty, customerDataInvoice, stockFilter })
       setTs(limit)
       setPage(1);
     }
@@ -235,7 +235,7 @@ const Order = () => {
     let { link } = subQuery(get(pagination, 'filterProperty', {}))
     axios
       .get(
-        url + `/api/items-return?offset=${get(pagination, 'page', 1)}&limit=${get(pagination, 'limit', limit)}&type=${userType}&search=${get(pagination, 'value', '').toLowerCase()}&items=${actualData.map(item => `'${item.ItemCode}'`)}` + link,
+        url + `/api/items-return?offset=${get(pagination, 'page', 1)}&limit=${get(pagination, 'limit', limit)}&type=${userType}&stockFilter=${pagination?.stockFilter || ''}&search=${get(pagination, 'value', '').toLowerCase()}&&priceList=${pagination?.customerDataInvoice?.ListNum || ''}&items=${actualData.map(item => `'${item.ItemCode}'`)}` + link,
       )
       .then(async ({ data }) => {
         if (get(docEntry, 'id', 0) && !get(docEntry, 'status')) {
@@ -639,7 +639,7 @@ const Order = () => {
                       }
                     </ul>
                   </div>
-                  <div className='right-limit' style={{ marginLeft: '20px' }}>
+                  <div className='right-limit' style={{ marginLeft: '20px', marginRight: '20px' }}>
                     <button disabled={actualData.length} style={{ width: "110px" }} onClick={() => setShowDropdownWarehouse(!showDropDownWarehouse)} className={`right-dropdown ${actualData?.length ? 'opacity-5' : ''}`}>
                       <p className='right-limit-text'>{statusName}</p>
                       <img src={arrowDown} className={showDropDownWarehouse ? "up-arrow" : ""} alt="arrow-down-img" />
@@ -659,6 +659,53 @@ const Order = () => {
                           }} className={`dropdown-li ${statusName == item ? 'dropdown-active' : ''}`}><a className="dropdown-item" href="#">{item}</a></li>)
                         })
                       }
+                    </ul>
+                  </div>
+                  <div className='right-limit'>
+                    <button
+                      style={{ width: "180px" }}
+                      onClick={() => setShowDropDownStock(!showDropDownStock)}
+                      className={`right-dropdown`}
+                    >
+                      <p className='right-limit-text'>{stockFilter}</p>
+                      <img src={arrowDown} className={showDropDownStock ? "up-arrow" : ""} alt="arrow-down-img" />
+                    </button>
+
+                    <ul
+                      style={{ zIndex: 1 }}
+                      className={`dropdown-menu ${(showDropDownStock) ? "display-b" : "display-n"}`}
+                      aria-labelledby="dropdownMenuButton1"
+                    >
+                      <li
+                        onClick={() => {
+                          setStockFilter("Все");
+                          setShowDropDownStock(false);
+                          getItems({ page: 1, limit, value: search, filterProperty, customerDataInvoice, stockFilter: "Все" })
+                        }}
+                        className={`dropdown-li ${stockFilter === "Все" ? 'dropdown-active' : ''}`}
+                      >
+                        <a className="dropdown-item" href="#">Все</a>
+                      </li>
+                      <li
+                        onClick={() => {
+                          setStockFilter("В наличии на складе");
+                          setShowDropDownStock(false);
+                          getItems({ page: 1, limit, value: search, filterProperty, customerDataInvoice, stockFilter: "В наличии на складе" })
+                        }}
+                        className={`dropdown-li ${stockFilter === "В наличии на складе" ? 'dropdown-active' : ''}`}
+                      >
+                        <a className="dropdown-item" href="#">В наличии на складе</a>
+                      </li>
+                      <li
+                        onClick={() => {
+                          setStockFilter("Нет на складе");
+                          setShowDropDownStock(false);
+                          getItems({ page: 1, limit, value: search, filterProperty, customerDataInvoice, stockFilter: "Нет на складе" })
+                        }}
+                        className={`dropdown-li ${stockFilter === "Нет на складе" ? 'dropdown-active' : ''}`}
+                      >
+                        <a className="dropdown-item" href="#">Нет на складе</a>
+                      </li>
                     </ul>
                   </div>
                   {
@@ -690,7 +737,7 @@ const Order = () => {
                     <p className='pagination-text'><span>{page}-{ts}</span> <span>of {allPageLength}</span> </p>
                     <button onClick={() => {
                       if (page > 1) {
-                        getItems({ page: page - limit, limit, value: search, filterProperty })
+                        getItems({ page: page - limit, limit, value: search, filterProperty, customerDataInvoice, stockFilter })
                         setPage(page - limit);
                         setTs(ts - limit)
                       }
@@ -700,7 +747,7 @@ const Order = () => {
 
                     <button onClick={() => {
                       if (ts < allPageLength) {
-                        getItems({ page: page + limit, limit, value: search, filterProperty })
+                        getItems({ page: page + limit, limit, value: search, filterProperty, customerDataInvoice, stockFilter })
                         setPage(page + limit)
                         setTs(limit + ts)
                       }
@@ -717,7 +764,7 @@ const Order = () => {
                       (get(subQuery(filterProperty), 'status') && get(filterProperty, 'click')) ? (
                         <button onClick={() => {
                           setFilterProperty({})
-                          getItems({ page: 1, limit, value: search })
+                          getItems({ page: 1, limit, value: search, customerDataInvoice, stockFilter })
                           setPage(1)
                           setTs(limit)
                         }} className={`close-btn`}>
@@ -744,7 +791,7 @@ const Order = () => {
                               setPage(1);
                               setShowDropdown(false);
                               setTs(item)
-                              getItems({ page: 1, limit: item, value: search, filterProperty })
+                              getItems({ page: 1, limit: item, value: search, filterProperty, customerDataInvoice, stockFilter })
                             }
                             return
                           }} className={`dropdown-li ${limit == item ? 'dropdown-active' : ''}`}><a className="dropdown-item" href="#">{item}</a></li>)

@@ -858,11 +858,6 @@ const Home = () => {
                                     </ul>
                                   )}
                                 </div>
-                                <button onClick={() => {
-
-                                }} className='table-item-btn d-flex align table-item-text position-relative'>
-                                  Добавить оплату <img src={editIcon} alt="arrow-right" />
-                                </button>
                               </div>
                             </li>
                           )

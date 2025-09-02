@@ -2,7 +2,6 @@ import React, { memo, useEffect, useState } from 'react';
 import Styles from './Styles';
 import Modal from 'react-modal';
 import { useTranslation } from 'react-i18next';
-import { statuses, warehouseList } from '../../Helper';
 import arrowDown from '../../../assets/images/arrow-down.svg';
 import CloseFilter from '../../../assets/images/close.svg'
 import { get } from 'lodash';

@@ -11,6 +11,7 @@ import { useSelector } from 'react-redux';
 import remove from '../../assets/images/bin.png';
 import { Spinner } from '../../components';
 import { ToastContainer, toast } from 'react-toastify';
+import moment from 'moment';
 
 let url = process.env.REACT_APP_API_URL;
 
@@ -25,7 +26,7 @@ const IncomingPaymentAdd = () => {
   let location = useLocation();
   const navigate = useNavigate();
 
-  const { accounts = [], getMe } = useSelector(state => state.main);
+  const { accounts = [], getMe, userType } = useSelector(state => state.main);
 
   const [color] = useState("#3C3F47");
   const [loading, setLoading] = useState(false);
@@ -36,18 +37,23 @@ const IncomingPaymentAdd = () => {
   const [selectedAccount, setSelectedAccount] = useState('');
 
   useEffect(() => {
-    // boshlang'ich qatorlar
-    setMainData('_'.repeat(5).split('_').map(() => ({
-      LineMemo: '',
-      CardName: '',
-      CardCode: '',
-      Credit: ''
-    })));
+    if (id) {
+      getOrders()
+    }
+    else {
+      setMainData('_'.repeat(5).split('_').map(() => ({
+        LineMemo: '',
+        CardName: '',
+        CardCode: '',
+        Credit: '',
+        RefDate: moment().format("YYYY-MM-DD")
+      })));
+    }
   }, [id, location]);
 
   const getCustomer = (search) => {
     return axios
-      .get(`${url}/api/customer?search=${search.toLowerCase()}`)
+      .get(`${url}/api/customer?search=${search.toLowerCase()}&type=${userType}`)
       .then(({ data }) => get(data, 'value', []))
       .catch(() => {
         errorNotify("Mijozlarni yuklashda muommo yuzaga keldi");
@@ -55,11 +61,43 @@ const IncomingPaymentAdd = () => {
       });
   };
 
+  const getOrders = () => {
+    setLoading(true)
+    axios
+      .get(
+        url + `/api/payments?TransId=${id}`,
+      )
+      .then(({ data }) => {
+        setLoading(false)
+        const rows = data?.value ?? [];
+        setSelectedAccount(rows[0]?.ContraAct || '')
+        const padded = [
+          ...rows.map(el => ({ ...el, RefDate: moment(el.RefDate).format("YYYY-MM-DD") })),
+          ...Array(Math.max(0, 6 - rows.length)).fill(null).map(() => ({
+            LineMemo: '',
+            CardName: '',
+            CardCode: '',
+            Credit: '',
+            RefDate: moment().format("YYYY-MM-DD")
+          }))
+        ];
+
+        setMainData(padded);
+      })
+      .catch(err => {
+        setLoading(false)
+        errorNotify("Malumot yuklashda xatolik yuz berdi")
+      });
+
+    return;
+  };
+
   const addJournalEntries = (filtered) => {
     setOrderLoading(true)
     let currency = accounts.find(el => Object.values(el)[0] == selectedAccount)?.currency
     let body = {
       "OriginalJournal": "ttJournalEntry",
+      "ReferenceDate": filtered[0].RefDate,
       "Series": 17,
       "JournalEntryLines": [
         {
@@ -167,7 +205,7 @@ const IncomingPaymentAdd = () => {
               <div className="order-main d-flex align justify">
                 <div className='d-flex align'>
                   <button onClick={() => navigate('/payment')} className='btn-back'>Назад</button>
-                  <h3 className='title-menu'>Добавить оплату</h3>
+                  <h3 className='title-menu'>{id ? 'Просмотреть' : "Добавить"} оплату</h3>
                 </div>
               </div>
             </div>
@@ -191,12 +229,16 @@ const IncomingPaymentAdd = () => {
                   );
                 })}
               </select>
+              <div className='w-70'>
+                <input value={get(mainData, '[0].RefDate', '')} onChange={(e) => setMainData([...mainData.map(el => ({ ...el, RefDate: e.target.value }))])} type="date" className='table-body-inp' placeholder='Doc Date' />
+              </div>
 
-
-              <button onClick={handleAddRow} className={`btn-head position-relative ${!accounts.some(acc => Object.values(acc)[0]) ? 'opacity-5' : ''}`}>
-                {orderLoading ? <Spinner /> : ('Добавить')}
-              </button>
+              {!id &&
+                <button onClick={handleAddRow} className={`btn-head position-relative ${!accounts.some(acc => Object.values(acc)[0]) ? 'opacity-5' : ''}`}>
+                  {orderLoading ? <Spinner /> : ('Добавить')}
+                </button>}
             </div>
+
 
             <div className='table'>
               <div className='table-head'>

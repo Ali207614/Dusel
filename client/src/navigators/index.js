@@ -24,6 +24,7 @@ function App() {
 
         <Route path="/payment" element={<IncomingPayment />} />
         <Route path="/payment-add" element={<IncomingPaymentAdd />} />
+        <Route path="/payment-add/:id" element={<IncomingPaymentAdd />} />
 
         <Route path="/return" element={<Return />} />
         <Route path="/return-manage" element={<ReturnAdd />} />

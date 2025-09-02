@@ -325,12 +325,12 @@ const IncomingPayment = () => {
                           return (
                             <li key={i} className={`table-body-item ${activeData === (i + 1) ? 'active-table' : ''}`}>
                               <div className='table-item-head d-flex align  justify'>
-                                <div className='d-flex align  w-70 p-16'>
+                                <div className='d-flex align  w-70 p-16' onClick={() => setActiveData(activeData === i + 1 ? 0 : (i + 1))}>
                                   <p className='table-body-text truncated-text d-flex align '>
                                     {get(item, 'CardCode', '')}
                                   </p>
                                 </div>
-                                <div className='d-flex align  w-100 p-16'>
+                                <div className='d-flex align  w-100 p-16' onClick={() => setActiveData(activeData === i + 1 ? 0 : (i + 1))}>
                                   <p className='table-body-text truncated-text d-flex align ' style={{ width: '200px' }} title={get(item, 'CardName', '')}>
                                     {get(item, 'CardName', '')}
                                   </p>
@@ -360,6 +360,9 @@ const IncomingPayment = () => {
                                       <span className="sr-only">Loading...</span>
                                     </div>
                                     : <img style={{ marginLeft: '6px' }} src={editIcon} alt="arrow-right" />}
+                                </button>
+                                <button className='table-item-btn d-flex align'>
+                                  <Link className='table-item-text d-flex align' to={(`/payment-add/${item.TransId}`)}>Просмотреть <img src={editIcon} alt="arrow right" /></Link>
                                 </button>
                               </div>
                             </li>

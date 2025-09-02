@@ -64,7 +64,7 @@ async function proxyFunc(req, res) {
             const userTypeResult = await getUserType(req.body.UserName);
             "U_type", "U_cardAcct", "U_acctMainCashbox", "U_ePaymentAcct", "U_bankTransferAcct"
             userTypeData = {
-                userType: userTypeResult[0]?.U_type1 || null,
+                userType: userTypeResult[0]?.U_type || null,
                 cardAcct: userTypeResult[0]?.U_cardAcct || null,
                 acctMainCashbox: userTypeResult[0]?.U_acctMainCashbox || null,
                 ePaymentAcct: userTypeResult[0]?.U_ePaymentAcct || null,
@@ -336,6 +336,18 @@ app.get('/api/sales', async function (req, res) {
         });
     }
 })
+app.get('/api/price-list', async function (req, res) {
+    try {
+        const ret = await getPriceList()
+        return res.status(200).send(ret)
+    } catch (e) {
+        return res.status(400).send({
+            message: e
+        });
+    }
+})
+
+
 
 async function getFilterItem() {
     let sql = `
@@ -414,7 +426,8 @@ async function getCustomer({ search, type, limit = 30, offset = 1 }) {
           T0."CardCode",
           T0."CardName",
           T0."CardType",
-          T2."GroupName"
+          T2."GroupName",
+          T0."ListNum"
         FROM ${db}.OCRD T0
         LEFT JOIN ${db}.OTER T1 ON T0."Territory" = T1."territryID"
         LEFT JOIN ${db}.OCRG T2 ON T2."GroupCode" = T0."GroupCode"
@@ -428,8 +441,9 @@ async function getCustomer({ search, type, limit = 30, offset = 1 }) {
         FROM filtered f
       )
       SELECT
-      "GroupCode" ,"U_discount","CreditLine","Balance","descript","Address","ZipCode","Phone1","Phone2",
-        "LicTradNum","CardCode","CardName","CardType","GroupName","LENGTH"
+      "GroupCode" ,"U_discount","CreditLine","Balance","descript","Address","ZipCode","Phone1",
+      "Phone2",
+        "LicTradNum","CardCode","CardName","CardType","GroupName","LENGTH","ListNum"
       FROM ranked
       WHERE rn > ? AND rn <= ?;
     `;
@@ -501,52 +515,76 @@ async function checkCustomerBalance({ customerCode = '', summa = 0 }) {
         return { value: over };        // { value: true/false }
     });
 }
-async function getIncomingPayment({ accounts = [], limit = 30, offset = 1, search, type }) {
+async function getIncomingPayment({
+    accounts = [],
+    limit = 30,
+    offset = 1,
+    search,
+    type,
+    docDateStart,
+    docDateEnd,
+    TransId
+}) {
     const size = Math.max(1, Number(limit) || 30);
     const start = Math.max(0, (Number(offset) || 1) - 1);
     const end = start + size;
 
-    const where = [
+    const baseWhere = [
         `T1."Credit" > 0`,
         `T0."TransType" = 30`,
         `T0."StornoToTr" IS NULL`,
         `T1."TransId" NOT IN (
-          SELECT A0."StornoToTr" 
-          FROM ${db}.OJDT A0 
-          WHERE A0."StornoToTr" IS NOT NULL
-       )`
+            SELECT A0."StornoToTr" 
+            FROM ${db}.OJDT A0 
+            WHERE A0."StornoToTr" IS NOT NULL
+        )`
     ];
     const params = [];
 
-    // accountlar filter
-    if (accounts.length) {
-        const inParams = accounts.split(',').map((_, i) => `?`).join(',');
-        where.push(`T1."ContraAct" IN (${inParams})`);
-        console.log(`T1."ContraAct" IN (${inParams})`)
-        params.push(...accounts.split(','));
+    if (TransId) {
+        // faqat TransId bo‘yicha filter
+        baseWhere.push(`T1."TransId" = ?`);
+        params.push(TransId);
     } else {
-        where.push(`T1."ContraAct" IN ('5014','5720','4011')`);
+        // boshqa filterlar faqat TransId bo‘lmasa ishlaydi
+        if (accounts.length) {
+            const inParams = accounts.split(',').map(() => `?`).join(',');
+            baseWhere.push(`T1."ContraAct" IN (${inParams})`);
+            params.push(...accounts.split(','));
+        } else {
+            baseWhere.push(`T1."ContraAct" IN ('5014','5720','4011')`);
+        }
+
+        if (search && search.trim()?.length) {
+            const like = `%${search.trim().toLowerCase()}%`;
+            baseWhere.push(`(
+                LOWER(COALESCE(NULLIF(T1."OrgBPName", ''), T1."OrgAccName")) LIKE ?
+                OR LOWER(T1."LineMemo") LIKE ?
+            )`);
+            params.push(like, like);
+        }
+
+        if (type === 'Tools') {
+            baseWhere.push('BP."GroupCode" = ?');
+            params.push(toolsGroupCode);
+        }
+        else {
+            baseWhere.push('BP."GroupCode" != ?');
+            params.push(toolsGroupCode);
+        }
+
+        if (docDateStart) {
+            baseWhere.push(`T0."RefDate" >= ?`);
+            params.push(docDateStart);
+        }
+
+        if (docDateEnd) {
+            baseWhere.push(`T0."RefDate" <= ?`);
+            params.push(docDateEnd);
+        }
     }
 
-    // search filter (OrgName yoki LineMemo)
-    if (search && search.trim()?.length) {
-        const like = `%${search.trim().toLowerCase()}%`;
-        where.push(`
-        (
-          LOWER(COALESCE(NULLIF(T1."OrgBPName", ''), T1."OrgAccName")) LIKE ?
-          OR LOWER(T1."LineMemo") LIKE ?
-        )
-      `);
-        params.push(like, like);
-    }
-
-    // type filter (agar berilgan bo‘lsa)
-    if (type === 'Tools') {
-        where.push(`T1."ContraAct" = ?`);
-        params.push(type);
-    }
-
-    const whereSql = where.length ? `WHERE ${where.join(' AND ')}` : '';
+    const whereSql = `WHERE ${baseWhere.join(' AND ')}`;
 
     const sql = `
     WITH filtered AS (
@@ -574,7 +612,6 @@ async function getIncomingPayment({ accounts = [], limit = 30, offset = 1, searc
         "TransId","RefDate","CardCode","CardName","Credit","ContraAct","LineMemo","LENGTH"
     FROM ranked
     WHERE rn > ? AND rn <= ?;
-    
     `;
 
     const rnParams = [start, end];
@@ -584,6 +621,7 @@ async function getIncomingPayment({ accounts = [], limit = 30, offset = 1, searc
         return { value: rows };
     });
 }
+
 
 
 /*  Agar “eski” formatni xohlasangiz (DISTINCT TRUE / bo‘sh massiv):
@@ -621,12 +659,23 @@ async function getSalesPerson() {
         return { value: rows };
     });
 }
+async function getPriceList() {
+    const sql = `
+    SELECT T0."ListNum", T0."ListName", T0."ValidFor" FROM ${db}.OPLN T0 WHERE T0."ValidFor" = 'Y'
+    `;
+    return withConn(async (conn) => {
+        const rows = await execAsync(conn, sql);
+        return { value: rows };
+    });
+}
 
 async function getItems({
     offset, limit, type,
     whsCode = '', search,
     items = [], group = '',
     category = '', code = '',
+    priceList = 1,
+    stockFilter
 }) {
     try {
         const size = Math.max(1, Number(limit) || 30);
@@ -642,7 +691,7 @@ async function getItems({
         // WHERE shartlar
         const where = [
             `T0."DfltWH" = ?`,
-            `T3."PriceList" = 1`,
+            `T3."PriceList" = ${(priceList) || 1}`,
             `T1."WhsCode" = ?`,
         ];
         const params = [whsCode, whsCode];
@@ -680,8 +729,13 @@ async function getItems({
             where.push(`(LOWER(T0."ItemCode") LIKE ? OR LOWER(T0."ItemName") LIKE ? OR LOWER(T0."U_model") LIKE ?)`);
             params.push(like, like, like);
         }
+        if (stockFilter === 'В наличии на складе') {
+            where.push(`T1."OnHand" > 0`);
+        } else if (stockFilter === 'Нет на складе') {
+            where.push(`T1."OnHand" <= 0`);
+        }
 
-        const whereSql = `WHERE ${where.join(' AND ')}`;
+        const whereSql = `WHERE ${where.join(' AND ')} AND T0."frozenFor" = 'N'`;
 
         // CTE + ROW_NUMBER + COUNT(*) OVER() — LENGTH har qatorda
         const sql = `
@@ -818,6 +872,7 @@ async function getItemsReturn({
     group = '',
     category = '',
     code = '',
+    stockFilter
 }) {
     try {
         // page/limitni tayyorlab oling
@@ -878,7 +933,13 @@ async function getItemsReturn({
             params.push(like, like, like);
         }
 
-        const whereSql = where.length ? `WHERE ${where.join(' AND ')}` : '';
+        if (stockFilter === 'В наличии на складе') {
+            where.push(`T1."OnHand" > 0`);
+        } else if (stockFilter === 'Нет на складе') {
+            where.push(`T1."OnHand" <= 0`);
+        }
+
+        const whereSql = where.length ? `WHERE ${where.join(' AND ')}  AND T0."frozenFor" = 'N'` : ` T0."frozenFor" = 'N'`;
 
         // CTE + RN + COUNT OVER
         const sql = `

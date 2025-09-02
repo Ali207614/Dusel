@@ -44,6 +44,7 @@ const BusinessPartnerModal = ({ getRef }) => {
   const { getMe, getFilter, userType } = useSelector(state => state.main);
   const [isOpenModal, setIsOpenModal] = useState(false);
   let [loading, setLoading] = useState(false);
+  let [priceLists, setPriceList] = useState([]);
   let [color, setColor] = useState("#ffffff");
 
   const [mode, setMode] = useState('add'); // add | edit | view
@@ -60,8 +61,10 @@ const BusinessPartnerModal = ({ getRef }) => {
     const ref = {
       open: (data, type) => {
         setIsOpenModal(true);
+        setLoading(false)
         setMode(type);
         if ((type === 'edit' || type === 'view') && data) {
+          console.log(data)
           setPartner(data);
         } else {
           setPartner({
@@ -73,6 +76,8 @@ const BusinessPartnerModal = ({ getRef }) => {
             Balance: 0,
           });
         }
+        getPriceList()
+
       },
       close: () => setIsOpenModal(false),
     };
@@ -93,7 +98,8 @@ const BusinessPartnerModal = ({ getRef }) => {
         Phone2: partner.Phone2,
         CardType: "C",
         GroupCode: userType === 'Tools' ? 111 : 100,
-        Series: 72
+        Series: 72,
+        PriceListNum: partner.ListNum
       };
 
       await axios.post(
@@ -123,6 +129,24 @@ const BusinessPartnerModal = ({ getRef }) => {
     }
   };
 
+  const getPriceList = async () => {
+    try {
+      let priceList = await axios.get(
+        url + `/api/price-list`,
+        {
+          headers: {
+            info: JSON.stringify({
+              'Cookie': get(getMe, 'Cookie[0]', '') + get(getMe, 'Cookie[1]', ''),
+              'SessionId': get(getMe, 'SessionId', ''),
+            })
+          },
+        }
+      );
+      setPriceList(priceList?.data?.value || [])
+    } catch (err) {
+      errorNotify && errorNotify("Price List olib kelishda xatolik yuz berdi");
+    }
+  };
   // UPDATE
   const handleUpdate = async () => {
     try {
@@ -132,6 +156,7 @@ const BusinessPartnerModal = ({ getRef }) => {
         CardName: partner.CardName,
         Phone1: partner.Phone1,
         Phone2: partner.Phone2,
+        PriceListNum: partner.ListNum
       };
 
       await axios.patch(
@@ -233,6 +258,21 @@ const BusinessPartnerModal = ({ getRef }) => {
                   <option value="UZS">UZS</option>
                   <option value="USD">USD</option>
                   <option value="ALL">Все валюты</option>
+                </select>
+              </div>
+              <div className='filter-manager'>
+                <h3 className='filter-title'>Прайс-лист</h3>
+                <select
+                  value={+partner.ListNum}
+                  onChange={(e) => handleChange('ListNum', e.target.value)}
+                  className='filter-inp'
+                >
+                  {priceLists
+                    .map(pl => (
+                      <option key={+pl.ListNum} value={+pl.ListNum}>
+                        {pl.ListName}
+                      </option>
+                    ))}
                 </select>
               </div>
 
