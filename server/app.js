@@ -7,7 +7,8 @@ let https = require('https')
 const { withConn, execAsync } = require('./hana-pool');
 const { get } = require('lodash')
 const compression = require('compression');
-const { writeData, infoData, updateData, deleteData, infoReturn, writeReturn, updateReturn, deleteReturn } = require('./helper')
+const { writeData, infoData, updateData, deleteData, infoReturn, writeReturn, updateReturn, deleteReturn } = require('./helper');
+const moment = require('moment');
 require("dotenv").config();
 
 const db = process.env.db
@@ -577,10 +578,18 @@ async function getIncomingPayment({
             baseWhere.push(`T0."RefDate" >= ?`);
             params.push(docDateStart);
         }
+        else {
+            baseWhere.push(`T0."RefDate" >= ?`);
+            params.push(moment().format('YYYY-MM-DD'));
+        }
 
         if (docDateEnd) {
             baseWhere.push(`T0."RefDate" <= ?`);
             params.push(docDateEnd);
+        }
+        else {
+            baseWhere.push(`T0."RefDate" <= ?`);
+            params.push(moment().format('YYYY-MM-DD'));
         }
     }
 

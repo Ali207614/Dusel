@@ -99,7 +99,8 @@ const BusinessPartnerModal = ({ getRef }) => {
         CardType: "C",
         GroupCode: userType === 'Tools' ? 111 : 100,
         Series: 72,
-        PriceListNum: partner.ListNum
+        PriceListNum: partner.ListNum,
+        "Currency": "##"
       };
 
       await axios.post(
@@ -247,7 +248,7 @@ const BusinessPartnerModal = ({ getRef }) => {
                 />
               </div>
 
-              <div className='filter-manager'>
+              {/* <div className='filter-manager'>
                 <h3 className='filter-title'>Валюта</h3>
                 <select
                   disabled={mode === 'view'}
@@ -274,7 +275,7 @@ const BusinessPartnerModal = ({ getRef }) => {
                       </option>
                     ))}
                 </select>
-              </div>
+              </div> */}
 
               {mode === 'view' && (
                 <div className='filter-manager'>

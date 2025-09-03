@@ -22,7 +22,6 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { errorNotify, successNotify, warningNotify, limitList, override } from '../../components/Helper';
 import { main } from '../../store/slices';
-import { sandTableToExcelWithoutTotal } from '../Invoice/excel';
 
 let url = process.env.REACT_APP_API_URL
 
