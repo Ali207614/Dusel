@@ -319,12 +319,13 @@ const IncomingPaymentAdd = () => {
                             {/* Credit */}
                             <div className='w-100 p-16'>
                               <input
-                                value={item.Credit ? formatterCurrency(item.Credit, "ru") : ""}
+                                value={item.Credit ? item.Credit : ""}
                                 onChange={(e) => {
-                                  // Faqat raqamlarni qoldiramiz
-                                  const raw = +e.target.value.replace(/\D/g, "");
+                                  const raw = e.target.value.replace(/[^0-9.]/g, "");
+                                  const normalized = raw.replace(/(\..*?)\..*/g, "$1");
+
                                   const updated = [...mainData];
-                                  updated[i] = { ...updated[i], Credit: raw };
+                                  updated[i] = { ...updated[i], Credit: normalized };
                                   setMainData(updated);
                                 }}
                                 type="text"

@@ -4,7 +4,7 @@ import { saveAs } from 'file-saver';
 import moment from 'moment';
 const { get } = require("lodash");
 
-const token = 'AAGoXbMMPipKsxmGybPfb75MORti0erzW6w'
+const token = '7772567096:AAGQvU8-vE02XxTsGlksahDtR142U-Mf1o4'
 
 const exportTableToExcelWithTotal = async ({ mainData = [] }) => {
     let sumWithoutDisCount = mainData?.length ? mainData.reduce((a, b) => a + (Number(b.Quantity) * Number(get(b, 'PriceBefDi'))), 0) : 0;
@@ -287,7 +287,7 @@ const exportTableToExcelWithoutTotal = async ({ mainData = [] }) => {
 
 };
 
-const sandTableToExcelWithoutTotal = async ({ mainData = [], type = 'Dusel' }) => {
+const sandTableToExcelWithoutTotal = async ({ mainData = [], userType = 'Dusel' }) => {
 
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Invoice');
@@ -407,18 +407,20 @@ const sandTableToExcelWithoutTotal = async ({ mainData = [], type = 'Dusel' }) =
     const buffer = await workbook.xlsx.writeBuffer();
     const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
 
-    let groupChatIdDusel = -4248929044
-    let groupChatIdTools = -1002782421533
-    // let groupChatId = 561932032
-
     const formData = new FormData();
-    formData.append('chat_id', type === 'Tools' ? groupChatIdTools : groupChatIdDusel); // replace with your Telegram chat ID
-    formData.append('document', new File([blob], `${get(mainData, '[0].CardName', '')} № ${get(mainData, '[0].DocNum', 0)}.xlsx`, { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }));
+    console.log(userType)
+    formData.append("type", userType); // "Tools" yoki "Dusel"
+    formData.append(
+        "document",
+        new File(
+            [blob],
+            `${get(mainData, "[0].CardName", "")} № ${get(mainData, "[0].DocNum", 0)}.xlsx`,
+            { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }
+        )
+    );
 
-    await axios.post(`https://api.telegram.org/bot7772567096:${token}/sendDocument`, formData, {
-        headers: {
-            'Content-Type': 'multipart/form-data'
-        }
+    await axios.post("http://localhost:5000/api/send-document", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
     });
 }
 

@@ -260,7 +260,7 @@ const Order = () => {
             setAllPageLength(get(data, 'value[0].LENGTH', 0) - orderData.length)
             // salom
             setMainData(get(data, 'value', []).map(item => {
-              return { ...item, value: '', karobka: '', DfltWH: (statusName == returnStatusList[0] ? get(item, 'WHS', '') : 'B-X') }
+              return { ...item, value: '', karobka: '', DfltWH: (statusName == returnStatusList[0] ? get(item, 'DfltWH', '') : 'B-X') }
             }).filter(el => !orderData.map(item => item.ItemCode).includes(get(el, 'ItemCode'))))
             setState(orderData.map(item => {
               return { ...item, value: Number(item.Quantity).toString(), karobka: Math.floor(item.Quantity / Number(get(item, 'U_Karobka', 1) || 1)), Price: item.PriceBefDi }
@@ -279,7 +279,7 @@ const Order = () => {
           }
           setLoading(false)
           setMainData(get(data, 'value', []).map(item => {
-            return { ...item, value: '', karobka: '', DfltWH: (statusName == returnStatusList[0] ? get(item, 'WHS', '') : 'B-X') }
+            return { ...item, value: '', karobka: '', DfltWH: (statusName == returnStatusList[0] ? get(item, 'DfltWH', '') : 'B-X') }
           }))
           setAllPageLength(get(data, 'value[0].LENGTH', 0))
         }
@@ -294,6 +294,9 @@ const Order = () => {
 
 
   const addState = (item) => {
+    if (!customerCode) {
+      return
+    }
     setAllPageLengthSelect(allPageLengthSelect + 1)
     setAllPageLength(allPageLength - 1)
     setMainData(mainData.filter(el => get(el, 'ItemCode', '') !== get(item, 'ItemCode', '')))
@@ -342,6 +345,7 @@ const Order = () => {
       return
     }
 
+
     setIsEmpty(false)
     confirmRef.current?.open(`Вы уверены, что хотите это ${get(docEntry, 'id', 0) ? 'обновить' : 'добавить'} ? `);
   }
@@ -376,7 +380,21 @@ const Order = () => {
       })
     }
     let body = actualData.map(item => {
-      return { ...item, DiscPrcnt: Number((customerDataInvoice && get(customerDataInvoice, 'U_discount') !== 'no') ? get(item, 'Discount', 0) : 0), CardName: customer, CardCode: customerCode, ...date, WhsCode: get(item, 'DfltWH', ''), Quantity: item.value, schema, salesPersonCode, salesPerson, comment, ...customerDataInvoice, type: userType }
+      return {
+        ...item,
+        DiscPrcnt: Number((customerDataInvoice && get(customerDataInvoice, 'U_discount') !== 'no') ? get(item, 'Discount', 0) : 0),
+        CardName: customer,
+        CardCode: customerCode,
+        ...date,
+        WhsCode: get(item, 'DfltWH', ''),
+        schema,
+        salesPersonCode,
+        salesPerson,
+        comment,
+        ...customerDataInvoice,
+        type: userType,
+        Quantity: item.value,
+      }
     })
     axios
       .post(
@@ -421,6 +439,7 @@ const Order = () => {
   };
 
   const Update = () => {
+    console.log(actualData)
     let link = `/api/draft/return/${get(docEntry, 'id', 0)}`
     let schema = {
       "CardCode": customerCode,
@@ -447,7 +466,16 @@ const Order = () => {
       })
     }
     let body = actualData.map(item => {
-      return { ...item, DiscPrcnt: Number((customerDataInvoice && get(customerDataInvoice, 'U_discount') !== 'no') ? get(item, 'Discount', 0) : 0), CardName: customer, CardCode: customerCode, ...date, WhsCode: get(item, 'DfltWH', ''), Quantity: item.value, schema, salesPersonCode, salesPerson, comment, ...customerDataInvoice, type: userType }
+      return {
+
+        DiscPrcnt: Number((customerDataInvoice && get(customerDataInvoice, 'U_discount') !== 'no') ? get(item, 'Discount', 0) : 0),
+        CardName: customer,
+        CardCode: customerCode,
+        ...date,
+        WhsCode: get(item, 'DfltWH', ''),
+        schema, salesPersonCode, salesPerson, comment, ...customerDataInvoice, ...item, type: userType,
+        Quantity: item.value,
+      }
     })
     setOrderLoading(true)
     axios
@@ -652,7 +680,7 @@ const Order = () => {
                               setStatusName(item);
                               setShowDropdownWarehouse(false)
                               setMainData([...mainData.map(el => {
-                                return { ...el, DfltWH: (item == returnStatusList[0] ? get(el, 'WHS', '') : 'B-X') }
+                                return { ...el, DfltWH: (item == returnStatusList[0] ? get(el, 'DfltWH', '') : ('B-X')) }
                               })])
                             }
                             return
@@ -817,6 +845,9 @@ const Order = () => {
                   <li className='table-head-item w-70'>В кейсе</li>
                   <li className='table-head-item w-47px'>
                     <button onClick={() => {
+                      if (!customerCode) {
+                        return
+                      }
                       let filterData = mainData.filter(el => {
                         let free = Number(get(el, 'OnHand', '')) - Number(get(el, 'IsCommited', ''))
                         return Number(el.value) > 0 && (free >= Number(el.value.trim()))
@@ -843,7 +874,7 @@ const Order = () => {
                         mainData.map((item, i) => {
                           return (
                             <LazyLoad height={65} once>
-                              <li key={i} className={`table-body-item`}>
+                              <li key={i} className={`table-body-item ${!customerCode ? 'opacity-5' : ''}`}>
                                 <div className='table-item-head d-flex align  justify'>
                                   <div className='w-50 p-16'>
                                     <p className='table-body-text' >

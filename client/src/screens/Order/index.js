@@ -296,6 +296,12 @@ const Order = () => {
   };
 
   const addState = (item) => {
+    if (item?.Price == 0) {
+      return
+    }
+    if (!customerCode) {
+      return
+    }
     let discountItem = ''
     if (
       get(item, 'U_item_count') &&
@@ -386,7 +392,7 @@ const Order = () => {
     if (!get(docEntry, 'id', 0)) {
       let isCheck = await checkCustomerBalance({ customerCode, summa })
       setOrderLoading(false)
-      if (get(isCheck, 'value[0].TRUE')) {
+      if (get(isCheck, 'value')) {
         warningRef.current?.open(`Belgilangan limit summadan ko'p`);
         return
       }
@@ -926,9 +932,12 @@ const Order = () => {
                   <li className='table-head-item w-70'>В кейсе</li>
                   <li className='table-head-item w-47px'>
                     <button onClick={() => {
+                      if (!customerCode) {
+                        return
+                      }
                       let filterData = mainData.filter(el => {
                         let free = Number(get(el, 'OnHand', '')) - Number(get(el, 'IsCommited', ''))
-                        return Number(el.value) > 0 && (free >= Number(el.value.trim()))
+                        return (Number(el.value) > 0 && (free >= Number(el.value.trim()))) && get(el, 'Price') > 0
                       })
                       if (filterData.length) {
                         let discount = []
@@ -971,7 +980,7 @@ const Order = () => {
                         mainData.map((item, i) => {
                           return (
                             <LazyLoad height={65} once>
-                              <li key={i} className={`table-body-item`}>
+                              <li key={i} className={`table-body-item ${!customerCode ? 'opacity-5' : ''}`}>
                                 <div className='table-item-head d-flex align  justify'>
                                   <div className='w-50 p-16'>
                                     <p className='table-body-text' >

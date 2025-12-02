@@ -2,6 +2,8 @@ let express = require('express')
 let axios = require('axios')
 let cookieParser = require('cookie-parser')
 let cors = require('cors')
+const FormData = require("form-data");
+const multer = require('multer')
 var bodyParser = require("body-parser");
 let https = require('https')
 const { withConn, execAsync } = require('./hana-pool');
@@ -65,7 +67,7 @@ async function proxyFunc(req, res) {
             const userTypeResult = await getUserType(req.body.UserName);
             "U_type", "U_cardAcct", "U_acctMainCashbox", "U_ePaymentAcct", "U_bankTransferAcct"
             userTypeData = {
-                userType: userTypeResult[0]?.U_type || null,
+                userType: userTypeResult[0]?.U_type1 || null,
                 cardAcct: userTypeResult[0]?.U_cardAcct || null,
                 acctMainCashbox: userTypeResult[0]?.U_acctMainCashbox || null,
                 ePaymentAcct: userTypeResult[0]?.U_ePaymentAcct || null,
@@ -109,6 +111,43 @@ app.patch('/b1s/v1/:path/:path2', proxyFunc);
 app.put('/b1s/v1/:path/:path2', proxyFunc);
 app.delete('/b1s/v1/:path/:path2', proxyFunc);
 
+const upload = multer();
+const TELEGRAM_TOKEN = "7772567096:AAGQvU8-vE02XxTsGlksahDtR142U-Mf1o4";
+app.post("/api/send-document", upload.single("document"), async (req, res) => {
+    try {
+        const { type } = req.body; // frontenddan type keladi
+        const file = req.file;
+
+        if (!file) {
+            return res.status(400).send({ message: "File is required" });
+        }
+        let groupChatIdDusel = -4248929044
+        let groupChatIdTools = -1002782421533
+        // Guruh tanlash
+        const chatId = type === "Tools" ? groupChatIdTools : groupChatIdDusel;
+
+        // Telegram API uchun formData
+        const formData = new FormData();
+        formData.append("chat_id", 561932032);
+        formData.append("document", file.buffer, {
+            filename: file.originalname,
+            contentType: file.mimetype,
+        });
+
+        const response = await axios.post(
+            `https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendDocument`,
+            formData,
+            { headers: formData.getHeaders() }
+        );
+
+        return res.status(200).send(response.data);
+    } catch (e) {
+        console.error("Telegram API error:", e.response?.data || e.message);
+        return res.status(500).send({
+            message: e.response?.data || e.message,
+        });
+    }
+});
 
 app.get('/api/orders', async function (req, res) {
     try {
@@ -124,6 +163,17 @@ app.get('/api/orders', async function (req, res) {
 app.get('/api/payments', async function (req, res) {
     try {
         const ret = await getIncomingPayment(req.query)
+        return res.status(200).send(ret)
+    } catch (e) {
+        console.log(e, "  bu e")
+        return res.status(400).send({
+            message: e
+        });
+    }
+})
+app.get('/api/act', async function (req, res) {
+    try {
+        const ret = await getAllActReport(req.query)
         return res.status(200).send(ret)
     } catch (e) {
         console.log(e, "  bu e")
@@ -285,7 +335,7 @@ app.patch('/api/draft/return/:id', async function (req, res) {
     try {
         let { id } = req.params
         await updateReturn(id, req.body)
-        return res.status(200).json()
+        return res.status(200).json({ message: 'Success' })
     } catch (e) {
         return res.status(400).send({
             message: e
@@ -363,8 +413,72 @@ async function getFilterItem() {
         return { value: rows };
     });
 }
+function getActSQL({ CardCode }) {
+    return `
+    WITH t AS (
+        SELECT
+          T2."CardCode",
+          T2."CardName",
+          T0."Debit",
+          T0."Credit",
+          T0."LineMemo",
+          SUM(T0."Debit" - T0."Credit")
+            OVER (PARTITION BY T2."CardCode" ORDER BY T0."RefDate", T0."TransId") AS "Салъдо нар",
+          T0."RefDate",
+          CASE
+            WHEN T1."TransType" = 13  THEN 'Продажа'
+            WHEN T1."TransType" = 14  THEN 'Отмена Продажа'
+            WHEN T1."TransType" = -2  THEN 'Нач. салъдо'
+            WHEN T1."TransType" = 163 THEN 'Корректировка закупки'
+            WHEN T1."TransType" = 164 THEN 'Отмена корректировка закупки'
+            WHEN T1."TransType" = 18  THEN 'Закупка'
+            WHEN T1."TransType" = 19  THEN 'Отмена закупки'
+            WHEN T1."TransType" = 24  THEN 'Входяшие платежи'
+            WHEN T1."TransType" = 30  THEN 'Бух. Операция'
+            WHEN T1."TransType" = 321 THEN 'Выверка'
+            WHEN T1."TransType" = 46  THEN 'Исходящие платежи'
+            ELSE 'Прочее'
+          END AS "Документ",
+          T0."TransId"
+        FROM ${db}."JDT1"  T0
+        JOIN ${db}."OJDT"  T1 ON T0."TransId" = T1."TransId"
+        JOIN ${db}."OCRD"  T2 ON T2."CardCode" = T0."ShortName"
+      
+        /* TransType-ga qarab 'canceled' flaglarini tekshirish uchun shartli LEFT JOINlar */
+        LEFT JOIN ${db}."OINV" inv   ON inv."TransId" = T1."TransId" AND T1."TransType" = 13   -- AR Invoice
+        LEFT JOIN ${db}."OPCH" apinv ON apinv."TransId" = T1."TransId" AND T1."TransType" = 18 -- AP Invoice
+        LEFT JOIN ${db}."ORCT" inpay ON inpay."TransId" = T1."TransId" AND T1."TransType" = 24 -- Incoming Payment
+        LEFT JOIN ${db}."OVPM" outp  ON outp."TransId" = T1."TransId" AND T1."TransType" = 46 -- Outgoing Payment
+      
+        WHERE
+          T2."CardCode" = '${CardCode}'
+          AND T1."StornoToTr" IS NULL
 
-// 2) Foydalanuvchi turi (parametrizatsiya bilan)
+          AND T0."TransId" NOT IN (
+            SELECT A0."StornoToTr" FROM ${db}."OJDT" A0 WHERE A0."StornoToTr" IS NOT NULL
+          )
+          AND COALESCE(inv."CANCELED", 'N')  = 'N'
+          AND COALESCE(apinv."CANCELED", 'N')= 'N'
+          AND COALESCE(inpay."Canceled", 'N')= 'N'
+          AND COALESCE(outp."Canceled", 'N') = 'N'
+      
+        ORDER BY T2."CardCode", T0."RefDate", T0."TransId"
+      )
+      SELECT
+        "CardCode", "CardName", "Debit", "Credit", "Салъдо нар",
+        "RefDate", "Документ", "TransId", "LineMemo"
+      FROM t;
+       `;
+}
+
+async function getAllActReport({ CardCode = '' }) {
+    const sql = getActSQL({ CardCode });
+
+    return withConn(async (conn) => {
+        const rows = await execAsync(conn, sql);
+        return rows; // sendExcelAct shu rows bilan to'g'ridan-to'g'ri ishlaydi
+    });
+}
 async function getUserType(userCode) {
     const sql = `
       SELECT "U_type", "U_cardAcct", "U_acctMainCashbox", "U_ePaymentAcct", "U_bankTransferAcct"
@@ -511,7 +625,6 @@ async function checkCustomerBalance({ customerCode = '', summa = 0 }) {
 
     return withConn(async (conn) => {
         const rows = await execAsync(conn, sql, params);
-        // Hech narsa topilmasa — default false
         const over = rows?.[0]?.OVER_LIMIT === 1;
         return { value: over };        // { value: true/false }
     });
@@ -720,8 +833,7 @@ async function getItems({
 
         // NOT IN items
         if (itemsArr.length) {
-            where.push(`T0."ItemCode" NOT IN (${inPlaceholders(itemsArr)})`);
-            params.push(...itemsArr);
+            where.push(`T0."ItemCode" NOT IN (${itemsArr})`);
         }
 
         if (code && String(code).length) {
@@ -747,6 +859,7 @@ async function getItems({
         const whereSql = `WHERE ${where.join(' AND ')} AND T0."frozenFor" = 'N'`;
 
         // CTE + ROW_NUMBER + COUNT(*) OVER() — LENGTH har qatorda
+
         const sql = `
       WITH filtered AS (
         SELECT
@@ -881,7 +994,8 @@ async function getItemsReturn({
     group = '',
     category = '',
     code = '',
-    stockFilter
+    stockFilter,
+    priceList = 1,
 }) {
     try {
         // page/limitni tayyorlab oling
@@ -891,14 +1005,14 @@ async function getItemsReturn({
 
         // IN ro'yxatlarni tayyorlash
         const seriesArr = toArrayMaybe(type === 'Tools' ? seriesTools : series);     // bo'sh bo'lsa, 
-        const itemsArr = Array.isArray(items) ? items : toArrayMaybe(items);
+        const itemsArr = toArrayMaybe(items);
 
         // WHERE bo‘lib boradigan shartlar va params
         const where = [];
         const params = [];
 
         // Asosiy shartlar
-        where.push(`T3."PriceList" = 1`);
+        where.push(`T3."PriceList" = ${priceList || 1}`);
         where.push(`T1."WhsCode" = T0."DfltWH"`);
 
         // Series / Tools OR sharti
@@ -921,8 +1035,7 @@ async function getItemsReturn({
 
         // NOT IN items
         if (itemsArr.length) {
-            where.push(`T0."ItemCode" NOT IN (${inPlaceholders(itemsArr)})`);
-            params.push(...itemsArr);
+            where.push(`T0."ItemCode" NOT IN (${itemsArr})`);
         }
 
         // code / category
@@ -1023,7 +1136,6 @@ async function getOrders({
     const end = start + size;
 
     return withConn(async (conn) => {
-        // 1) JSON manbadan tayyorlash
         const rawJson = infoData();
         const jsonData = (type === 'Tools')
             ? rawJson.filter(item => item?.state?.[0]?.type === 'Tools')
@@ -1098,13 +1210,12 @@ async function getOrders({
         }
 
         const hanaRows = await execAsync(conn, sql, params);
-
         const hanaClean = hanaRows
             .sort((a, b) => b.DocEntry - a.DocEntry)
             .filter(r => !r?.U_whs) // sizdagi shart
             .map(r => ({
-                KUB: Number(r.kub) || 0,
-                BRUTTO: Number(r.brutto) || 0,
+                KUB: Number(r.KUB) || 0,
+                BRUTTO: Number(r.BRUTTO) || 0,
                 DocTotal: Number(r.DocTotal) || 0,
                 U_status: r.U_status,
                 SlpCode: r.SlpCode,

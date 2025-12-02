@@ -74,14 +74,14 @@ let statuses = {
         color: '#FFFFFF',
         backgroundColor: '#0056B3',
         name: 'Подтвердить',
-        access: [4, 5, 6],
+        access: [4, 5],
         actualName: 'Подтвержден'
     },
     5: {
         color: '#FFFFFF',
         backgroundColor: '#00A2C7',
         name: 'Напечатать',
-        access: [5, 6, 8],
+        access: [5, 8],
         actualName: 'Печатанный'
     },
     6: {

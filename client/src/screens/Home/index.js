@@ -442,7 +442,7 @@ const Home = () => {
               return aValue - bValue;
             })
             if (get(data, 'value', []).length) {
-              sandTableToExcelWithoutTotal({ mainData: sortedData, type: userType })
+              sandTableToExcelWithoutTotal({ mainData: sortedData, userType })
             }
             setUpdateLoading(false)
           }).catch(e => {
@@ -574,7 +574,7 @@ const Home = () => {
                 return aValue - bValue;
               })
               if (get(data, 'value', []).length) {
-                sandTableToExcelWithoutTotal({ mainData: sortedData, type: userType })
+                sandTableToExcelWithoutTotal({ mainData: sortedData, userType })
               }
             }).catch(e => {
               errorNotify(`Get order by DocEntry ${e} 

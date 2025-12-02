@@ -9,6 +9,7 @@ import formatterCurrency from '../../../helpers/currency';
 import { errorNotify, successNotify } from '../../Helper';
 import { useSelector, useDispatch } from 'react-redux';
 import { ClipLoader } from 'react-spinners';
+import { sendExcelAct } from './excel';
 
 let url = process.env.REACT_APP_API_URL
 const customStyles = {
@@ -55,6 +56,7 @@ const BusinessPartnerModal = ({ getRef }) => {
     Phone2: '',
     Currency: 'UZS',
     Balance: 0,
+    U_discount: 'no',
   });
 
   useEffect(() => {
@@ -100,7 +102,8 @@ const BusinessPartnerModal = ({ getRef }) => {
         GroupCode: userType === 'Tools' ? 111 : 100,
         Series: 72,
         PriceListNum: partner.ListNum,
-        "Currency": "##"
+        "Currency": "##",
+        U_discount: partner.U_discount
       };
 
       await axios.post(
@@ -157,7 +160,8 @@ const BusinessPartnerModal = ({ getRef }) => {
         CardName: partner.CardName,
         Phone1: partner.Phone1,
         Phone2: partner.Phone2,
-        PriceListNum: partner.ListNum
+        PriceListNum: partner.ListNum,
+        U_discount: partner.U_discount
       };
 
       await axios.patch(
@@ -248,20 +252,16 @@ const BusinessPartnerModal = ({ getRef }) => {
                 />
               </div>
 
+              <select
+                disabled={mode === 'view'}
+                value={partner.U_discount}
+                onChange={(e) => handleChange('U_discount', e.target.value)}
+                className='filter-inp'
+              >
+                <option value="yes">Есть</option>
+                <option value="no">Нет</option>
+              </select>
               {/* <div className='filter-manager'>
-                <h3 className='filter-title'>Валюта</h3>
-                <select
-                  disabled={mode === 'view'}
-                  value={partner.Currency}
-                  onChange={(e) => handleChange('Currency', e.target.value)}
-                  className='filter-inp'
-                >
-                  <option value="UZS">UZS</option>
-                  <option value="USD">USD</option>
-                  <option value="ALL">Все валюты</option>
-                </select>
-              </div>
-              <div className='filter-manager'>
                 <h3 className='filter-title'>Прайс-лист</h3>
                 <select
                   value={+partner.ListNum}
@@ -290,6 +290,40 @@ const BusinessPartnerModal = ({ getRef }) => {
               )}
 
             </div>
+
+            <button
+              className='btn-excel'
+              onClick={async () => {
+                try {
+                  setLoading(true);
+                  const { data: rows } = await axios.get(
+                    `${url}/api/act?CardCode=${partner.CardCode}`,
+                    {
+                      headers: {
+                        info: JSON.stringify({
+                          Cookie: get(getMe, 'Cookie[0]', '') + get(getMe, 'Cookie[1]', ''),
+                          SessionId: get(getMe, 'SessionId', ''),
+                        }),
+                      },
+                    }
+                  );
+
+                  if (!Array.isArray(rows) || rows.length === 0) {
+                    errorNotify("Ma'lumot topilmadi");
+                  } else {
+                    await sendExcelAct(rows);
+                    successNotify("Excel yaratildi");
+                  }
+                  setLoading(false);
+                } catch (e) {
+                  errorNotify("Excel yaratishda xatolik");
+                } finally {
+                  setLoading(false);
+                }
+              }}
+            >
+              Download as Excel
+            </button>
 
             <div className='card-buttons'>
               {(mode === 'add' || mode === 'edit') && (
