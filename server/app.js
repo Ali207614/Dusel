@@ -22,7 +22,7 @@ const app = express();
 
 
 
-const port = 5000;
+const port = process.env.PORT || 6000;
 
 
 app.use(compression({
