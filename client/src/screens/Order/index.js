@@ -532,8 +532,9 @@ const Order = () => {
         return obj
       })
     }
+
     let body = !get(docEntry, 'draft') ? schema : actualData.map(item => {
-      return { ...item, DiscPrcnt: Number((customerDataInvoice && get(customerDataInvoice, 'U_discount') !== 'no') ? get(item, 'Discount', 0) : 0), CardName: customer, CardCode: customerCode, ...date, WhsCode: warehouse, Quantity: item.value, schema, salesPersonCode, salesPerson, comment, ...customerDataInvoice, U_logsum: logist, type: userType }
+      return { DiscPrcnt: Number((customerDataInvoice && get(customerDataInvoice, 'U_discount') !== 'no') ? get(item, 'Discount', 0) : 0), CardName: customer, CardCode: customerCode, ...date, WhsCode: warehouse, Quantity: item.value, schema, salesPersonCode, salesPerson, comment, ...customerDataInvoice, U_logsum: logist, type: userType, ...item }
     })
     setOrderLoading(true)
     axios
