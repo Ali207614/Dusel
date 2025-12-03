@@ -461,6 +461,7 @@ function getActSQL({ CardCode }) {
           AND COALESCE(apinv."CANCELED", 'N')= 'N'
           AND COALESCE(inpay."Canceled", 'N')= 'N'
           AND COALESCE(outp."Canceled", 'N') = 'N'
+          AND T1."TransType" <> 14 
       
         ORDER BY T2."CardCode", T0."RefDate", T0."TransId"
       )
